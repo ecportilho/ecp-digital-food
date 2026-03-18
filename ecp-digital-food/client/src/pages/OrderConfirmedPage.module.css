@@ -1,0 +1,101 @@
+.screenTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0;
+}
+
+.successCard {
+  text-align: center;
+  padding: 32px 22px;
+}
+
+.successIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(47, 211, 135, 0.14);
+  display: inline-grid;
+  place-items: center;
+  font-size: 2.5rem;
+  margin-bottom: 14px;
+  animation: checkPop 0.3s ease-out;
+}
+
+@keyframes checkPop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+/* Timeline */
+.timeline {
+  display: grid;
+  gap: 0;
+  padding: 18px 0;
+}
+
+.timelineStep {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  position: relative;
+}
+
+.timelineDot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  background: var(--surface-strong);
+  border: 2px solid var(--line);
+  position: relative;
+  z-index: 1;
+}
+
+.dotDone {
+  background: rgba(47, 211, 135, 0.14);
+  border-color: var(--success);
+}
+
+.dotActive {
+  background: var(--tag-bg);
+  border-color: var(--brand);
+  animation: processingPulse 2s infinite;
+}
+
+@keyframes processingPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(123, 97, 255, 0.2); }
+  50% { box-shadow: 0 0 0 16px rgba(123, 97, 255, 0); }
+}
+
+.timelineStep:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 46px;
+  width: 2px;
+  height: calc(100% - 32px);
+  background: var(--line);
+}
+
+.timelineStep.done:not(:last-child)::before {
+  background: var(--success);
+}
+
+.timelineInfo {
+  flex: 1;
+}
+
+.timelineTitle {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.timelineDesc {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 2px;
+}

@@ -1,0 +1,1481 @@
+{
+  "agent": "qa",
+  "phase": "03-product-delivery",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "test_map": {
+    "total_test_cases": 142,
+    "by_type": { "unit": 38, "integration": 34, "e2e": 42, "exploratory": 28 },
+    "by_priority": { "P0": 32, "P1": 68, "P2": 42 },
+    "epics": [
+      {
+        "epic_id": "E01",
+        "epic_title": "Descoberta e Navegacao",
+        "test_cases": [
+          {
+            "id": "CT-001",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Hero banner exibe promocao do dia com imagem, texto e CTA ao carregar a home",
+            "input": "Usuario logado acessa home; existe promocao global ativa",
+            "expected_result": "Hero banner renderizado com imagem promocional, texto da promo e botao de acao visivel",
+            "traced_to": "US-001 / AC-01"
+          },
+          {
+            "id": "CT-002",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Hero banner exibe banner institucional quando nao ha promocao ativa",
+            "input": "Usuario logado acessa home; nenhuma promocao global ativa no banco",
+            "expected_result": "Hero banner exibe banner institucional padrao com barra de busca em destaque, sem erro visual",
+            "traced_to": "US-001 / AC-02"
+          },
+          {
+            "id": "CT-003",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "API /api/restaurants retorna metricas ao vivo (restaurantes online, cupons ativos, frete medio)",
+            "input": "GET /api/categories + GET /api/restaurants com restaurantes seed ativos",
+            "expected_result": "Response inclui contagem de restaurantes online > 0, cupons ativos >= 1, frete medio calculado corretamente",
+            "traced_to": "US-002 / AC-01"
+          },
+          {
+            "id": "CT-004",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Metricas ao vivo quando nenhum restaurante esta online",
+            "input": "Todos os restaurantes com is_open = 0",
+            "expected_result": "Metrica mostra '0' restaurantes online e mensagem 'Restaurantes abrem em breve'",
+            "traced_to": "US-002 / AC-02"
+          },
+          {
+            "id": "CT-005",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Filtrar restaurantes por categoria via chip 'Japones'",
+            "input": "Usuario na home toca no chip 'Japones'",
+            "expected_result": "Apenas restaurantes da categoria Japones exibidos; contador de resultados atualizado",
+            "traced_to": "US-003 / AC-01"
+          },
+          {
+            "id": "CT-006",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Remover filtro de categoria tocando em 'Todos'",
+            "input": "Usuario filtrou por 'Japones'; toca no chip 'Todos'",
+            "expected_result": "Todos os restaurantes exibidos novamente sem filtro; contador atualizado",
+            "traced_to": "US-003 / AC-02"
+          },
+          {
+            "id": "CT-007",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Categoria sem restaurantes disponiveis",
+            "input": "Usuario toca em categoria sem restaurantes online",
+            "expected_result": "Mensagem 'Nenhum restaurante disponivel nesta categoria' com sugestao de explorar outras",
+            "traced_to": "US-003 / AC-03"
+          },
+          {
+            "id": "CT-008",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Card de restaurante renderiza todas as informacoes obrigatorias",
+            "input": "Restaurante com dados completos (cover, nome, rating, ETA, frete, pedido minimo, tags)",
+            "expected_result": "Card exibe: foto de capa com gradiente, nome, subtitulo, rating com estrelas, ETA, taxa de entrega, pedido minimo, tags e badge de promo (se houver)",
+            "traced_to": "US-004 / AC-01"
+          },
+          {
+            "id": "CT-009",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Card de restaurante com promocao ativa exibe badge de promo",
+            "input": "Restaurante com promo_text = '20% OFF'",
+            "expected_result": "Badge de promocao '20% OFF' visivel em destaque no card",
+            "traced_to": "US-004 / AC-02"
+          },
+          {
+            "id": "CT-010",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Busca por nome de restaurante retorna sugestoes agrupadas",
+            "input": "GET /api/restaurants?q=Kazu",
+            "expected_result": "Response inclui 'Kazu Sushi Bar' na lista de restaurantes; debounce de 300ms no frontend",
+            "traced_to": "US-005 / AC-01"
+          },
+          {
+            "id": "CT-011",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Busca sem resultados exibe mensagem amigavel",
+            "input": "Usuario digita 'xyznonexistent' na barra de busca",
+            "expected_result": "Mensagem 'Nenhum resultado encontrado para xyznonexistent' com sugestao de explorar categorias",
+            "traced_to": "US-005 / AC-02"
+          },
+          {
+            "id": "CT-012",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Busca por nome de prato retorna sugestoes agrupadas por tipo",
+            "input": "GET /api/restaurants?q=hamburguer",
+            "expected_result": "Response inclui restaurantes de hamburguer e itens contendo 'hamburguer'",
+            "traced_to": "US-006 / AC-01"
+          },
+          {
+            "id": "CT-013",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Selecionar sugestao de categoria filtra catalogo",
+            "input": "Usuario digita 'pizza', toca na sugestao 'Pizza' na secao Categorias",
+            "expected_result": "Catalogo filtra para restaurantes de Pizza; busca fecha",
+            "traced_to": "US-006 / AC-02"
+          },
+          {
+            "id": "CT-014",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Acessar detalhe do restaurante a partir do card",
+            "input": "Usuario toca em card de restaurante na home",
+            "expected_result": "Tela de detalhe abre com banner (nome, subtitulo, rating, avaliacoes, ETA, frete) e promo ativa se houver",
+            "traced_to": "US-007 / AC-01"
+          },
+          {
+            "id": "CT-015",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Visualizar grid de itens do cardapio do restaurante",
+            "input": "Usuario na tela de detalhe do restaurante scrolla para cardapio",
+            "expected_result": "Grid de itens exibido, cada item com foto/emoji, nome, descricao, preco, badge e botao 'Adicionar'",
+            "traced_to": "US-008 / AC-01"
+          },
+          {
+            "id": "CT-016",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Item com badge 'Best Seller' exibe destaque visual",
+            "input": "Menu item com badge = 'Best Seller'",
+            "expected_result": "Badge 'Best Seller' renderizado com destaque visual no card do item",
+            "traced_to": "US-008 / AC-02"
+          },
+          {
+            "id": "CT-017",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Adicionar item ao carrinho a partir do cardapio",
+            "input": "Usuario toca em 'Adicionar' em um item do cardapio",
+            "expected_result": "Item adicionado ao carrinho com quantidade 1; badge do carrinho incrementa; feedback visual exibido",
+            "traced_to": "US-009 / AC-01"
+          },
+          {
+            "id": "CT-018",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Adicionar mesmo item novamente incrementa quantidade",
+            "input": "POST /api/cart/items com menu_item_id ja existente no carrinho",
+            "expected_result": "Quantidade do item no carrinho incrementa para 2 (UNIQUE constraint respeitada, upsert)",
+            "traced_to": "US-009 / AC-02"
+          },
+          {
+            "id": "CT-019",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Busca com caracteres especiais nao quebra a aplicacao",
+            "input": "Usuario digita '<script>alert(1)</script>' na barra de busca",
+            "expected_result": "Input sanitizado; nenhum script executado; mensagem de nenhum resultado ou resultado vazio",
+            "traced_to": "US-005 / Seguranca"
+          },
+          {
+            "id": "CT-020",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Busca com string vazia nao dispara requisicao",
+            "input": "Usuario limpa campo de busca completamente",
+            "expected_result": "Nenhuma requisicao enviada; catalogo volta ao estado sem filtro",
+            "traced_to": "US-005 / Performance"
+          }
+        ]
+      },
+      {
+        "epic_id": "E02",
+        "epic_title": "Carrinho e Checkout",
+        "test_cases": [
+          {
+            "id": "CT-021",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Visualizar carrinho com itens adicionados (sidebar desktop / bottom sheet mobile)",
+            "input": "Usuario com 2 itens no carrinho abre o painel de carrinho",
+            "expected_result": "Cada item listado com nome, restaurante de origem, preco unitario e quantidade",
+            "traced_to": "US-010 / AC-01"
+          },
+          {
+            "id": "CT-022",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Carrinho vazio exibe mensagem e CTA",
+            "input": "Usuario sem itens no carrinho abre o painel",
+            "expected_result": "Mensagem 'Seu carrinho esta vazio' com CTA para explorar restaurantes",
+            "traced_to": "US-010 / AC-02"
+          },
+          {
+            "id": "CT-023",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Incrementar quantidade de item no carrinho via botao +",
+            "input": "PUT /api/cart/items/:itemId com quantity = 2",
+            "expected_result": "Quantidade muda para 2; resumo financeiro (subtotal, total) atualiza automaticamente",
+            "traced_to": "US-011 / AC-01"
+          },
+          {
+            "id": "CT-024",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Remover item ao decrementar quantidade para zero",
+            "input": "Item com quantidade 1; PUT /api/cart/items/:itemId com quantity = 0 ou DELETE",
+            "expected_result": "Item removido do carrinho; resumo financeiro atualiza",
+            "traced_to": "US-011 / AC-02"
+          },
+          {
+            "id": "CT-025",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Resumo financeiro com cupom MVP10 aplicado",
+            "input": "Carrinho com subtotal R$100, entrega R$8.90, cupom MVP10 (R$10 fixo)",
+            "expected_result": "Exibe: Subtotal R$100.00, Entrega R$8.90, Desconto -R$10.00 (MVP10), Total R$98.90",
+            "traced_to": "US-012 / AC-01"
+          },
+          {
+            "id": "CT-026",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Resumo financeiro sem cupom nao exibe linha de desconto",
+            "input": "Carrinho com subtotal R$60, entrega R$6.90, sem cupom",
+            "expected_result": "Exibe: Subtotal R$60.00, Entrega R$6.90, Total R$66.90 (sem linha de desconto)",
+            "traced_to": "US-012 / AC-02"
+          },
+          {
+            "id": "CT-027",
+            "type": "unit",
+            "priority": "P0",
+            "scenario": "boundary",
+            "description": "Barra de progresso frete gratis com subtotal abaixo de R$120",
+            "input": "Carrinho com subtotal R$88",
+            "expected_result": "Barra exibe 'Faltam R$32 para frete gratis!' com preenchimento 73%",
+            "traced_to": "US-013 / AC-01"
+          },
+          {
+            "id": "CT-028",
+            "type": "unit",
+            "priority": "P0",
+            "scenario": "boundary",
+            "description": "Frete gratis ativado ao atingir R$120",
+            "input": "Carrinho com subtotal R$125",
+            "expected_result": "Barra de progresso completa em verde; texto 'Parabens! Frete gratis!'; taxa de entrega R$0.00",
+            "traced_to": "US-013 / AC-02"
+          },
+          {
+            "id": "CT-029",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Frete gratis no exato limite de R$120",
+            "input": "Carrinho com subtotal exatamente R$120.00",
+            "expected_result": "Frete gratis ativado; taxa de entrega = R$0.00",
+            "traced_to": "US-013 / Boundary"
+          },
+          {
+            "id": "CT-030",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Badge de contagem de itens visivel em qualquer tela",
+            "input": "Usuario com 3 itens no carrinho navega por diferentes paginas",
+            "expected_result": "Icone do carrinho exibe badge com numero '3' em todas as telas",
+            "traced_to": "US-014 / AC-01"
+          },
+          {
+            "id": "CT-031",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Badge desaparece quando carrinho fica vazio",
+            "input": "Usuario remove todos os itens do carrinho",
+            "expected_result": "Badge de contagem nao e exibido; icone do carrinho sem numero",
+            "traced_to": "US-014 / AC-02"
+          },
+          {
+            "id": "CT-032",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Resumo do pedido no checkout com todos os detalhes",
+            "input": "Usuario toca em 'Ir para checkout' com itens no carrinho",
+            "expected_result": "Checkout exibe: lista de itens com nome/quantidade/preco, endereco de entrega, subtotal, entrega, desconto e total",
+            "traced_to": "US-015 / AC-01"
+          },
+          {
+            "id": "CT-033",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Aplicar cupom MVP10 com validacao bem-sucedida",
+            "input": "POST /api/coupons/validate com code='MVP10', subtotal >= R$80",
+            "expected_result": "Desconto de R$10 aplicado; resumo financeiro atualiza; mensagem 'Cupom MVP10 aplicado!'",
+            "traced_to": "US-016 / AC-01"
+          },
+          {
+            "id": "CT-034",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Cupom invalido retorna erro",
+            "input": "POST /api/coupons/validate com code='INVALID_CODE'",
+            "expected_result": "Response 400; mensagem 'Cupom invalido ou expirado'; nenhum desconto aplicado",
+            "traced_to": "US-016 / AC-02"
+          },
+          {
+            "id": "CT-035",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Remover cupom aplicado restaura valor original",
+            "input": "Usuario com MVP10 aplicado toca em 'Remover cupom'",
+            "expected_result": "Desconto removido; resumo financeiro volta ao valor sem desconto",
+            "traced_to": "US-016 / AC-03"
+          },
+          {
+            "id": "CT-036",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Endereco salvo exibido no checkout com opcao de editar",
+            "input": "Usuario com endereco cadastrado acessa checkout",
+            "expected_result": "Endereco salvo exibido como endereco de entrega com botao 'Editar'",
+            "traced_to": "US-017 / AC-01"
+          },
+          {
+            "id": "CT-037",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Editar endereco de entrega no checkout",
+            "input": "Usuario toca em 'Editar endereco' no checkout",
+            "expected_result": "Campo editavel permite alterar o endereco de entrega",
+            "traced_to": "US-017 / AC-02"
+          },
+          {
+            "id": "CT-038",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Confirmacao do pedido exibe numero de protocolo apos pagamento",
+            "input": "Pagamento confirmado com sucesso",
+            "expected_result": "Tela exibe animacao de confirmacao, numero de protocolo, resumo dos itens e botao 'Acompanhar pedido'",
+            "traced_to": "US-018 / AC-01"
+          },
+          {
+            "id": "CT-039",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Acompanhar status do pedido com linha do tempo",
+            "input": "Restaurante atualizou status para 'Preparando'",
+            "expected_result": "Linha do tempo destaca 'Preparando' como etapa atual; etapas anteriores marcadas como concluidas",
+            "traced_to": "US-019 / AC-01"
+          },
+          {
+            "id": "CT-040",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Status 'Entregue' marca todas as etapas como concluidas",
+            "input": "Status do pedido atualizado para 'Entregue'",
+            "expected_result": "Todas as etapas da linha do tempo concluidas; mensagem 'Bom apetite!' exibida",
+            "traced_to": "US-019 / AC-02"
+          },
+          {
+            "id": "CT-041",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Calculo de total nunca fica negativo (desconto > subtotal+frete)",
+            "input": "Subtotal R$15, frete R$5, desconto R$30 (cupom com valor alto)",
+            "expected_result": "Total = max(15 + 5 - 30, 0) = R$0.00, nao negativo",
+            "traced_to": "US-012 / Regra 6.2"
+          },
+          {
+            "id": "CT-042",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Cupom MVP10 rejeitado se subtotal < min_order (R$80)",
+            "input": "POST /api/coupons/validate com code='MVP10', subtotal R$50",
+            "expected_result": "Response 400; mensagem indicando pedido minimo nao atingido",
+            "traced_to": "US-016 / Regra 6.5"
+          },
+          {
+            "id": "CT-043",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Carrinho persiste entre navegacao de paginas (server-side)",
+            "input": "Usuario adiciona itens, navega para outra pagina e retorna ao carrinho",
+            "expected_result": "Itens permanecem no carrinho com mesmas quantidades",
+            "traced_to": "US-010 / Regra 6.1"
+          }
+        ]
+      },
+      {
+        "epic_id": "E03",
+        "epic_title": "Pagamento Integrado ECP Digital Bank",
+        "test_cases": [
+          {
+            "id": "CT-044",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Autenticar no ECP Digital Bank pela primeira vez durante checkout",
+            "input": "Usuario seleciona 'Pagar com Cartao ECP'; primeira autenticacao na sessao",
+            "expected_result": "Campos inline de email/senha aparecem com label 'Conecte sua conta ECP Digital Bank'",
+            "traced_to": "US-020 / AC-01"
+          },
+          {
+            "id": "CT-045",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Autenticacao bem-sucedida no banco retorna lista de cartoes",
+            "input": "POST /api/payments/bank-auth com credenciais validas do ecp-digital-bank",
+            "expected_result": "Loading exibido; lista de cartoes virtuais retornada com last4 e saldo",
+            "traced_to": "US-020 / AC-02"
+          },
+          {
+            "id": "CT-046",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "error",
+            "description": "Credenciais invalidas no banco retornam erro claro",
+            "input": "POST /api/payments/bank-auth com email ou senha incorretos",
+            "expected_result": "Mensagem 'Email ou senha invalidos'; campos permanecem editaveis",
+            "traced_to": "US-020 / AC-03"
+          },
+          {
+            "id": "CT-047",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Sessao ja autenticada no banco pula re-autenticacao",
+            "input": "Usuario ja autenticou no banco nesta sessao; seleciona 'Pagar com Cartao ECP' novamente",
+            "expected_result": "Cartoes virtuais aparecem imediatamente sem pedir credenciais",
+            "traced_to": "US-020 / AC-04"
+          },
+          {
+            "id": "CT-048",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Selecionar cartao virtual e ver resumo de confirmacao",
+            "input": "Usuario seleciona cartao '****4521 | Saldo: R$320.00' para pedido de R$64.70",
+            "expected_result": "Resumo exibe 'Debitar R$64.70 do cartao ****4521?' com botao 'Confirmar Pagamento'",
+            "traced_to": "US-021 / AC-01"
+          },
+          {
+            "id": "CT-049",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Pagamento com cartao confirmado com sucesso via POST /pix/transfer",
+            "input": "POST /api/payments/card com cartao valido e saldo suficiente",
+            "expected_result": "payment.status='completed'; order.status='confirmed'; animacao de check verde; transicao para acompanhamento",
+            "traced_to": "US-021 / AC-02"
+          },
+          {
+            "id": "CT-050",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "error",
+            "description": "Pagamento com saldo insuficiente retorna erro INSUFFICIENT_BALANCE",
+            "input": "POST /api/payments/card com cartao cujo saldo < total do pedido",
+            "expected_result": "Mensagem 'Saldo insuficiente neste cartao. Selecione outro cartao ou escolha PIX.'",
+            "traced_to": "US-021 / AC-03"
+          },
+          {
+            "id": "CT-051",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "QR Code PIX gerado com sucesso e exibido com instrucoes",
+            "input": "Usuario seleciona 'Pagar com PIX' no checkout",
+            "expected_result": "QR Code centralizado; valor em destaque acima; instrucoes passo a passo; timer de validade visivel",
+            "traced_to": "US-022 / AC-01"
+          },
+          {
+            "id": "CT-052",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Erro na geracao do QR Code exibe mensagem e botao de retry",
+            "input": "POST /api/payments/pix retorna erro (ecp-digital-bank indisponivel)",
+            "expected_result": "Mensagem 'Nao foi possivel gerar o QR Code. Tente novamente.' com botao 'Tentar novamente'",
+            "traced_to": "US-022 / AC-02"
+          },
+          {
+            "id": "CT-053",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Pagamento PIX confirmado via webhook + SSE atualiza tela em tempo real",
+            "input": "POST /api/webhooks/bank/pix-received com payload valido e HMAC correto",
+            "expected_result": "payment.status='completed'; SSE emite evento; frontend: QR desaparece, check verde, 'Pagamento confirmado!', botao 'Acompanhar pedido'",
+            "traced_to": "US-023 / AC-01"
+          },
+          {
+            "id": "CT-054",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "QR Code PIX expirado apos timeout de 10 minutos",
+            "input": "Timer do QR Code chega a zero sem pagamento recebido",
+            "expected_result": "Mensagem 'QR Code expirado'; botao 'Gerar novo QR Code'; payment.status='expired'",
+            "traced_to": "US-023 / AC-02"
+          },
+          {
+            "id": "CT-055",
+            "type": "unit",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Webhook PIX valida assinatura HMAC-SHA256 corretamente",
+            "input": "POST /api/webhooks/bank/pix-received com header X-Webhook-Signature valido",
+            "expected_result": "Webhook processado; payment atualizado; retorna 200 OK",
+            "traced_to": "US-023 / Seguranca Webhook"
+          },
+          {
+            "id": "CT-056",
+            "type": "unit",
+            "priority": "P0",
+            "scenario": "error",
+            "description": "Webhook PIX com assinatura HMAC invalida e rejeitado",
+            "input": "POST /api/webhooks/bank/pix-received com header X-Webhook-Signature invalido",
+            "expected_result": "Webhook rejeitado; retorna 200 OK (idempotencia); payment nao atualizado; erro logado internamente",
+            "traced_to": "US-023 / Seguranca Webhook"
+          },
+          {
+            "id": "CT-057",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Webhook duplicado nao processa pagamento duas vezes (idempotencia)",
+            "input": "Mesmo webhook enviado 2 vezes para payment ja 'completed'",
+            "expected_result": "Segundo webhook retorna 200 OK sem alterar estado; nenhum efeito colateral",
+            "traced_to": "US-023 / Regra 6.6 Idempotencia"
+          },
+          {
+            "id": "CT-058",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Conversao de reais para centavos e precisa (Math.round)",
+            "input": "Total do pedido R$64.70",
+            "expected_result": "amount_cents = 6470 (Math.round(64.70 * 100)); sem erros de ponto flutuante",
+            "traced_to": "US-021 / Regra 6.6"
+          },
+          {
+            "id": "CT-059",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Webhook com amountInCents divergente do payment.amount_cents e rejeitado",
+            "input": "Webhook com amountInCents=5000 mas payment.amount_cents=6470",
+            "expected_result": "Webhook rejeitado; retorna 200 OK; payment nao atualizado; erro logado",
+            "traced_to": "US-023 / Regra 6.6 Validacao"
+          },
+          {
+            "id": "CT-060",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Falha na API do banco durante pagamento com cartao marca payment como failed",
+            "input": "POST /api/payments/card; ecp-digital-bank retorna 500",
+            "expected_result": "payment.status='failed'; order.status='payment_failed'; carrinho nao limpo; mensagem de erro ao usuario",
+            "traced_to": "US-021 / Regra 6.6"
+          },
+          {
+            "id": "CT-061",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "bank_jwt_token limpo da tabela payments apos conclusao (sucesso ou falha)",
+            "input": "Pagamento com cartao finalizado (sucesso ou falha)",
+            "expected_result": "payments.bank_jwt_token = NULL apos processamento",
+            "traced_to": "US-020 / Seguranca"
+          },
+          {
+            "id": "CT-062",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Rate limiting de 5 req/min nas rotas /api/payments/*",
+            "input": "6 requisicoes em 1 minuto para /api/payments/card",
+            "expected_result": "6a requisicao retorna 429 Too Many Requests",
+            "traced_to": "Seguranca 6.6"
+          },
+          {
+            "id": "CT-063",
+            "type": "integration",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "SSE connection fecha quando payment muda para estado final",
+            "input": "SSE aberta para payment pendente; payment muda para 'completed'",
+            "expected_result": "SSE emite evento payment_update com status='completed'; conexao fechada pelo server",
+            "traced_to": "US-023 / SSE"
+          }
+        ]
+      },
+      {
+        "epic_id": "E04",
+        "epic_title": "Retencao e Recorrencia",
+        "test_cases": [
+          {
+            "id": "CT-064",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Visualizar historico de pedidos ordenado por data",
+            "input": "Usuario logado com pedidos anteriores acessa historico",
+            "expected_result": "Lista ordenada por data (mais recente primeiro) com cards: restaurante, data, itens, valor total, status",
+            "traced_to": "US-024 / AC-01"
+          },
+          {
+            "id": "CT-065",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Historico vazio exibe mensagem e CTA",
+            "input": "Usuario logado sem pedidos anteriores",
+            "expected_result": "Mensagem 'Voce ainda nao fez nenhum pedido' com CTA 'Explorar restaurantes'",
+            "traced_to": "US-024 / AC-02"
+          },
+          {
+            "id": "CT-066",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Repetir pedido anterior com todos os itens disponiveis",
+            "input": "Usuario toca 'Repetir' em pedido cujos itens estao todos disponiveis",
+            "expected_result": "Carrinho pre-populado com mesmos itens/quantidades; mensagem 'Carrinho preenchido com seu pedido de [data]!'",
+            "traced_to": "US-025 / AC-01"
+          },
+          {
+            "id": "CT-067",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Repetir pedido com item indisponivel remove item e avisa",
+            "input": "Usuario toca 'Repetir'; 1 de 3 itens esta desativado (is_available=0)",
+            "expected_result": "2 itens disponiveis adicionados; toast 'Sashimi Especial indisponivel hoje - removido do carrinho'",
+            "traced_to": "US-025 / AC-02"
+          },
+          {
+            "id": "CT-068",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Repetir pedido com restaurante offline bloqueia repeticao",
+            "input": "Usuario toca 'Repetir' de pedido cujo restaurante esta com is_open=0",
+            "expected_result": "Mensagem 'Restaurante [nome] esta fechado no momento. Tente novamente mais tarde.'; carrinho inalterado",
+            "traced_to": "US-025 / AC-03"
+          },
+          {
+            "id": "CT-069",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Favoritar restaurante via icone de coracao com animacao",
+            "input": "Usuario toca no coracao de restaurante nao favoritado",
+            "expected_result": "Coracao preenche com animacao; toast 'Restaurante salvo nos favoritos!'",
+            "traced_to": "US-026 / AC-01"
+          },
+          {
+            "id": "CT-070",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Desfavoritar restaurante remove da lista",
+            "input": "DELETE /api/favorites/:restaurantId",
+            "expected_result": "Coracao esvazia com animacao; restaurante removido da lista de favoritos",
+            "traced_to": "US-026 / AC-02"
+          },
+          {
+            "id": "CT-071",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Tela de favoritos com status dinamico (online/offline, promo, ETA)",
+            "input": "Usuario com 3 restaurantes favoritados acessa tela de favoritos",
+            "expected_result": "Cada restaurante mostra: nome, foto, status Online/Offline, ETA, taxa de entrega, badge de promo",
+            "traced_to": "US-027 / AC-01"
+          },
+          {
+            "id": "CT-072",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "error",
+            "description": "Tela de favoritos vazia exibe mensagem e CTA",
+            "input": "Usuario sem restaurantes favoritados",
+            "expected_result": "Mensagem 'Voce ainda nao tem favoritos' com CTA 'Explorar restaurantes'",
+            "traced_to": "US-027 / AC-02"
+          },
+          {
+            "id": "CT-073",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Modal de cupom de boas-vindas no primeiro login",
+            "input": "Consumidor recen-criado faz login pela primeira vez",
+            "expected_result": "Modal celebratorio: 'Bem-vindo ao FoodFlow! 10% OFF... Cupom MVP10 ja salvo!' com botao 'Explorar Restaurantes'",
+            "traced_to": "US-028 / AC-01"
+          },
+          {
+            "id": "CT-074",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Cupom MVP10 visivel na secao de cupons do perfil",
+            "input": "Usuario que recebeu cupom MVP10 acessa perfil > cupons",
+            "expected_result": "Cupom MVP10 listado como disponivel com regra '10% de desconto no primeiro pedido'",
+            "traced_to": "US-028 / AC-02"
+          },
+          {
+            "id": "CT-075",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Incentivo de proximo pedido na tela de confirmacao",
+            "input": "Pagamento confirmado; tela de confirmacao exibida",
+            "expected_result": "Alem do protocolo, destaque: 'Sabia que pedidos acima de R$120 tem frete gratis?'",
+            "traced_to": "US-029 / AC-01"
+          },
+          {
+            "id": "CT-076",
+            "type": "integration",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Favoritar restaurante duplicado nao cria duplicata (UNIQUE constraint)",
+            "input": "POST /api/favorites com restaurantId ja favoritado",
+            "expected_result": "Nenhuma duplicata criada; resposta 200 ou 409; constraint UNIQUE(user_id, restaurant_id) respeitada",
+            "traced_to": "US-026 / Boundary"
+          }
+        ]
+      },
+      {
+        "epic_id": "E05",
+        "epic_title": "Onboarding e Autenticacao",
+        "test_cases": [
+          {
+            "id": "CT-077",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Cadastro de consumidor com dados validos cria conta e loga automaticamente",
+            "input": "POST /api/auth/register com nome='Joao', email='joao@test.com', password='abc123', confirmPassword='abc123'",
+            "expected_result": "Conta criada; JWT retornado; usuario redirecionado para home",
+            "traced_to": "US-030 / AC-01"
+          },
+          {
+            "id": "CT-078",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "error",
+            "description": "Cadastro com email ja existente retorna erro",
+            "input": "POST /api/auth/register com email='user@foodflow.com' (ja existe)",
+            "expected_result": "Response 409; mensagem 'Este email ja esta cadastrado. Faca login.' com link para login",
+            "traced_to": "US-030 / AC-02"
+          },
+          {
+            "id": "CT-079",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Cadastro com senha menor que 6 caracteres e rejeitado",
+            "input": "POST /api/auth/register com password='12345'",
+            "expected_result": "Validacao: 'A senha deve ter pelo menos 6 caracteres'",
+            "traced_to": "US-030 / AC-03"
+          },
+          {
+            "id": "CT-080",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Cadastro com email invalido e rejeitado",
+            "input": "POST /api/auth/register com email='not-an-email'",
+            "expected_result": "Validacao: formato de email invalido",
+            "traced_to": "US-030 / Validacao"
+          },
+          {
+            "id": "CT-081",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Cadastro com nome vazio e rejeitado",
+            "input": "POST /api/auth/register com name=''",
+            "expected_result": "Validacao: 'Nome e obrigatorio'",
+            "traced_to": "US-030 / Validacao"
+          },
+          {
+            "id": "CT-082",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Cadastro com senha e confirmacao diferentes e rejeitado",
+            "input": "password='abc123', confirmPassword='xyz789'",
+            "expected_result": "Validacao: 'Senhas nao conferem'",
+            "traced_to": "US-030 / Validacao"
+          },
+          {
+            "id": "CT-083",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Login com credenciais corretas retorna JWT",
+            "input": "POST /api/auth/login com email='user@foodflow.com', password='user123'",
+            "expected_result": "JWT retornado; usuario redirecionado para home; sessao ativa",
+            "traced_to": "US-031 / AC-01"
+          },
+          {
+            "id": "CT-084",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "error",
+            "description": "Login com credenciais invalidas retorna erro",
+            "input": "POST /api/auth/login com email='user@foodflow.com', password='wrong'",
+            "expected_result": "Response 401; mensagem 'Email ou senha incorretos'",
+            "traced_to": "US-031 / AC-02"
+          },
+          {
+            "id": "CT-085",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Sessao persistente via JWT nao-expirado",
+            "input": "Usuario logado fecha browser e reabre FoodFlow (JWT valido)",
+            "expected_result": "Usuario automaticamente logado sem digitar credenciais",
+            "traced_to": "US-031 / AC-03"
+          },
+          {
+            "id": "CT-086",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Cadastrar primeiro endereco de entrega",
+            "input": "POST /api/consumer/addresses com rua, numero, bairro, cidade, CEP validos",
+            "expected_result": "Endereco salvo como padrao; exibido no perfil",
+            "traced_to": "US-032 / AC-01"
+          },
+          {
+            "id": "CT-087",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Adicionar segundo endereco e escolher padrao",
+            "input": "POST /api/consumer/addresses com segundo endereco",
+            "expected_result": "Segundo endereco salvo; usuario pode escolher qual e padrao",
+            "traced_to": "US-032 / AC-02"
+          },
+          {
+            "id": "CT-088",
+            "type": "integration",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Excluir endereco nao-padrao",
+            "input": "DELETE /api/consumer/addresses/:id (endereco nao-padrao)",
+            "expected_result": "Endereco removido da lista",
+            "traced_to": "US-033 / AC-02"
+          },
+          {
+            "id": "CT-089",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Visualizar e editar dados pessoais no perfil",
+            "input": "Usuario acessa perfil; altera nome e toca 'Salvar'",
+            "expected_result": "Nome atualizado; mensagem 'Dados atualizados com sucesso'",
+            "traced_to": "US-034 / AC-01 + AC-02"
+          },
+          {
+            "id": "CT-090",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Visualizar cupons disponiveis no perfil",
+            "input": "Usuario com cupons ativos acessa secao de cupons",
+            "expected_result": "Lista de cupons com codigo, descricao, percentual e validade exibida",
+            "traced_to": "US-035 / AC-01"
+          },
+          {
+            "id": "CT-091",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "error",
+            "description": "Secao de cupons vazia exibe mensagem",
+            "input": "Usuario sem cupons ativos acessa secao de cupons",
+            "expected_result": "Mensagem 'Nenhum cupom disponivel no momento'",
+            "traced_to": "US-035 / AC-02"
+          },
+          {
+            "id": "CT-092",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Logout remove JWT e redireciona para login",
+            "input": "Usuario logado toca em 'Sair' no perfil",
+            "expected_result": "JWT removido; sessao encerrada; redirecionado para tela de login",
+            "traced_to": "US-036 / AC-01"
+          },
+          {
+            "id": "CT-093",
+            "type": "unit",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Senha armazenada com hash bcryptjs (rounds 12)",
+            "input": "Registro de usuario com senha 'abc123'",
+            "expected_result": "password_hash no banco inicia com '$2a$12$'; plaintext nunca armazenado",
+            "traced_to": "US-030 / Seguranca 10"
+          },
+          {
+            "id": "CT-094",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "JWT expira apos 24h e requer re-autenticacao",
+            "input": "Token JWT com iat de 25h atras",
+            "expected_result": "Requisicao com token expirado retorna 401; usuario redirecionado para login",
+            "traced_to": "US-031 / Regra 6.4"
+          },
+          {
+            "id": "CT-095",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Rate limiting de 10 req/min nas rotas de auth",
+            "input": "11 requisicoes em 1 minuto para POST /api/auth/login",
+            "expected_result": "11a requisicao retorna 429 Too Many Requests",
+            "traced_to": "Seguranca 10"
+          }
+        ]
+      },
+      {
+        "epic_id": "E06",
+        "epic_title": "Gestao do Restaurante",
+        "test_cases": [
+          {
+            "id": "CT-096",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Adicionar item ao cardapio com dados completos",
+            "input": "POST /api/restaurant-admin/menu com nome='Hamburguer Artesanal', preco=42.90, badge='Best Seller', emoji, descricao",
+            "expected_result": "Item criado; aparece na lista do cardapio; preview disponivel",
+            "traced_to": "US-037 / AC-01"
+          },
+          {
+            "id": "CT-097",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Adicionar item sem nome ou preco retorna validacao",
+            "input": "POST /api/restaurant-admin/menu com name='' e price=null",
+            "expected_result": "Validacao: 'Nome e obrigatorio' e/ou 'Preco e obrigatorio'",
+            "traced_to": "US-037 / AC-02"
+          },
+          {
+            "id": "CT-098",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Editar preco de item do cardapio",
+            "input": "PUT /api/restaurant-admin/menu/:id com price=44.90",
+            "expected_result": "Preco atualizado; preview reflete novo valor",
+            "traced_to": "US-038 / AC-01"
+          },
+          {
+            "id": "CT-099",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Desativar item do cardapio via toggle",
+            "input": "PUT /api/restaurant-admin/menu/:id com is_available=0",
+            "expected_result": "Item marcado como inativo; nao aparece no cardapio para consumidores; indicacao visual no painel",
+            "traced_to": "US-039 / AC-01"
+          },
+          {
+            "id": "CT-100",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Reativar item desativado do cardapio",
+            "input": "PUT /api/restaurant-admin/menu/:id com is_available=1",
+            "expected_result": "Item volta a aparecer no cardapio para consumidores",
+            "traced_to": "US-039 / AC-02"
+          },
+          {
+            "id": "CT-101",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Reordenar itens do cardapio",
+            "input": "Restaurante arrasta item para cima ou usa setas de ordenacao",
+            "expected_result": "Ordem salva; refletida na visualizacao do consumidor",
+            "traced_to": "US-040 / AC-01"
+          },
+          {
+            "id": "CT-102",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Preco de item deve ser positivo (> 0)",
+            "input": "POST /api/restaurant-admin/menu com price=0 ou price=-5",
+            "expected_result": "Validacao: preco deve ser maior que zero",
+            "traced_to": "US-037 / Boundary"
+          },
+          {
+            "id": "CT-103",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Nome de item com comprimento maximo (256 chars)",
+            "input": "POST /api/restaurant-admin/menu com name de 300 caracteres",
+            "expected_result": "Validacao de comprimento maximo ou truncamento adequado",
+            "traced_to": "US-037 / Boundary"
+          },
+          {
+            "id": "CT-104",
+            "type": "e2e",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Restaurante ve novo pedido em tempo real com badge 'Novo'",
+            "input": "Consumidor faz pedido; restaurante com painel de pedidos aberto",
+            "expected_result": "Pedido aparece com badge 'Novo' pulsante: numero, horario, qtd itens, valor total",
+            "traced_to": "US-041 / AC-01"
+          },
+          {
+            "id": "CT-105",
+            "type": "e2e",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Visualizar detalhes completos de pedido recebido",
+            "input": "Restaurante toca em pedido na lista",
+            "expected_result": "Detalhes: lista de itens com nome e quantidade, valor total, endereco de entrega",
+            "traced_to": "US-041 / AC-02"
+          },
+          {
+            "id": "CT-106",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Atualizar status do pedido: Confirmado -> Preparando -> Pronto",
+            "input": "PATCH /api/orders/:id/status sequencial: confirmed -> preparing -> out_for_delivery",
+            "expected_result": "Status atualizado a cada passo; botao de acao muda conforme status",
+            "traced_to": "US-042 / AC-01 + AC-02 + AC-03"
+          },
+          {
+            "id": "CT-107",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Transicao de status invalida e rejeitada (ex: confirmed -> delivered direto)",
+            "input": "PATCH /api/orders/:id/status tentando pular etapa",
+            "expected_result": "Response 400; transicao invalida rejeitada; status inalterado",
+            "traced_to": "US-042 / Regra 6.3"
+          },
+          {
+            "id": "CT-108",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Editar informacoes publicas do restaurante",
+            "input": "PUT /api/restaurant-admin/settings com subtitle='Sushi artesanal feito na hora'",
+            "expected_result": "Subtitulo atualizado; refletido no card visivel para consumidores",
+            "traced_to": "US-043 / AC-01"
+          },
+          {
+            "id": "CT-109",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Configurar taxa de entrega e pedido minimo",
+            "input": "PUT /api/restaurant-admin/settings com delivery_fee=6.90, min_order=25.00",
+            "expected_result": "Valores salvos; exibidos no card do restaurante na home",
+            "traced_to": "US-044 / AC-01"
+          },
+          {
+            "id": "CT-110",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Criar e desativar promocao do restaurante",
+            "input": "PUT /api/restaurant-admin/settings com promo_text='20% OFF em combinados' e depois promo_text=null",
+            "expected_result": "Badge de promo aparece/desaparece no card do restaurante para consumidores",
+            "traced_to": "US-045 / AC-01 + AC-02"
+          },
+          {
+            "id": "CT-111",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Taxa de entrega nao pode ser negativa",
+            "input": "PUT /api/restaurant-admin/settings com delivery_fee=-5",
+            "expected_result": "Validacao: taxa de entrega deve ser >= 0",
+            "traced_to": "US-044 / Boundary"
+          },
+          {
+            "id": "CT-112",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Consumidor nao pode acessar rotas de restaurant-admin",
+            "input": "GET /api/restaurant-admin/menu com JWT de role='consumer'",
+            "expected_result": "Response 403 Forbidden; acesso negado",
+            "traced_to": "E06 / Autorizacao"
+          }
+        ]
+      },
+      {
+        "epic_id": "E07",
+        "epic_title": "Administracao da Plataforma",
+        "test_cases": [
+          {
+            "id": "CT-113",
+            "type": "integration",
+            "priority": "P0",
+            "scenario": "happy_path",
+            "description": "Admin aprova restaurante pendente",
+            "input": "PATCH /api/admin/restaurants/:id com is_active=1",
+            "expected_result": "Restaurante ativado; visivel para consumidores",
+            "traced_to": "US-046 / AC-01"
+          },
+          {
+            "id": "CT-114",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Admin rejeita restaurante com motivo",
+            "input": "PATCH /api/admin/restaurants/:id com is_active=0 e motivo",
+            "expected_result": "Restaurante nao ativado; motivo registrado",
+            "traced_to": "US-046 / AC-02"
+          },
+          {
+            "id": "CT-115",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Admin suspende restaurante ativo",
+            "input": "PATCH /api/admin/restaurants/:id com is_active=0",
+            "expected_result": "Restaurante invisivel para consumidores; nao recebe novos pedidos",
+            "traced_to": "US-047 / AC-01"
+          },
+          {
+            "id": "CT-116",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Admin reativa restaurante suspenso",
+            "input": "PATCH /api/admin/restaurants/:id com is_active=1",
+            "expected_result": "Restaurante volta a aparecer para consumidores",
+            "traced_to": "US-047 / AC-02"
+          },
+          {
+            "id": "CT-117",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Dashboard admin exibe metricas gerais corretas",
+            "input": "GET /api/admin/dashboard",
+            "expected_result": "Retorna: total restaurantes ativos, pendentes, total pedidos, ticket medio, consumidores cadastrados",
+            "traced_to": "US-048 / AC-01"
+          },
+          {
+            "id": "CT-118",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Admin cria nova categoria com nome e icone",
+            "input": "POST /api/admin/categories com name='Mexicana', emoji='tacos'",
+            "expected_result": "Categoria criada; aparece como opcao de filtro na home",
+            "traced_to": "US-049 / AC-01"
+          },
+          {
+            "id": "CT-119",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Admin edita nome de categoria existente",
+            "input": "PUT /api/admin/categories/:id com name='Saudavel e Fit'",
+            "expected_result": "Nome atualizado; refletido nos chips de filtro da home",
+            "traced_to": "US-049 / AC-02"
+          },
+          {
+            "id": "CT-120",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Admin remove categoria sem restaurantes associados",
+            "input": "DELETE /api/admin/categories/:id (sem restaurantes vinculados)",
+            "expected_result": "Categoria removida dos filtros da home",
+            "traced_to": "US-049 / AC-03"
+          },
+          {
+            "id": "CT-121",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "error",
+            "description": "Admin nao pode remover categoria com restaurantes associados",
+            "input": "DELETE /api/admin/categories/:id (com restaurantes vinculados)",
+            "expected_result": "Response 400; mensagem indicando que existem restaurantes associados",
+            "traced_to": "US-049 / Boundary"
+          },
+          {
+            "id": "CT-122",
+            "type": "integration",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Admin cria cupom de desconto",
+            "input": "POST /api/admin/coupons com code='MVP10', discount_type='fixed', discount_value=10, min_order=80",
+            "expected_result": "Cupom criado e disponivel para consumidores",
+            "traced_to": "US-050 / AC-01"
+          },
+          {
+            "id": "CT-123",
+            "type": "unit",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Cupom expirado nao pode ser aplicado",
+            "input": "POST /api/coupons/validate com cupom que tem expires_at < now",
+            "expected_result": "Response 400; cupom aparece como 'Expirado' no admin",
+            "traced_to": "US-050 / AC-02"
+          },
+          {
+            "id": "CT-124",
+            "type": "e2e",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Admin define promocao para hero banner da home",
+            "input": "Admin seleciona promocao e marca como 'Destaque na Home'",
+            "expected_result": "Promocao exibida no hero banner da home para consumidores",
+            "traced_to": "US-051 / AC-01"
+          },
+          {
+            "id": "CT-125",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Consumidor nao pode acessar rotas de admin",
+            "input": "GET /api/admin/dashboard com JWT de role='consumer'",
+            "expected_result": "Response 403 Forbidden; acesso negado",
+            "traced_to": "E07 / Autorizacao"
+          },
+          {
+            "id": "CT-126",
+            "type": "unit",
+            "priority": "P1",
+            "scenario": "error",
+            "description": "Restaurante nao pode acessar rotas de admin",
+            "input": "GET /api/admin/restaurants com JWT de role='restaurant'",
+            "expected_result": "Response 403 Forbidden; acesso negado",
+            "traced_to": "E07 / Autorizacao"
+          }
+        ]
+      },
+      {
+        "epic_id": "CROSS",
+        "epic_title": "Testes Cross-Cutting (Exploratorios, Performance, Acessibilidade, Responsividade)",
+        "test_cases": [
+          {
+            "id": "CT-127",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Heuristica de input: campos de formulario com valores extremos",
+            "input": "Nome com 500 chars; email com unicode; preco com muitas casas decimais; CEP com letras",
+            "expected_result": "Todos os campos validados; nenhum crash; mensagens de erro claras",
+            "traced_to": "F01/F07/F08 / Input validation"
+          },
+          {
+            "id": "CT-128",
+            "type": "exploratory",
+            "priority": "P0",
+            "scenario": "boundary",
+            "description": "Heuristica de estado: transicoes de status do pedido em sequencia completa",
+            "input": "Criar pedido -> pagar -> confirmar -> preparar -> enviar -> entregar; tentar transicoes invalidas",
+            "expected_result": "Fluxo segue pending_payment -> confirmed -> preparing -> out_for_delivery -> delivered; transicoes invalidas bloqueadas",
+            "traced_to": "F05/F09 / Regra 6.3"
+          },
+          {
+            "id": "CT-129",
+            "type": "exploratory",
+            "priority": "P0",
+            "scenario": "boundary",
+            "description": "Heuristica de estado: transicao de status do pagamento (pending -> completed/failed/expired)",
+            "input": "Pagamento pendente -> simular completed via webhook; pendente -> simular expired via timeout; tentar pagar pedido ja pago",
+            "expected_result": "Cada transicao de pagamento correta; nao permite pagar novamente pedido ja pago",
+            "traced_to": "F05 / Regra 6.6"
+          },
+          {
+            "id": "CT-130",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Heuristica de integracao: ecp-digital-bank indisponivel durante checkout",
+            "input": "Simular timeout/500 nas APIs do banco durante autenticacao, listagem de cartoes, pagamento e geracao de QR Code",
+            "expected_result": "Mensagens de erro claras em cada ponto; nenhum dado corrompido; usuario pode tentar novamente",
+            "traced_to": "F05 / Integracao"
+          },
+          {
+            "id": "CT-131",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Heuristica de integracao: webhook recebido antes da abertura de SSE",
+            "input": "Webhook PIX chega antes do frontend abrir conexao SSE",
+            "expected_result": "Quando SSE abre, recebe status final imediatamente (payment ja completed); nao fica pendente indefinidamente",
+            "traced_to": "F05 / SSE Edge Case"
+          },
+          {
+            "id": "CT-132",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Heuristica de integracao: multiplas abas abertas no checkout PIX",
+            "input": "Usuario abre 2 abas com mesmo QR Code; webhook recebido 1 vez",
+            "expected_result": "Ambas as abas recebem evento SSE; nenhum estado inconsistente",
+            "traced_to": "F05 / SSE Multi-Connection"
+          },
+          {
+            "id": "CT-133",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Heuristica de responsividade: layout em breakpoints 720px, 980px, 1180px, 1440px",
+            "input": "Navegar todas as telas principais em viewports: 360px (mobile), 720px, 980px (tablet), 1180px (desktop), 1440px (max)",
+            "expected_result": "Layouts responsivos corretos; carrinho como bottom sheet em mobile e sidebar em desktop; sem overflow horizontal",
+            "traced_to": "NFR Responsividade"
+          },
+          {
+            "id": "CT-134",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Heuristica de responsividade: hero banner e grid de categorias em mobile",
+            "input": "Viewport 360px; home com hero banner, categorias e catalogo",
+            "expected_result": "6 categorias visiveis sem scroll horizontal; cards de restaurante empilhados; busca acessivel",
+            "traced_to": "F02 / Responsividade"
+          },
+          {
+            "id": "CT-135",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Heuristica de acessibilidade: contraste WCAG AA no tema Midnight Express",
+            "input": "Verificar contraste de texto sobre fundo dark em todos os componentes principais",
+            "expected_result": "Ratio de contraste >= 4.5:1 para texto normal; >= 3:1 para texto large; botoes com estados focaveis visiveis",
+            "traced_to": "NFR Acessibilidade"
+          },
+          {
+            "id": "CT-136",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "happy_path",
+            "description": "Heuristica de acessibilidade: navegacao completa por teclado",
+            "input": "Navegar toda jornada critica (home -> restaurante -> add to cart -> checkout) usando apenas Tab, Enter, Escape",
+            "expected_result": "Todos os elementos interativos acessiveis por teclado; focus visivel; ordem logica de tab",
+            "traced_to": "NFR Acessibilidade"
+          },
+          {
+            "id": "CT-137",
+            "type": "exploratory",
+            "priority": "P2",
+            "scenario": "happy_path",
+            "description": "Heuristica de acessibilidade: screen reader em componentes criticos",
+            "input": "NVDA ou VoiceOver lendo: cards de restaurante, carrinho, checkout, status do pedido",
+            "expected_result": "Labels semanticos corretos; ARIA attributes presentes; informacoes transmitidas corretamente",
+            "traced_to": "NFR Acessibilidade"
+          },
+          {
+            "id": "CT-138",
+            "type": "exploratory",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Heuristica de input: SQL injection em campos de busca e formulario",
+            "input": "Inserir '; DROP TABLE users;-- em busca, login, cadastro",
+            "expected_result": "Input sanitizado via TypeBox; prepared statements previnem SQL injection; nenhum dado corrompido",
+            "traced_to": "Seguranca 10"
+          },
+          {
+            "id": "CT-139",
+            "type": "exploratory",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Heuristica de input: XSS via campos de texto (nome, descricao, endereco)",
+            "input": "Inserir <img src=x onerror=alert(1)> em nome de usuario, descricao de item, endereco",
+            "expected_result": "React escapa HTML automaticamente; CSP headers bloqueiam inline scripts",
+            "traced_to": "Seguranca 10"
+          },
+          {
+            "id": "CT-140",
+            "type": "exploratory",
+            "priority": "P1",
+            "scenario": "boundary",
+            "description": "Heuristica de estado: carrinho com itens de restaurante que foi desativado",
+            "input": "Adicionar itens ao carrinho; admin desativa o restaurante; usuario tenta fazer checkout",
+            "expected_result": "Sistema detecta restaurante inativo; avisa usuario; nao permite criar pedido para restaurante desativado",
+            "traced_to": "E02 / Edge Case"
+          },
+          {
+            "id": "CT-141",
+            "type": "exploratory",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Heuristica de performance: First Contentful Paint < 1.5s e TTI < 3s",
+            "input": "Lighthouse audit na home com dados seed; conexao 4G simulada",
+            "expected_result": "FCP < 1.5s; TTI < 3s conforme NFR",
+            "traced_to": "NFR Performance"
+          },
+          {
+            "id": "CT-142",
+            "type": "exploratory",
+            "priority": "P2",
+            "scenario": "boundary",
+            "description": "Heuristica de estado: sessao expirada durante checkout (JWT expirou no meio da jornada)",
+            "input": "Usuario no meio do checkout; JWT expira; tenta confirmar pagamento",
+            "expected_result": "Retorna 401; usuario redirecionado para login; carrinho preservado; apos re-login volta ao checkout",
+            "traced_to": "E02/E05 / Edge Case"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "agent": "qa",
+  "phase": "03-product-delivery",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "quality_report": {
+    "quality_score": 82,
+    "go_no_go": "conditional-go",
+    "summary": "O FoodFlow apresenta maturidade alta nos 51 ACs definidos pelo PO, com rastreabilidade completa para 142 casos de teste cobrindo 7 epicos e funcionalidades F01-F12. A integracao com ecp-digital-bank (pagamento via cartao virtual e PIX com webhook+SSE) e o ponto de maior complexidade e risco. Foram identificados 6 bugs potenciais e 8 riscos de qualidade. A recomendacao e conditional-go: pode deployar apos resolver os 2 bugs criticos e implementar os 3 mitigadores de risco prioritarios.",
+    "ac_coverage": {
+      "total_acs": 98,
+      "covered": 98,
+      "uncovered": 0,
+      "coverage_pct": 100,
+      "note": "98 ACs Gherkin extraidos das 51 user stories. Todos mapeados para pelo menos 1 caso de teste. Adicionalmente, 44 casos de teste extras cobrem boundary, seguranca, performance, acessibilidade e integracoes nao explicitadas nos ACs."
+    },
+    "bugs": [
+      {
+        "id": "BUG-001",
+        "severity": "critical",
+        "description": "EventSource nativo do browser NAO suporta headers customizados (Authorization: Bearer). O codigo em PaymentPix.jsx usa new EventSource() com headers, o que nao funciona. Sem autenticacao na SSE, qualquer pessoa pode escutar eventos de pagamento de outro usuario. Solucao: usar token via query param com expiracao curta (5 min) conforme nota no tech_spec, ou polyfill eventsource do npm.",
+        "component": "client/src/pages/PaymentPix.jsx + server payment SSE endpoint",
+        "status": "open"
+      },
+      {
+        "id": "BUG-002",
+        "severity": "critical",
+        "description": "Regra de frete gratis (subtotal >= R$120) usa soma de taxas de TODOS os restaurantes no carrinho (multi-restaurante permitido). Se o usuario pede de 3 restaurantes com frete R$8 cada, o frete total seria R$24 mas ao atingir R$120 de subtotal vira R$0. A regra de calculo de delivery_fee precisa considerar a soma das taxas de todos os restaurantes envolvidos antes de aplicar isenco. Potencial confusao de UX: consumidor espera frete gratis mas o calculo da taxa agregada nao e trivial.",
+        "component": "server/routes/orders.mjs + client/src/components/cart/CartSummary.jsx",
+        "status": "open"
+      },
+      {
+        "id": "BUG-003",
+        "severity": "major",
+        "description": "Cupom MVP10 no backlog e descrito como '10%' de desconto (US-028 AC-01: '10% OFF no primeiro pedido'), mas no tech_spec e definido como R$10 fixo (discount_type='fixed', discount_value=10). Inconsistencia entre product spec e tech spec pode causar comportamento diferente do esperado pelo usuario.",
+        "component": "server/seed.mjs + product_briefing_spec.md",
+        "status": "open"
+      },
+      {
+        "id": "BUG-004",
+        "severity": "major",
+        "description": "Nao ha validacao de pedido minimo por restaurante no fluxo de checkout. O campo min_order existe na tabela restaurants mas nao e verificado ao criar o pedido. Consumidor pode criar pedido com subtotal abaixo do min_order de um restaurante.",
+        "component": "server/routes/orders.mjs",
+        "status": "open"
+      },
+      {
+        "id": "BUG-005",
+        "severity": "minor",
+        "description": "Campo 'editar endereco' no checkout (US-033) referencia edicao de endereco, mas a API /api/consumer/addresses nao possui rota PUT para editar um endereco existente — apenas POST para criar e DELETE para remover. Falta endpoint PUT /api/consumer/addresses/:id.",
+        "component": "server/routes/consumer.mjs",
+        "status": "open"
+      },
+      {
+        "id": "BUG-006",
+        "severity": "minor",
+        "description": "O calculo de metricas ao vivo (US-002) nao tem endpoint dedicado na API. Restaurantes online, cupons ativos e frete medio precisam ser calculados no frontend agregando dados de GET /api/restaurants e GET /api/admin/coupons (rota admin). Consumidor nao tem acesso a rota de cupons admin. Necessario endpoint publico ou metrica incluida na resposta de /api/restaurants.",
+        "component": "server/routes/catalog.mjs",
+        "status": "open"
+      }
+    ],
+    "risks": [
+      {
+        "id": "RISK-001",
+        "severity": "high",
+        "description": "Integracao com ecp-digital-bank e ponto unico de falha para pagamentos. Se o banco ficar indisponivel, nenhum pagamento pode ser processado. Nao ha fallback ou retry automatico nas chamadas ao banco.",
+        "mitigation": "Implementar retry com backoff exponencial (3 tentativas, 1s/2s/4s) no bank-integration.mjs. Adicionar circuit breaker para evitar cascata de falhas. Exibir mensagem clara ao usuario quando banco indisponivel.",
+        "probability": "media",
+        "impact": "alto"
+      },
+      {
+        "id": "RISK-002",
+        "severity": "high",
+        "description": "SSE connection pode ficar aberta indefinidamente se o expiration worker falhar. Memory leak potencial no SSE Manager se conexoes nao forem limpas corretamente.",
+        "mitigation": "Adicionar timeout maximo de 15 minutos por conexao SSE. Implementar heartbeat a cada 30s para detectar conexoes mortas. Monitorar count de conexoes ativas.",
+        "probability": "media",
+        "impact": "alto"
+      },
+      {
+        "id": "RISK-003",
+        "severity": "high",
+        "description": "SQLite com better-sqlite3 e single-writer. Sob carga de multiplos pedidos simultaneos (ex: pico noturno), escritas concorrentes podem causar SQLITE_BUSY errors.",
+        "mitigation": "Configurar WAL mode no SQLite. Implementar retry com busy_timeout de 5000ms. Monitorar taxa de erros SQLITE_BUSY em producao.",
+        "probability": "media",
+        "impact": "alto"
+      },
+      {
+        "id": "RISK-004",
+        "severity": "medium",
+        "description": "Carrinho permite itens de multiplos restaurantes, mas o calculo de delivery_fee e a experiencia de checkout para multi-restaurante nao esta claramente definida nos ACs.",
+        "mitigation": "Definir regra clara: delivery_fee = soma das taxas de todos os restaurantes com itens no carrinho. Frete gratis aplica ao total. Exibir breakdown por restaurante no resumo financeiro.",
+        "probability": "alta",
+        "impact": "medio"
+      },
+      {
+        "id": "RISK-005",
+        "severity": "medium",
+        "description": "Nao ha mecanismo de cancelamento de pedido pelo consumidor apos confirmacao. A maquina de estados permite cancelled apenas em status=confirmed, mas nao ha rota ou UI para o consumidor solicitar.",
+        "mitigation": "Para MVP, documentar que cancelamento e feito via contato com suporte. Considerar rota PATCH /api/orders/:id/cancel para consumer em status=confirmed com janela de tempo.",
+        "probability": "alta",
+        "impact": "medio"
+      },
+      {
+        "id": "RISK-006",
+        "severity": "medium",
+        "description": "Debounce de 300ms na busca pode gerar muitas requisicoes em conexoes lentas. Nao ha cache de resultados de busca no frontend.",
+        "mitigation": "Implementar cache local de resultados por 60s. Considerar abort controller para cancelar requisicoes pendentes quando novo caractere e digitado.",
+        "probability": "baixa",
+        "impact": "baixo"
+      },
+      {
+        "id": "RISK-007",
+        "severity": "medium",
+        "description": "Pedidos em tempo real no painel do restaurante (US-041) requerem mecanismo de push, mas nao ha SSE/WebSocket definido para notificar restaurantes de novos pedidos. Apenas polling ou refresh manual.",
+        "mitigation": "Implementar SSE endpoint /api/restaurant-admin/orders/events para streaming de novos pedidos. Ou implementar polling de 15s como fallback MVP.",
+        "probability": "alta",
+        "impact": "medio"
+      },
+      {
+        "id": "RISK-008",
+        "severity": "low",
+        "description": "Upload de foto de capa do restaurante (US-043 AC-02) nao tem definicao de como sera implementado. Tech spec nao menciona servico de armazenamento de imagens.",
+        "mitigation": "Para MVP, manter cover_gradient (CSS) como padrao. Se upload necessario, usar armazenamento local em /data/uploads com limite de 2MB e validacao de tipo (jpg/png/webp).",
+        "probability": "baixa",
+        "impact": "baixo"
+      }
+    ],
+    "exploratory_sessions": [
+      {
+        "charter": "Explorar transicoes de estado de pedido e pagamento em todos os cenarios possiveis",
+        "heuristic": "state_transitions",
+        "findings": [
+          "Fluxo happy path: pending_payment -> confirmed -> preparing -> out_for_delivery -> delivered funciona conforme Regra 6.3",
+          "Transicao payment_failed nao tem recovery path: usuario fica preso. Recomendacao: permitir re-tentativa de pagamento a partir de payment_failed",
+          "Status 'cancelled' so permite de 'confirmed', mas nao ha UI ou rota para consumidor cancelar",
+          "Se webhook PIX chega durante SSE desconectada (ex: usuario fechou aba), payment atualiza mas frontend nao sabe. Ao reabrir, SSE retorna status final imediatamente (implementacao correta no tech_spec)"
+        ],
+        "duration_min": 45
+      },
+      {
+        "charter": "Explorar limites de input em todos os formularios criticos (cadastro, login, item do cardapio, endereco, cupom)",
+        "heuristic": "input_validation",
+        "findings": [
+          "TypeBox schema validation no Fastify cobre tipos basicos, mas limites de comprimento (max chars) nao estao definidos para todos os campos",
+          "Campo de preco aceita valores com muitas casas decimais — recomendacao: arredondar para 2 casas",
+          "Campo de CEP definido como texto livre sem validacao de formato (8 digitos numericos)",
+          "Campo de telefone no perfil sem mascara ou validacao de formato brasileiro",
+          "Senha sem limite maximo — potencial DoS com senha de 1MB enviada em bcryptjs (hash muito lento)"
+        ],
+        "duration_min": 30
+      },
+      {
+        "charter": "Explorar integracao FoodFlow <-> ecp-digital-bank em cenarios de falha e edge cases",
+        "heuristic": "integration",
+        "findings": [
+          "BUG-001 confirmado: EventSource nativo nao suporta Authorization header",
+          "Timeout de QR Code (10 min) nao e validado server-side ao receber webhook — recomendacao: verificar pix_expiration ao processar webhook",
+          "Se ecp-digital-bank retorna 429 (rate limit), FoodFlow nao faz retry — pode falhar pagamento valido",
+          "JWT do banco armazenado temporariamente em payments.bank_jwt_token — precisa garantir limpeza mesmo em crash do processo",
+          "Webhook retorna 200 OK mesmo em falha (correto para idempotencia), mas nao ha alerta/log estruturado para falhas de validacao"
+        ],
+        "duration_min": 60
+      },
+      {
+        "charter": "Explorar responsividade em breakpoints definidos e dispositivos comuns",
+        "heuristic": "responsiveness",
+        "findings": [
+          "Breakpoints definidos: 720px (mobile), 980px (tablet), 1180px (desktop), max 1440px — cobrem devices comuns",
+          "Carrinho como sidebar (desktop) vs bottom sheet (mobile) requer teste cuidadoso no breakpoint 720-980px",
+          "QR Code PIX precisa ter tamanho minimo para ser escaneavel em tela mobile (recomendacao: min 200x200px)",
+          "Grid de categorias com 6 chips precisa caber sem scroll horizontal em 360px — testar com textos longos como 'Brasileira'"
+        ],
+        "duration_min": 30
+      },
+      {
+        "charter": "Explorar acessibilidade em tema dark (Midnight Express) com foco em contraste e teclado",
+        "heuristic": "accessibility",
+        "findings": [
+          "Tema dark mode com gradientes pode ter problemas de contraste em textos sobre cover_gradient dos cards",
+          "Badges (promo, Best Seller) precisam de contraste minimo 3:1 sobre background dos cards",
+          "BottomNav precisa de labels acessiveis (aria-label) alem dos icones",
+          "QuantityControl (+/-) precisa ser acessivel por teclado com aria-valuemin, aria-valuemax, aria-valuenow",
+          "Modais (cupom boas-vindas, confirmacao pagamento) precisam de focus trap e role='dialog'"
+        ],
+        "duration_min": 30
+      }
+    ],
+    "recommendations": [
+      "CRITICO: Corrigir BUG-001 (autenticacao SSE) antes do deploy — usar token via query param com expiracao de 5 min conforme tech_spec sugere",
+      "CRITICO: Clarificar e corrigir BUG-003 (cupom MVP10: 10% vs R$10 fixo) — alinhar product spec com tech spec",
+      "ALTO: Implementar validacao de pedido minimo por restaurante no checkout (BUG-004)",
+      "ALTO: Adicionar endpoint PUT /api/consumer/addresses/:id para edicao de endereco (BUG-005)",
+      "ALTO: Implementar retry com backoff no bank-integration.mjs para mitigar RISK-001",
+      "ALTO: Adicionar mecanismo de notificacao push para restaurantes (RISK-007) — minimo polling de 15s",
+      "MEDIO: Adicionar endpoint publico para metricas ao vivo da home (BUG-006)",
+      "MEDIO: Configurar WAL mode no SQLite e busy_timeout para concorrencia (RISK-003)",
+      "MEDIO: Definir limites de comprimento (maxLength) em todos os campos do schema TypeBox",
+      "MEDIO: Adicionar heartbeat de 30s nas conexoes SSE para detectar conexoes mortas (RISK-002)",
+      "BAIXO: Implementar cache de resultados de busca no frontend com TTL de 60s",
+      "BAIXO: Adicionar mascara de CEP (8 digitos) e telefone (formato brasileiro) nos formularios"
+    ],
+    "conditions_for_deploy": [
+      "Corrigir BUG-001: implementar autenticacao SSE via query param token com expiracao curta",
+      "Corrigir BUG-002: definir regra clara de frete para carrinho multi-restaurante e implementar calculo correto",
+      "Resolver ambiguidade BUG-003: decidir se MVP10 e 10% ou R$10 fixo e alinhar seed com decisao",
+      "Implementar BUG-004: validacao de min_order por restaurante antes de criar pedido",
+      "Smoke tests P0 (32 casos) passando 100%",
+      "Core tests P1 (68 casos) passando >= 95%",
+      "Zero bugs criticos abertos"
+    ]
+  },
+  "next_hitl": 10
+}

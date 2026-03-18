@@ -1,0 +1,7 @@
+
+> ecp-digital-food@1.0.0 dev
+> node --watch server/index.mjs
+
+{"level":30,"time":1773834331579,"pid":94844,"hostname":"ECP-LEN","msg":"Server listening at http://0.0.0.0:3000"}
+{"level":30,"time":1773834331580,"pid":94844,"hostname":"ECP-LEN","msg":"ECP Food server running on http://0.0.0.0:3000"}
+{"level":30,"time":1773834331580,"pid":94844,"hostname":"ECP-LEN","msg":"PIX expiration worker started (30s interval)"}

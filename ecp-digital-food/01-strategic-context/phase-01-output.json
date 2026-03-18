@@ -1,0 +1,827 @@
+{
+  "agent": "product-manager",
+  "phase": "01-strategic-context",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "methodology_references": [
+    "Teresa Torres — Opportunity Solution Tree (OST)",
+    "Marty Cagan — 4 Riscos de Produto (valor, usabilidade, viabilidade, negócio)",
+    "Bernard Marr — OKRs com baseline e target mensuráveis",
+    "Gibson Biddle — DHM Model (Delight, Hard-to-copy, Margin-enhancing)"
+  ],
+  "deliverables": {
+    "market_research": {
+      "market_sizing": {
+        "tam": {
+          "label": "Total Addressable Market",
+          "description": "Mercado total de delivery de comida no Brasil",
+          "value_brl": 75000000000,
+          "value_display": "R$ 75 bilhões/ano",
+          "year": 2025,
+          "source": "Estimativa baseada em dados ABRASEL e Statista — mercado brasileiro de food delivery cresceu 7,5% a.a. entre 2022-2025, atingindo aproximadamente R$ 75 bi em GMV anual",
+          "notes": "Inclui todos os canais (apps, delivery próprio, WhatsApp). Brasil é o 4o maior mercado de delivery do mundo."
+        },
+        "sam": {
+          "label": "Serviceable Addressable Market",
+          "description": "Mercado de delivery via plataformas digitais na Grande São Paulo",
+          "value_brl": 12000000000,
+          "value_display": "R$ 12 bilhões/ano",
+          "year": 2025,
+          "source": "São Paulo concentra ~16% do mercado nacional de delivery. Filtrando apenas plataformas digitais (excluindo delivery próprio e WhatsApp), estimativa de R$ 12 bi/ano na Grande SP.",
+          "notes": "São Paulo tem 22 milhões de habitantes na região metropolitana, maior densidade de restaurantes do país e maior ticket médio."
+        },
+        "som": {
+          "label": "Serviceable Obtainable Market",
+          "description": "Fatia realista que FoodFlow pode capturar nos primeiros 12-18 meses focando em nicho premium/artesanal em bairros-alvo de SP",
+          "value_brl": 18000000,
+          "value_display": "R$ 18 milhões/ano",
+          "year": 2027,
+          "source": "Premissa: 50-80 restaurantes artesanais ativos, ticket médio de R$ 55, 900 pedidos/dia após ramp-up. Público-alvo: jovens urbanos 22-40 anos em bairros como Pinheiros, Vila Madalena, Itaim, Moema, Vila Mariana.",
+          "notes": "Representa 0,15% do SAM. Meta conservadora dado que é marketplace novo competindo com incumbentes consolidados. Diferencial: posicionamento premium, UX superior, integração com ecp-digital-bank."
+        }
+      },
+      "competitors": [
+        {
+          "name": "iFood",
+          "market_share_brazil": "~80%",
+          "strengths": [
+            "Maior base de restaurantes e consumidores do Brasil (>350 mil restaurantes)",
+            "Efeito de rede consolidado — mais restaurantes atraem mais consumidores e vice-versa",
+            "Infraestrutura logística própria com entregadores e dark stores",
+            "Programa de fidelidade (Clube iFood) com milhões de assinantes",
+            "Investimento pesado em IA para recomendação e precificação dinâmica",
+            "Carteira digital própria e múltiplos meios de pagamento"
+          ],
+          "weaknesses": [
+            "UI visualmente poluída com excesso de banners publicitários e destaques pagos",
+            "Algoritmo de ranking opaco — restaurantes menores ficam invisíveis sem mídia paga",
+            "Experiência de descoberta genérica: listas longas sem curadoria real",
+            "Comissões elevadas (12-27%) que pressionam margem dos restaurantes",
+            "Suporte ao restaurante inconsistente em problemas de pagamento e cancelamento",
+            "Identidade visual utilitária, sem diferenciação premium"
+          ],
+          "gaps_for_foodflow": [
+            "Oportunidade de oferecer UX premium com curadoria visual e dark mode aspiracional",
+            "Restaurantes artesanais buscam alternativas com mais transparência e menor comissão",
+            "Experiência de descoberta por JTBD (quero experimentar algo novo vs quero repetir o que conheço)"
+          ]
+        },
+        {
+          "name": "Rappi",
+          "market_share_brazil": "~7%",
+          "strengths": [
+            "Modelo super-app (comida, mercado, farmácia, entregas gerais)",
+            "Rappi Prime com frete grátis e benefícios cruzados entre categorias",
+            "Integração com pagamentos digitais (Rappi Pay)",
+            "Presença forte em classes A/B urbanas"
+          ],
+          "weaknesses": [
+            "Diluição de foco — food delivery compete com outras categorias por atenção",
+            "Catálogo de restaurantes menor que iFood no Brasil",
+            "Instabilidade financeira e reestruturações frequentes na América Latina",
+            "Experiência de descoberta de comida é secundária à proposta de super-app"
+          ],
+          "gaps_for_foodflow": [
+            "FoodFlow pode ser especialista em food delivery enquanto Rappi é generalista",
+            "Experiência 100% focada em comida gera melhor descoberta e conversão"
+          ]
+        },
+        {
+          "name": "99food",
+          "market_share_brazil": "~3%",
+          "strengths": [
+            "Integração com ecossistema 99/DiDi (base de usuários de transporte)",
+            "Comissões competitivas para restaurantes na fase de expansão",
+            "Subsídios agressivos para aquisição de consumidores"
+          ],
+          "weaknesses": [
+            "Base de restaurantes limitada em muitas regiões",
+            "Produto percebido como genérico — sem diferenciação clara de UX",
+            "Dependência de subsídios para retenção — baixa fidelidade orgânica",
+            "Operação descontinuada ou reduzida em várias cidades brasileiras"
+          ],
+          "gaps_for_foodflow": [
+            "99food validou que há espaço para challenger brands no delivery",
+            "Ausência de identidade premium abre espaço para FoodFlow capturar público exigente"
+          ]
+        },
+        {
+          "name": "Keeta (TikTok/ByteDance)",
+          "market_share_brazil": "~1% (entrante recente)",
+          "strengths": [
+            "Apoio financeiro massivo da ByteDance para subsidiar crescimento",
+            "Potencial de integração com TikTok para social commerce de comida",
+            "UX moderna e design limpo inspirado em produtos asiáticos",
+            "Capacidade de usar IA generativa e recomendação baseada em comportamento social"
+          ],
+          "weaknesses": [
+            "Marca nova sem confiança estabelecida no Brasil para delivery",
+            "Base de restaurantes ainda muito pequena",
+            "Questões regulatórias e de privacidade de dados associadas à ByteDance",
+            "Sem infraestrutura logística própria — depende de terceiros"
+          ],
+          "gaps_for_foodflow": [
+            "Keeta valida que mercado aceita novos entrantes com UX diferenciada",
+            "FoodFlow pode ser alternativa local/independente com proposta premium sem dependência de big tech estrangeira",
+            "Integração com ecp-digital-bank é diferencial que nenhum concorrente tem"
+          ]
+        }
+      ],
+      "segments": [
+        {
+          "segment_id": "C1",
+          "name": "Explorador Gastronômico",
+          "type": "consumidor",
+          "jtbd": "Quando estou entediado com as mesmas opções de sempre, quero descobrir restaurantes novos e interessantes perto de mim para que eu sinta que estou vivendo experiências gastronômicas variadas",
+          "demographics": "22-35 anos, classes A/B, urbano SP, renda R$ 5-15k, solteiro ou casal sem filhos",
+          "behaviors": [
+            "Pede delivery 3-5x/semana de restaurantes diferentes",
+            "Navega categorias e promoções antes de decidir",
+            "Influenciado por fotos, reviews e badges (Best seller, Novo)",
+            "Compartilha descobertas em redes sociais"
+          ],
+          "pain_points": [
+            "Fadiga de decisão ao ver listas enormes sem curadoria",
+            "Não confia em restaurantes com poucas avaliações",
+            "Promoções confusas — não sabe se está realmente economizando"
+          ],
+          "willingness_to_pay": "Alto — ticket médio R$ 50-80, sensível a promoções mas não dependente delas"
+        },
+        {
+          "segment_id": "C2",
+          "name": "Prático Recorrente",
+          "type": "consumidor",
+          "jtbd": "Quando preciso jantar rápido depois do trabalho, quero repetir um pedido que já sei que é bom para que eu gaste o mínimo de tempo e energia decidindo",
+          "demographics": "28-40 anos, profissionais CLT/PJ, urbano SP, renda R$ 6-20k, rotina intensa",
+          "behaviors": [
+            "Tem 3-5 restaurantes favoritos fixos",
+            "Usa 'repetir pedido' frequentemente",
+            "Pede 2-4x/semana, quase sempre no jantar",
+            "Valoriza rapidez do checkout acima de tudo"
+          ],
+          "pain_points": [
+            "Checkout lento com muitos passos",
+            "Falta de atalho real para recompra",
+            "Endereço e pagamento não salvos entre sessões"
+          ],
+          "willingness_to_pay": "Médio-alto — ticket médio R$ 40-60, fiel quando a experiência é sem atrito"
+        },
+        {
+          "segment_id": "C3",
+          "name": "Caçador de Ofertas",
+          "type": "consumidor",
+          "jtbd": "Quando quero pedir delivery sem estourar meu orçamento, quero encontrar promoções e cupons reais para que eu sinta que estou fazendo um bom negócio",
+          "demographics": "22-32 anos, estudantes e jovens profissionais, renda R$ 2-6k, sensíveis a preço",
+          "behaviors": [
+            "Compara preços entre apps antes de decidir",
+            "Busca ativamente por cupons e promoções",
+            "Pede 1-3x/semana, geralmente em promoções",
+            "Instala múltiplos apps de delivery"
+          ],
+          "pain_points": [
+            "Cupons com regras confusas ou que não funcionam no checkout",
+            "Frete alto que anula o desconto do cupom",
+            "Promoções fake — preço inflado antes do desconto"
+          ],
+          "willingness_to_pay": "Médio — ticket médio R$ 30-45, alta elasticidade a preço, retém se houver economia percebida"
+        },
+        {
+          "segment_id": "R1",
+          "name": "Restaurante Artesanal em Crescimento",
+          "type": "restaurante",
+          "jtbd": "Quando meu restaurante não aparece nas primeiras posições do iFood sem pagar mídia, quero uma plataforma que valorize a qualidade do meu produto para que eu consiga atrair clientes que realmente apreciam comida bem feita",
+          "demographics": "Restaurantes artesanais de médio porte, 1-3 unidades, faturamento R$ 50-300k/mês, chef/proprietário envolvido",
+          "behaviors": [
+            "Cardápio curado com 15-40 itens",
+            "Investe em apresentação visual dos pratos",
+            "Quer controle sobre preço, promoções e marca",
+            "Busca dados de performance para otimizar operação"
+          ],
+          "pain_points": [
+            "Invisibilidade em plataformas dominadas por grandes redes",
+            "Comissão alta que comprime margem",
+            "Falta de dados sobre comportamento do consumidor",
+            "Sem acesso direto ao cliente para fidelização"
+          ],
+          "willingness_to_pay": "Aceita comissão de 10-18% se houver visibilidade real e controle sobre a experiência"
+        },
+        {
+          "segment_id": "R2",
+          "name": "Dark Kitchen / Delivery-First",
+          "type": "restaurante",
+          "jtbd": "Quando opero exclusivamente por delivery, quero uma plataforma com analytics detalhados e boa exposição para que eu possa otimizar meu cardápio e operação baseado em dados reais",
+          "demographics": "Operações delivery-only, 1-5 marcas virtuais, equipe enxuta, faturamento R$ 30-150k/mês",
+          "behaviors": [
+            "Opera em múltiplas plataformas simultaneamente",
+            "Testa cardápio e preços frequentemente",
+            "Decisões 100% orientadas a dados",
+            "Alta capacidade de adaptação a demanda"
+          ],
+          "pain_points": [
+            "Dados fragmentados entre múltiplas plataformas",
+            "Custo de manter presença em vários apps",
+            "Dificuldade de construir marca própria em marketplaces genéricos"
+          ],
+          "willingness_to_pay": "Aceita comissão de 15-22% se o volume e os dados justificarem"
+        }
+      ],
+      "trends": [
+        {
+          "trend": "Dark Kitchens e Cloud Kitchens",
+          "description": "Cozinhas exclusivas para delivery sem salão próprio. Modelo cresce 15-20% a.a. no Brasil. Reduz custo fixo e permite operação multi-marca a partir de uma mesma cozinha.",
+          "impact_on_foodflow": "FoodFlow deve tratar dark kitchens como parceiros de primeira classe. Analytics de performance por marca virtual é diferencial. Categorias iniciais podem incluir marcas de dark kitchens artesanais.",
+          "timeframe": "Já em curso, aceleração até 2028"
+        },
+        {
+          "trend": "IA para Personalização e Recomendação",
+          "description": "Uso de machine learning para recomendar pratos e restaurantes com base em histórico, horário, clima e preferências. Grandes players como iFood e DoorDash investem pesado. Consumidor espera experiência personalizada.",
+          "impact_on_foodflow": "Pós-MVP, integrar recomendação inteligente será essencial para retenção. No MVP, usar heurísticas simples (popularidade, recência, categoria favorita). Futuro: IA para curadoria automatizada.",
+          "timeframe": "2025-2028, crescimento exponencial"
+        },
+        {
+          "trend": "Super Apps e Consolidação de Serviços",
+          "description": "Tendência de unificar delivery, pagamentos, transporte e compras em uma plataforma. Rappi, Grab e Gojek são exemplos. Consumidor quer reduzir número de apps instalados.",
+          "impact_on_foodflow": "FoodFlow inicia como especialista (food only) mas a integração com ecp-digital-bank já aponta para ecossistema. Futuro: expandir para mercado, farmácia. Posicionamento inicial: ser o melhor em comida antes de expandir.",
+          "timeframe": "Consolidação 2025-2030"
+        },
+        {
+          "trend": "Pagamentos Instantâneos e PIX como Infraestrutura",
+          "description": "PIX domina pagamentos digitais no Brasil com >150 milhões de usuários. QR Code para pagamento é mainstream. PIX Automático (débito recorrente) entra em operação em 2025.",
+          "impact_on_foodflow": "Integração nativa com ecp-digital-bank via PIX QR Code é alinhada com tendência. Oferecer checkout PIX sem fricção é diferencial competitivo. Futuro: PIX Automático para assinaturas de planos premium.",
+          "timeframe": "Já consolidado, expansão contínua"
+        },
+        {
+          "trend": "Experiência Premium e Curadoria como Diferencial",
+          "description": "Consumidores de classes A/B migram de quantidade para qualidade. Valorizam curadoria, design, e experiência sobre preço. Marcas como Caviar (DoorDash) e TastePort validam o nicho premium.",
+          "impact_on_foodflow": "Posicionamento Midnight Express (dark mode premium) é perfeitamente alinhado. Curadoria de restaurantes artesanais é barreira de entrada. UX premium como fator de retenção — consumidor paga mais por experiência superior.",
+          "timeframe": "Tendência crescente 2024-2028"
+        },
+        {
+          "trend": "Sustentabilidade e Transparência na Cadeia",
+          "description": "Consumidores jovens urbanos cobram práticas sustentáveis: embalagens eco-friendly, transparência de origem dos ingredientes, impacto ambiental do delivery. Regulamentações crescem.",
+          "impact_on_foodflow": "Futuro: badges de sustentabilidade nos restaurantes, dados de emissão por entrega, parcerias com embalagens biodegradáveis. No MVP, isso não é prioridade mas deve ser planejado na arquitetura.",
+          "timeframe": "2026-2030, pressão regulatória crescente"
+        }
+      ]
+    },
+    "vision": {
+      "vision_statement": "Em 5 anos, FoodFlow será a plataforma de referência para quem busca experiências gastronômicas por delivery em São Paulo e nas principais capitais do Brasil — reconhecida pela curadoria impecável de restaurantes artesanais, pela experiência de descoberta que encanta, e por um ecossistema de pagamento integrado que torna pedir comida tão prazeroso quanto comer. Seremos a ponte entre restaurantes que se importam com qualidade e consumidores que valorizam o que comem.",
+      "north_star_metric": {
+        "name": "Pedidos Completados com Satisfação por Semana",
+        "definition": "Número de pedidos entregues com sucesso (sem cancelamento e sem reclamação aberta) por semana ativa",
+        "rationale": "Esta métrica captura simultaneamente aquisição (novos pedidos), retenção (pedidos recorrentes), qualidade operacional (sem cancelamento) e satisfação (sem reclamação). Um pedido completado com satisfação só acontece quando toda a cadeia funciona: descoberta, checkout, pagamento, preparo e entrega.",
+        "formula": "Σ (pedidos com status 'Entregue' e sem ticket de reclamação aberto em 48h) / semana",
+        "target_mvp": "630 pedidos/semana (90/dia) nos primeiros 3 meses",
+        "target_year_1": "6.300 pedidos/semana (900/dia) ao final do primeiro ano"
+      },
+      "input_metrics": [
+        {
+          "name": "Taxa de Conversão (Visitor-to-Order)",
+          "definition": "% de sessões únicas que resultam em pelo menos 1 pedido completado",
+          "target": "> 8%",
+          "relationship_to_north_star": "Mais conversões = mais pedidos completados. Mede eficiência da jornada de descoberta até o checkout."
+        },
+        {
+          "name": "Ticket Médio por Pedido",
+          "definition": "GMV total / número de pedidos no período",
+          "target": "> R$ 45",
+          "relationship_to_north_star": "Ticket saudável indica que consumidores percebem valor, o que correlaciona com satisfação e recompra."
+        },
+        {
+          "name": "Taxa de Recompra em 30 dias",
+          "definition": "% de consumidores que fazem pelo menos 2 pedidos em uma janela de 30 dias corridos",
+          "target": "> 25%",
+          "relationship_to_north_star": "Recompra é o principal driver de crescimento sustentável da North Star."
+        },
+        {
+          "name": "Tempo até Primeiro Pedido (Time-to-Value)",
+          "definition": "Mediana do tempo entre a primeira visita de um novo usuário e a confirmação do primeiro pedido",
+          "target": "< 5 minutos",
+          "relationship_to_north_star": "Menor tempo até primeiro pedido indica menor fricção na jornada, aumentando conversão de novos usuários."
+        },
+        {
+          "name": "Restaurantes Ativos com Pedidos na Semana",
+          "definition": "Número de restaurantes que receberam pelo menos 1 pedido nos últimos 7 dias",
+          "target": "> 40 restaurantes (MVP), > 200 (ano 1)",
+          "relationship_to_north_star": "Mais restaurantes ativos = mais variedade = melhor descoberta = mais pedidos."
+        },
+        {
+          "name": "NPS do Consumidor",
+          "definition": "Net Promoter Score medido via survey in-app após 3o pedido",
+          "target": "> 40",
+          "relationship_to_north_star": "NPS alto correlaciona com recompra orgânica e word-of-mouth, drivers sustentáveis da North Star."
+        }
+      ],
+      "product_principles": [
+        {
+          "principle": "Descoberta antes de tudo",
+          "description": "Cada tela deve ajudar o consumidor a encontrar o que quer comer em menos passos. Quando em dúvida entre adicionar complexidade ou simplificar a descoberta, simplifique. A home não é um mural de anúncios — é um menu curado.",
+          "trade_off": "Priorizamos experiência de descoberta mesmo que isso signifique mostrar menos restaurantes por tela."
+        },
+        {
+          "principle": "Checkout é sagrado",
+          "description": "Do carrinho ao pedido confirmado, zero distrações e zero surpresas. Preços transparentes, cupons que funcionam, pagamento que flui. Cada segundo a mais no checkout é um pedido perdido.",
+          "trade_off": "Priorizamos velocidade e clareza no checkout mesmo que isso limite opções de upsell nessa etapa."
+        },
+        {
+          "principle": "Restaurante parceiro, não refém",
+          "description": "Restaurantes devem ter controle real sobre sua presença: cardápio, preços, promoções, dados. Ranking transparente, sem 'pay-to-play' obrigatório. O sucesso do restaurante é o sucesso da plataforma.",
+          "trade_off": "Priorizamos transparência e controle do restaurante mesmo que isso reduza receita de mídia paga no curto prazo."
+        },
+        {
+          "principle": "Design como diferencial competitivo",
+          "description": "A experiência visual do FoodFlow deve ser memorável. Dark mode premium, tipografia elegante, animações suaves, fotos que dão fome. O design não é decoração — é a razão pela qual o consumidor escolhe FoodFlow ao invés de abrir o iFood.",
+          "trade_off": "Investimos mais tempo em craft visual mesmo que isso atrase entregas em relação a um MVP utilitário."
+        },
+        {
+          "principle": "Dados para decisões, não para dashboards",
+          "description": "Cada métrica que coletamos deve informar uma decisão concreta — do restaurante (ajustar cardápio) ou da plataforma (melhorar recomendação). Se um dado não gera ação, não o mostramos.",
+          "trade_off": "Priorizamos poucos indicadores acionáveis sobre painéis completos com dezenas de métricas."
+        }
+      ],
+      "opportunity_brief": {
+        "title": "FoodFlow — Marketplace Premium de Food Delivery para São Paulo",
+        "problem_space": "O mercado de food delivery no Brasil é dominado por plataformas que priorizam volume e publicidade paga sobre experiência de descoberta. Consumidores sofrem com fadiga de decisão, UI poluída e promoções confusas. Restaurantes artesanais ficam invisíveis sem investir em mídia dentro das plataformas, perdendo acesso ao público que mais valoriza qualidade.",
+        "opportunity": "Existe um gap significativo no mercado para um marketplace que trate food delivery como experiência premium. Consumidores de classes A/B em São Paulo (22-40 anos) estão dispostos a pagar mais por curadoria real, design memorável e checkout sem fricção. Restaurantes artesanais buscam alternativas com mais transparência, menor comissão e dados de performance. A integração com ecp-digital-bank cria uma vantagem única de ecossistema que nenhum concorrente oferece.",
+        "target_outcome": "Capturar R$ 18 milhões em GMV anual dentro de 18 meses, com 50-80 restaurantes artesanais ativos, 900 pedidos/dia, ticket médio acima de R$ 45 e taxa de recompra acima de 25%. Tornar-se referência em experiência de delivery premium em bairros-alvo de São Paulo.",
+        "key_risks": {
+          "value_risk": "Consumidores podem não valorizar UX premium o suficiente para migrar de plataformas onde já têm histórico e favoritos salvos",
+          "usability_risk": "Integração de pagamento via ecp-digital-bank pode adicionar fricção se o fluxo de autenticação não for fluido",
+          "feasibility_risk": "Manter paridade de experiência web responsiva em desktop/mobile/tablet com equipe enxuta é tecnicamente desafiador",
+          "business_viability_risk": "Atrair massa crítica de restaurantes e consumidores simultaneamente (cold start problem de marketplace) sem budget de marketing significativo"
+        }
+      }
+    },
+    "okrs": {
+      "objective": "Validar que FoodFlow entrega uma experiência de food delivery premium que consumidores preferem sobre incumbentes e que restaurantes artesanais adotam como canal principal em São Paulo",
+      "key_results": [
+        {
+          "kr_id": "KR1",
+          "description": "Atingir taxa de conversão (visitor-to-order) consistente acima de 8%, provando que a experiência de descoberta e checkout converte visitantes em compradores",
+          "metric": "Taxa de conversão (sessões com pedido / total de sessões únicas)",
+          "baseline": 0,
+          "target": 8,
+          "unit": "%",
+          "measurement_frequency": "Semanal",
+          "oportunidades": [
+            {
+              "tipo": "dor",
+              "descricao": "Consumidores sentem fadiga de decisão ao navegar catálogos longos e genéricos — precisam de curadoria que reduza o esforço cognitivo de escolha"
+            },
+            {
+              "tipo": "dor",
+              "descricao": "Consumidores abandonam o pedido quando o checkout tem passos inesperados ou o preço final surpreende negativamente (frete, taxa, cupom que não funciona)"
+            },
+            {
+              "tipo": "necessidade",
+              "descricao": "Consumidores precisam de filtros e categorias relevantes que conectem diretamente com o que desejam comer naquele momento (por tipo de cozinha, tempo de entrega, faixa de preço)"
+            },
+            {
+              "tipo": "desejo",
+              "descricao": "Consumidores desejam sentir confiança antes de pedir de um restaurante novo — evidências visuais de qualidade (fotos reais, badges, ratings) reduzem a barreira de experimentação"
+            },
+            {
+              "tipo": "dor",
+              "descricao": "Consumidores desistem quando o fluxo de pagamento exige muitos passos ou autenticação complexa — qualquer fricção entre 'quero pedir' e 'pedido confirmado' destrói conversão"
+            }
+          ],
+          "leading_indicators": [
+            {
+              "name": "Taxa de adição ao carrinho",
+              "definition": "% de sessões em que pelo menos 1 item é adicionado ao carrinho",
+              "target": "> 25%",
+              "rationale": "Se consumidores adicionam itens, a descoberta está funcionando. Indicador preditivo de conversão."
+            },
+            {
+              "name": "Taxa de abandono de carrinho",
+              "definition": "% de carrinhos com itens que não chegam ao checkout completo",
+              "target": "< 60%",
+              "rationale": "Abandono alto indica problemas no checkout. Reduzir abandono precede aumento de conversão."
+            },
+            {
+              "name": "Tempo médio de sessão até adição ao carrinho",
+              "definition": "Mediana do tempo entre início da sessão e primeira adição ao carrinho",
+              "target": "< 2 minutos",
+              "rationale": "Descoberta rápida leva a carrinho rápido leva a checkout rápido."
+            }
+          ],
+          "lagging_indicators": [
+            {
+              "name": "Taxa de conversão semanal",
+              "definition": "% de sessões únicas que resultaram em pedido completado na semana",
+              "target": "> 8%"
+            },
+            {
+              "name": "GMV semanal",
+              "definition": "Valor total de pedidos completados na semana",
+              "target": "> R$ 28.350/semana (90 pedidos/dia x R$ 45 ticket)"
+            }
+          ]
+        },
+        {
+          "kr_id": "KR2",
+          "description": "Alcançar taxa de recompra acima de 25% (consumidores com 2+ pedidos em 30 dias), provando retenção e hábito",
+          "metric": "Taxa de recompra em 30 dias (% consumidores com ≥2 pedidos em janela de 30 dias corridos)",
+          "baseline": 0,
+          "target": 25,
+          "unit": "%",
+          "measurement_frequency": "Mensal (com corte semanal para acompanhamento)",
+          "oportunidades": [
+            {
+              "tipo": "necessidade",
+              "descricao": "Consumidores recorrentes precisam de um caminho ultra-rápido para repetir pedidos anteriores sem refazer toda a jornada de descoberta"
+            },
+            {
+              "tipo": "dor",
+              "descricao": "Consumidores esquecem de plataformas novas quando não há razão para voltar — a ausência de incentivo de retorno faz com que voltem ao app habitual (iFood)"
+            },
+            {
+              "tipo": "desejo",
+              "descricao": "Consumidores desejam sentir que a plataforma os conhece — que suas preferências, favoritos e histórico criem uma experiência cada vez mais personalizada"
+            },
+            {
+              "tipo": "necessidade",
+              "descricao": "Consumidores precisam de consistência na experiência — se o primeiro pedido foi excelente mas o segundo falhou (entrega atrasada, item errado), a confiança quebra e não voltam"
+            },
+            {
+              "tipo": "desejo",
+              "descricao": "Consumidores desejam descobrir novidades curadas para eles — não apenas repetir, mas também expandir seu repertório gastronômico com sugestões relevantes"
+            }
+          ],
+          "leading_indicators": [
+            {
+              "name": "Frequência de retorno em 7 dias",
+              "definition": "% de consumidores que acessam o app novamente dentro de 7 dias após o primeiro pedido",
+              "target": "> 40%",
+              "rationale": "Retorno rápido é o principal preditor de recompra. Se voltam em 7 dias, alta chance de pedir novamente em 30."
+            },
+            {
+              "name": "Número de restaurantes favoritados por usuário",
+              "definition": "Média de restaurantes marcados como favorito por consumidor ativo",
+              "target": "> 2",
+              "rationale": "Favoritar indica intenção de retorno. Mais favoritos = mais razões para voltar."
+            },
+            {
+              "name": "Uso da função 'Repetir Pedido'",
+              "definition": "% de pedidos originados de 'Repetir Pedido' no histórico",
+              "target": "> 15% dos pedidos totais",
+              "rationale": "Adoção desta feature indica formação de hábito — caminho mais curto entre intenção e pedido."
+            }
+          ],
+          "lagging_indicators": [
+            {
+              "name": "Taxa de recompra em 30 dias",
+              "definition": "% de consumidores com ≥2 pedidos em janela de 30 dias",
+              "target": "> 25%"
+            },
+            {
+              "name": "Cohort retention D30",
+              "definition": "% de usuários da cohort de aquisição que fizeram pelo menos 1 pedido no dia 30 após o primeiro pedido",
+              "target": "> 20%"
+            }
+          ]
+        },
+        {
+          "kr_id": "KR3",
+          "description": "Atingir ticket médio acima de R$ 45 por pedido, validando o posicionamento premium e a qualidade percebida dos restaurantes parceiros",
+          "metric": "Ticket médio (GMV total / número de pedidos completados)",
+          "baseline": 0,
+          "target": 45,
+          "unit": "R$",
+          "measurement_frequency": "Semanal",
+          "oportunidades": [
+            {
+              "tipo": "necessidade",
+              "descricao": "Consumidores precisam de confiança na qualidade para justificar pedidos de valor mais alto — sem evidências de qualidade, optam pelo menor preço"
+            },
+            {
+              "tipo": "desejo",
+              "descricao": "Consumidores desejam montar refeições completas (entrada + prato + bebida) de forma intuitiva — combos e sugestões de complemento elevam o ticket naturalmente"
+            },
+            {
+              "tipo": "dor",
+              "descricao": "Consumidores sentem frustração quando o frete torna pedidos pequenos inviáveis — a percepção de 'não vale a pena pedir pouco' deveria ser transformada em incentivo a pedir mais"
+            },
+            {
+              "tipo": "necessidade",
+              "descricao": "Restaurantes artesanais precisam comunicar o valor do seus pratos de forma visual e descritiva — cardápios com fotos, descrições e badges justificam preços premium"
+            }
+          ],
+          "leading_indicators": [
+            {
+              "name": "Itens médios por carrinho",
+              "definition": "Média de itens distintos por pedido completado",
+              "target": "> 2.5 itens",
+              "rationale": "Mais itens por carrinho é o driver direto do ticket. Se cada item custa R$ 18-25 em média, 2.5+ itens gera ticket > R$ 45."
+            },
+            {
+              "name": "Taxa de aplicação de cupom por pedido",
+              "definition": "% de pedidos que usam cupom de desconto",
+              "target": "< 40%",
+              "rationale": "Se mais de 40% dos pedidos usam cupom, o ticket real pode estar artificialmente inflado. Monitorar para garantir ticket orgânico saudável."
+            },
+            {
+              "name": "Distribuição de preço dos itens mais pedidos",
+              "definition": "Mediana do preço unitário dos top-50 itens mais pedidos",
+              "target": "> R$ 22",
+              "rationale": "Se os itens populares têm preço médio alto, o mix natural eleva o ticket."
+            }
+          ],
+          "lagging_indicators": [
+            {
+              "name": "Ticket médio semanal",
+              "definition": "GMV / pedidos completados na semana",
+              "target": "> R$ 45"
+            },
+            {
+              "name": "GMV por consumidor ativo mensal",
+              "definition": "GMV total / consumidores únicos com pedido no mês",
+              "target": "> R$ 180 (4 pedidos x R$ 45)"
+            }
+          ]
+        },
+        {
+          "kr_id": "KR4",
+          "description": "Onboardar 50+ restaurantes artesanais ativos (com pelo menos 1 pedido/semana) nos primeiros 3 meses, validando product-market fit do lado da oferta",
+          "metric": "Restaurantes ativos (com ≥1 pedido na última semana)",
+          "baseline": 0,
+          "target": 50,
+          "unit": "restaurantes ativos",
+          "measurement_frequency": "Semanal",
+          "oportunidades": [
+            {
+              "tipo": "dor",
+              "descricao": "Restaurantes artesanais são invisíveis em plataformas dominadas por grandes redes e algoritmos pay-to-play — precisam de um canal onde qualidade seja o critério de destaque"
+            },
+            {
+              "tipo": "necessidade",
+              "descricao": "Restaurantes precisam de autonomia real para gerenciar cardápio, preços e promoções sem depender de intermediários ou regras opacas da plataforma"
+            },
+            {
+              "tipo": "desejo",
+              "descricao": "Donos de restaurantes desejam entender o comportamento dos consumidores que pedem seus pratos — quais itens vendem mais, em quais horários, qual ticket médio"
+            },
+            {
+              "tipo": "dor",
+              "descricao": "Restaurantes sofrem com comissões altas que corroem margem — especialmente artesanais que já operam com custo de ingrediente elevado"
+            },
+            {
+              "tipo": "necessidade",
+              "descricao": "Restaurantes precisam de um onboarding simples e rápido — cadastrar cardápio, configurar entrega e começar a receber pedidos sem burocracia"
+            }
+          ],
+          "leading_indicators": [
+            {
+              "name": "Restaurantes cadastrados (total)",
+              "definition": "Total de restaurantes que completaram cadastro na plataforma",
+              "target": "> 80 cadastrados (para ter 50 ativos)",
+              "rationale": "Nem todo cadastrado será ativo. Taxa de ativação esperada de ~60%. Pipeline de cadastro precede ativação."
+            },
+            {
+              "name": "Tempo médio de onboarding do restaurante",
+              "definition": "Dias entre primeiro contato e primeiro pedido recebido",
+              "target": "< 7 dias",
+              "rationale": "Onboarding rápido reduz desistência. Quanto antes o restaurante recebe pedidos, maior a chance de se manter ativo."
+            },
+            {
+              "name": "Itens de cardápio por restaurante",
+              "definition": "Média de itens ativos no cardápio por restaurante",
+              "target": "> 15 itens",
+              "rationale": "Cardápio robusto aumenta chance de conversão e pedidos. Restaurantes com poucos itens tendem a ter menos visibilidade."
+            }
+          ],
+          "lagging_indicators": [
+            {
+              "name": "Restaurantes ativos na semana",
+              "definition": "Restaurantes com ≥1 pedido completado nos últimos 7 dias",
+              "target": "> 50"
+            },
+            {
+              "name": "Pedidos médios por restaurante ativo por semana",
+              "definition": "Total de pedidos / restaurantes ativos na semana",
+              "target": "> 12 pedidos/restaurante/semana"
+            }
+          ]
+        }
+      ]
+    },
+    "outcome_roadmap": [
+      {
+        "horizon": "NOW (0-3 meses — MVP)",
+        "theme": "Validar conversão e experiência core",
+        "outcomes": [
+          {
+            "outcome": "Consumidores conseguem descobrir, escolher e pedir comida em menos de 5 minutos",
+            "linked_krs": ["KR1"],
+            "success_signal": "Taxa de conversão > 8% e tempo até primeiro pedido < 5 min"
+          },
+          {
+            "outcome": "Checkout com pagamento via ecp-digital-bank funciona sem fricção (cartão virtual e PIX)",
+            "linked_krs": ["KR1", "KR3"],
+            "success_signal": "Taxa de conclusão do checkout > 70% e zero erros de pagamento em transações válidas"
+          },
+          {
+            "outcome": "50 restaurantes artesanais estão ativos e recebendo pedidos semanalmente",
+            "linked_krs": ["KR4"],
+            "success_signal": "50+ restaurantes com ≥1 pedido/semana ao final do 3o mês"
+          },
+          {
+            "outcome": "A experiência visual premium (Midnight Express) é percebida como diferencial pelos consumidores",
+            "linked_krs": ["KR1", "KR2"],
+            "success_signal": "Feedback qualitativo positivo sobre design em NPS surveys e entrevistas"
+          }
+        ]
+      },
+      {
+        "horizon": "NEXT (3-6 meses — Retenção e Escala)",
+        "theme": "Construir hábito e aumentar frequência",
+        "outcomes": [
+          {
+            "outcome": "Consumidores formam hábito de pedir pelo FoodFlow com taxa de recompra saudável",
+            "linked_krs": ["KR2"],
+            "success_signal": "Taxa de recompra > 25% e uso de 'Repetir Pedido' > 15%"
+          },
+          {
+            "outcome": "Ticket médio estabiliza acima de R$ 45 sem dependência excessiva de cupons",
+            "linked_krs": ["KR3"],
+            "success_signal": "Ticket médio > R$ 45 com < 40% dos pedidos usando cupom"
+          },
+          {
+            "outcome": "Restaurantes percebem FoodFlow como canal rentável e com bom volume",
+            "linked_krs": ["KR4"],
+            "success_signal": "> 12 pedidos/restaurante/semana e NPS restaurante > 35"
+          },
+          {
+            "outcome": "Consumidores expandem repertório gastronômico — pedem de restaurantes diferentes além dos favoritos",
+            "linked_krs": ["KR2", "KR3"],
+            "success_signal": "Média de 3+ restaurantes distintos por consumidor ativo por mês"
+          }
+        ]
+      },
+      {
+        "horizon": "LATER (6-12 meses — Crescimento e Diferenciação)",
+        "theme": "Escalar com inteligência e expandir ecossistema",
+        "outcomes": [
+          {
+            "outcome": "Recomendação inteligente aumenta descoberta e pedidos de restaurantes menos conhecidos",
+            "linked_krs": ["KR1", "KR2", "KR4"],
+            "success_signal": "30% dos pedidos originados de sugestões da plataforma; distribuição de pedidos mais equilibrada entre restaurantes"
+          },
+          {
+            "outcome": "Expansão para novos bairros e categorias de SP com unit economics positiva",
+            "linked_krs": ["KR3", "KR4"],
+            "success_signal": "GMV crescendo 15%+ m/m com margem de contribuição positiva por pedido"
+          },
+          {
+            "outcome": "Ecossistema ecp-digital-bank + FoodFlow gera benefícios cruzados (cashback, programa de pontos)",
+            "linked_krs": ["KR2", "KR3"],
+            "success_signal": "> 50% dos pagamentos via ecp-digital-bank; retenção maior entre usuários do ecossistema"
+          },
+          {
+            "outcome": "FoodFlow é reconhecido como referência em UX de delivery premium entre early adopters paulistanos",
+            "linked_krs": ["KR1", "KR2"],
+            "success_signal": "NPS > 50; menções orgânicas em redes sociais; cobertura em mídia tech"
+          }
+        ]
+      }
+    ],
+    "assumptions": [
+      {
+        "id": "A1",
+        "assumption": "Consumidores urbanos 22-40 anos de classes A/B em São Paulo estão dispostos a migrar do iFood para uma plataforma nova se a experiência de descoberta for significativamente melhor",
+        "type": "value",
+        "risk_level": "alto",
+        "linked_krs": ["KR1", "KR2"],
+        "validation_approach": "Landing page + waitlist para medir demanda orgânica; beta fechado com 200 early adopters para medir conversão real vs. iFood habitual",
+        "evidence_for": "Insatisfação documentada com UX do iFood em reviews de app stores; sucesso de plataformas premium (Caviar) em outros mercados",
+        "evidence_against": "Efeito de rede do iFood é fortíssimo (mais restaurantes); custo de troca alto (favoritos, histórico, créditos salvos)"
+      },
+      {
+        "id": "A2",
+        "assumption": "Restaurantes artesanais de SP aceitarão onboardar em uma plataforma nova sem volume inicial garantido, motivados por menor comissão e mais controle",
+        "type": "business_viability",
+        "risk_level": "alto",
+        "linked_krs": ["KR4"],
+        "validation_approach": "Entrevistas com 30 donos de restaurantes artesanais; proposta de 0% comissão nos primeiros 3 meses; onboarding assistido pessoalmente",
+        "evidence_for": "Restaurantes pequenos reclamam frequentemente de comissões do iFood (12-27%); desejo por alternativas é vocal em grupos de donos de restaurantes",
+        "evidence_against": "Restaurantes operam com equipe enxuta e não querem gerenciar mais uma plataforma; volume precede rentabilidade na decisão do restaurante"
+      },
+      {
+        "id": "A3",
+        "assumption": "A integração de pagamento via ecp-digital-bank (cartão virtual + PIX) será fluida o suficiente para não impactar negativamente a conversão no checkout",
+        "type": "usability",
+        "risk_level": "médio",
+        "linked_krs": ["KR1"],
+        "validation_approach": "Teste de usabilidade do fluxo de checkout com 20 usuários; A/B test comparando taxa de conclusão do checkout entre métodos de pagamento",
+        "evidence_for": "PIX é amplamente adotado no Brasil; QR Code é comportamento mainstream; cartão virtual é simples se a autenticação for rápida",
+        "evidence_against": "Exigir autenticação no ecp-digital-bank adiciona um passo extra que apps concorrentes não têm; usuários podem não ter conta no ecp-digital-bank"
+      },
+      {
+        "id": "A4",
+        "assumption": "O posicionamento dark mode premium (Midnight Express) será percebido como aspiracional e não como inacessível ou elitista pelo público-alvo",
+        "type": "value",
+        "risk_level": "médio",
+        "linked_krs": ["KR1", "KR2"],
+        "validation_approach": "Teste de percepção de marca com 50 usuários do público-alvo; comparar métricas de engajamento entre FoodFlow e benchmark de apps de delivery",
+        "evidence_for": "Tendência global de dark mode em apps premium (Spotify, Netflix); público jovem urbano valoriza estética",
+        "evidence_against": "Food delivery é associado a praticidade, não luxo; dark mode pode dificultar visualização de fotos de comida"
+      },
+      {
+        "id": "A5",
+        "assumption": "É possível atingir massa crítica (50+ restaurantes e fluxo suficiente de consumidores) nos primeiros 3 meses operando apenas em bairros-alvo de São Paulo",
+        "type": "feasibility",
+        "risk_level": "alto",
+        "linked_krs": ["KR1", "KR4"],
+        "validation_approach": "Mapear densidade de restaurantes artesanais nos bairros-alvo (Pinheiros, Vila Madalena, Itaim, Moema); estimar base de consumidores potenciais por bairro",
+        "evidence_for": "São Paulo tem a maior concentração de restaurantes do Brasil; bairros-alvo são hubs gastronômicos reconhecidos",
+        "evidence_against": "Cold start de marketplace é historicamente difícil; sem investimento em marketing, crescimento orgânico pode ser insuficiente"
+      },
+      {
+        "id": "A6",
+        "assumption": "Seeds de dados mockados no MVP (cardápios, restaurantes) serão suficientes para criar uma experiência convincente de descoberta até que dados reais substituam",
+        "type": "usability",
+        "risk_level": "baixo",
+        "linked_krs": ["KR1"],
+        "validation_approach": "Criar seeds com fotos reais de alta qualidade e cardápios realistas; validar com early adopters se a experiência parece autêntica",
+        "evidence_for": "MVP com dados seed é prática comum; qualidade visual dos seeds é controlável",
+        "evidence_against": "Usuários podem perceber que dados são fake e perder confiança; discrepância entre seed e realidade quando restaurantes reais entram"
+      },
+      {
+        "id": "A7",
+        "assumption": "Uma web responsiva PWA-ready oferece experiência suficientemente boa em mobile para competir com apps nativos do iFood e Rappi",
+        "type": "usability",
+        "risk_level": "médio",
+        "linked_krs": ["KR1", "KR2"],
+        "validation_approach": "Benchmark de performance (FCP < 1.5s, TTI < 3s) em dispositivos Android mid-range; teste de usabilidade comparativo entre FoodFlow web e iFood nativo",
+        "evidence_for": "PWAs modernas com React são performáticas; Twitter Lite, Starbucks e Uber usam PWA com sucesso",
+        "evidence_against": "Apps nativos têm vantagens em push notifications, performance gráfica e acesso a hardware; consumidores brasileiros estão acostumados a apps de loja"
+      }
+    ]
+  },
+  "open_questions": [
+    {
+      "id": "OQ1",
+      "question": "Qual será o modelo de comissão do FoodFlow para restaurantes? Porcentagem fixa por pedido, escalonada por volume, ou modelo de assinatura?",
+      "context": "Define unit economics e atratividade para restaurantes. Impacta diretamente KR4.",
+      "suggested_owner": "Product Manager + Business",
+      "priority": "alta"
+    },
+    {
+      "id": "OQ2",
+      "question": "Quantos usuários do ecp-digital-bank existem atualmente em São Paulo? Qual é a base potencial que já tem conta ativa?",
+      "context": "Determina o tamanho do público que pode pagar via cartão virtual sem criar conta nova. Impacta conversão (KR1).",
+      "suggested_owner": "Product Manager + ecp-digital-bank team",
+      "priority": "alta"
+    },
+    {
+      "id": "OQ3",
+      "question": "Consumidores que não têm conta no ecp-digital-bank poderão pagar? O PIX QR Code pode ser pago de qualquer banco, mas o cartão virtual exige conta. Haverá outros meios de pagamento no futuro?",
+      "context": "Se o único meio de pagamento direto é ecp-digital-bank, o TAM efetivo é limitado pela base do banco. PIX QR Code mitiga mas adiciona fricção.",
+      "suggested_owner": "Product Manager + Architect",
+      "priority": "alta"
+    },
+    {
+      "id": "OQ4",
+      "question": "Quais bairros específicos de São Paulo serão priorizados no lançamento? Critérios: densidade de restaurantes artesanais, perfil demográfico, presença de consumidores-alvo",
+      "context": "Foco geográfico é crítico para massa crítica. Concentrar esforço em 5-8 bairros ao invés de toda SP.",
+      "suggested_owner": "Product Manager + Operations",
+      "priority": "média"
+    },
+    {
+      "id": "OQ5",
+      "question": "Como será operacionalizada a entrega no MVP? Parceria com entregadores independentes, integração com logística terceirizada (Loggi, etc.) ou apenas restaurantes com delivery próprio?",
+      "context": "O briefing menciona entrega simulada, mas para validar conversão real, a entrega precisa funcionar. Impacta KR1 e KR2.",
+      "suggested_owner": "Product Manager + Operations",
+      "priority": "alta"
+    },
+    {
+      "id": "OQ6",
+      "question": "Existe budget definido para aquisição de restaurantes e consumidores nos primeiros 3 meses? Subsídios, cupons iniciais, comissão zero para restaurantes early adopters?",
+      "context": "Cold start de marketplace exige investimento em pelo menos um lado. Impacta viabilidade de KR4.",
+      "suggested_owner": "Product Manager + Business",
+      "priority": "média"
+    }
+  ],
+  "next_hitl": 1,
+  "hitl_request": {
+    "hitl_number": 1,
+    "type": "approval",
+    "summary": "Fase 01 — Contexto Estratégico do FoodFlow está completa. Solicita-se aprovação humana para prosseguir à Fase 02 (Product Discovery).",
+    "items_for_review": [
+      "Market sizing (TAM R$ 75bi → SAM R$ 12bi → SOM R$ 18mi)",
+      "Análise competitiva (iFood, Rappi, 99food, Keeta)",
+      "5 segmentos de clientes (3 consumidores + 2 restaurantes) com JTBD",
+      "6 tendências de mercado mapeadas",
+      "Visão de produto 3-5 anos",
+      "North Star Metric: Pedidos Completados com Satisfação por Semana",
+      "5 princípios de produto",
+      "OKR com 1 Objective + 4 Key Results mensuráveis",
+      "OST: 19 oportunidades (dores, necessidades e desejos) mapeadas nos KRs — zero features/soluções",
+      "Leading e lagging indicators para cada KR",
+      "Outcome roadmap NOW/NEXT/LATER",
+      "7 suposições críticas com nível de risco e abordagem de validação",
+      "6 perguntas abertas para resolução"
+    ],
+    "decision_options": ["approved", "rejected", "approved_with_reservations"]
+  }
+}

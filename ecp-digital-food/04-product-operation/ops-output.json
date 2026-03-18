@@ -1,0 +1,361 @@
+{
+  "agent": "operations",
+  "phase": "04-product-operation",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "status": "completed",
+
+  "ci_cd": {
+    "strategy": "Single VPS deploy with PM2 process manager and Nginx reverse proxy",
+    "domain": "food.ecportilho.com",
+    "ssl_provider": "Let's Encrypt (Certbot)",
+    "process_manager": "PM2",
+    "reverse_proxy": "Nginx",
+
+    "build_pipeline": {
+      "steps": [
+        {
+          "step": 1,
+          "name": "pull_latest",
+          "command": "git pull origin main",
+          "description": "Atualizar código-fonte do repositório"
+        },
+        {
+          "step": 2,
+          "name": "install_dependencies",
+          "command": "npm ci --production=false",
+          "description": "Instalar dependências (incluindo devDependencies para build do frontend)"
+        },
+        {
+          "step": 3,
+          "name": "build_frontend",
+          "command": "npm run build",
+          "description": "Build do React SPA via Vite — gera client/dist/"
+        },
+        {
+          "step": 4,
+          "name": "run_seed_if_needed",
+          "command": "npm run seed",
+          "description": "Popular banco SQLite com dados iniciais (idempotente — verifica se já existe)"
+        },
+        {
+          "step": 5,
+          "name": "register_webhook_if_needed",
+          "command": "npm run register-webhook",
+          "description": "Registrar webhook do FoodFlow no ecp-digital-bank (idempotente)"
+        },
+        {
+          "step": 6,
+          "name": "restart_application",
+          "command": "pm2 reload ecosystem.config.cjs",
+          "description": "Reload graceful da aplicação via PM2 (zero-downtime)"
+        },
+        {
+          "step": 7,
+          "name": "verify_health",
+          "command": "curl -sf http://127.0.0.1:3000/api/categories || echo 'HEALTH CHECK FAILED'",
+          "description": "Verificar que a aplicação está respondendo"
+        }
+      ],
+      "deploy_script": "scripts/deploy.mjs",
+      "rollback_command": "git checkout HEAD~1 && npm ci && npm run build && pm2 reload ecosystem.config.cjs"
+    },
+
+    "environment_variables": {
+      "required": [
+        "NODE_ENV",
+        "PORT",
+        "HOST",
+        "JWT_SECRET",
+        "JWT_REFRESH_SECRET",
+        "DB_PATH",
+        "CORS_ORIGIN",
+        "ECP_BANK_API_URL",
+        "ECP_BANK_PLATFORM_EMAIL",
+        "ECP_BANK_PLATFORM_PASSWORD",
+        "ECP_BANK_PLATFORM_PIX_KEY",
+        "ECP_BANK_PLATFORM_PIX_KEY_TYPE",
+        "ECP_BANK_PIX_EXPIRATION_MINUTES",
+        "ECP_BANK_WEBHOOK_SECRET",
+        "FOODFLOW_PUBLIC_URL"
+      ],
+      "notes": "Arquivo .env deve existir na raiz do projeto no VPS. NUNCA commitar no repositório."
+    }
+  },
+
+  "gmud": {
+    "id": "GMUD-FOODFLOW-001",
+    "title": "Deploy Inicial — FoodFlow Marketplace MVP em Produção",
+    "type": "Normal",
+    "priority": "Alta",
+    "requester": "ECP AI Squad — Operations Agent",
+    "date": "2026-03-17",
+
+    "description": {
+      "summary": "Primeiro deploy em produção do FoodFlow, marketplace premium de food delivery. Inclui backend Node.js/Fastify com API REST, frontend React SPA, banco SQLite, integração com ecp-digital-bank para pagamentos (Cartão ECP e PIX QR Code via SSE), e configuração de infraestrutura (PM2 + Nginx + SSL).",
+      "scope": [
+        "Provisionamento de VPS Linux (Ubuntu 22.04+)",
+        "Instalação de Node.js 20 LTS, PM2, Nginx, Certbot",
+        "Deploy da aplicação FoodFlow (backend + frontend)",
+        "Configuração de banco SQLite com seed data (6 restaurantes, 24 itens, 3 usuários)",
+        "Configuração de Nginx como reverse proxy com SSL (Let's Encrypt)",
+        "Registro de webhook no ecp-digital-bank",
+        "Configuração de DNS: food.ecportilho.com → IP do VPS"
+      ],
+      "out_of_scope": [
+        "Migração de dados de sistemas legados",
+        "Configuração de CDN (futuro)",
+        "Monitoramento APM (futuro — Datadog, New Relic)",
+        "Backup automatizado de banco (manual no MVP)"
+      ]
+    },
+
+    "risk_analysis": {
+      "dimensions": [
+        {
+          "dimension": "Impacto no Negócio",
+          "level": "Baixo",
+          "justification": "Primeiro deploy — não há usuários em produção afetados. Impacto restrito à equipe interna e early adopters convidados.",
+          "score": 1
+        },
+        {
+          "dimension": "Complexidade Técnica",
+          "level": "Médio",
+          "justification": "Stack simples (Node.js + SQLite + Nginx), mas integração com ecp-digital-bank via webhook/SSE adiciona complexidade na configuração de rede e autenticação.",
+          "score": 3
+        },
+        {
+          "dimension": "Reversibilidade",
+          "level": "Baixo",
+          "justification": "Deploy em VPS dedicado sem dependências compartilhadas. Rollback é simples: reverter código e reiniciar PM2. Banco SQLite pode ser recriado com seed.",
+          "score": 1
+        },
+        {
+          "dimension": "Dependências Externas",
+          "level": "Médio",
+          "justification": "Depende do ecp-digital-bank estar acessível em bank.ecportilho.com e aceitar o webhook. Depende de DNS propagado e Let's Encrypt acessível.",
+          "score": 3
+        },
+        {
+          "dimension": "Janela de Impacto",
+          "level": "Baixo",
+          "justification": "Deploy estimado em 30-45 minutos. Sem downtime para usuários existentes (não há). Janela de mudança fora do horário comercial como boa prática.",
+          "score": 1
+        },
+        {
+          "dimension": "Experiência da Equipe",
+          "level": "Baixo",
+          "justification": "Mesmo padrão de deploy do ecp-digital-banking (já validado). Equipe familiarizada com PM2, Nginx e Certbot.",
+          "score": 1
+        }
+      ],
+      "overall_risk": "Baixo-Médio",
+      "overall_score": "10/30",
+      "approval_level": "Aprovação do Tech Lead é suficiente"
+    },
+
+    "rollback_plan": {
+      "trigger": "Health check falha após deploy OU erro crítico em pagamentos nas primeiras 2 horas",
+      "steps": [
+        {
+          "step": 1,
+          "action": "Reverter código para commit anterior",
+          "command": "cd /opt/foodflow && git checkout HEAD~1"
+        },
+        {
+          "step": 2,
+          "action": "Reinstalar dependências",
+          "command": "npm ci --production=false"
+        },
+        {
+          "step": 3,
+          "action": "Rebuild frontend",
+          "command": "npm run build"
+        },
+        {
+          "step": 4,
+          "action": "Reiniciar aplicação",
+          "command": "pm2 reload ecosystem.config.cjs"
+        },
+        {
+          "step": 5,
+          "action": "Verificar health",
+          "command": "curl -sf http://127.0.0.1:3000/api/categories"
+        }
+      ],
+      "estimated_rollback_time": "5 minutos",
+      "data_rollback": "Banco SQLite pode ser deletado e recriado com npm run seed (apenas dados seed no primeiro deploy)"
+    },
+
+    "change_window": {
+      "preferred": "Sábado 10:00-12:00 BRT",
+      "backup": "Domingo 10:00-12:00 BRT",
+      "blackout_periods": ["Sexta 18:00 — Sábado 08:00 (pico de delivery)"],
+      "estimated_duration": "45 minutos",
+      "monitoring_period": "2 horas após deploy"
+    },
+
+    "success_criteria": [
+      {
+        "criterion": "Aplicação respondendo em food.ecportilho.com com SSL válido",
+        "validation": "curl -sf https://food.ecportilho.com/ retorna HTML da SPA"
+      },
+      {
+        "criterion": "API funcional",
+        "validation": "GET /api/categories retorna 200 com lista de categorias"
+      },
+      {
+        "criterion": "Autenticação funcional",
+        "validation": "POST /api/auth/login com credenciais seed retorna JWT válido"
+      },
+      {
+        "criterion": "Integração banco acessível",
+        "validation": "POST /api/payments/bank-auth com credenciais válidas retorna token do banco"
+      },
+      {
+        "criterion": "Webhook registrado",
+        "validation": "ecp-digital-bank aceita e confirma registro do webhook"
+      },
+      {
+        "criterion": "PM2 estável por 30 minutos",
+        "validation": "pm2 status mostra 0 restarts após 30 minutos"
+      }
+    ],
+
+    "approvers": [
+      {
+        "role": "Tech Lead / Software Architect",
+        "status": "pending",
+        "date": null
+      },
+      {
+        "role": "Product Manager",
+        "status": "pending",
+        "date": null
+      }
+    ]
+  },
+
+  "slos": {
+    "description": "Service Level Objectives para o FoodFlow MVP",
+    "measurement_window": "Rolling 30 dias",
+    "objectives": [
+      {
+        "slo_id": "SLO-1",
+        "name": "Disponibilidade da API",
+        "description": "Percentual de requisições HTTP que retornam status 2xx ou 4xx (excluindo 5xx)",
+        "target": 99.5,
+        "unit": "%",
+        "error_budget": "3.6 horas de downtime/mês (0.5%)",
+        "measurement": "Contagem de respostas 5xx / total de requisições nos últimos 30 dias",
+        "alert_threshold": 99.0
+      },
+      {
+        "slo_id": "SLO-2",
+        "name": "Latência P95 — API de Catálogo",
+        "description": "95% das requisições GET em /api/restaurants e /api/categories completam em menos de 200ms",
+        "target": 200,
+        "unit": "ms",
+        "measurement": "Percentil 95 do tempo de resposta em rotas de catálogo",
+        "alert_threshold": 350
+      },
+      {
+        "slo_id": "SLO-3",
+        "name": "Latência P95 — API de Pagamento",
+        "description": "95% das requisições em /api/payments/* completam em menos de 2000ms (inclui chamada ao banco)",
+        "target": 2000,
+        "unit": "ms",
+        "measurement": "Percentil 95 do tempo de resposta em rotas de pagamento",
+        "alert_threshold": 3000
+      },
+      {
+        "slo_id": "SLO-4",
+        "name": "Error Rate",
+        "description": "Taxa de erros 5xx no total de requisições",
+        "target_max": 0.5,
+        "unit": "%",
+        "measurement": "Contagem de respostas 5xx / total de requisições por janela de 1 hora",
+        "alert_threshold": 1.0
+      },
+      {
+        "slo_id": "SLO-5",
+        "name": "Tempo de Entrega do SSE (PIX)",
+        "description": "Evento SSE payment_update entregue ao frontend em menos de 2 segundos após webhook recebido",
+        "target": 2000,
+        "unit": "ms",
+        "measurement": "Timestamp do webhook recebido vs timestamp do SSE emitido",
+        "alert_threshold": 5000
+      }
+    ]
+  },
+
+  "dora_metrics": {
+    "description": "DORA (DevOps Research and Assessment) targets para o FoodFlow MVP",
+    "targets": [
+      {
+        "metric": "Deployment Frequency",
+        "description": "Frequência de deploys em produção",
+        "target": "1-2x por semana",
+        "current_band": "Low (primeiro deploy)",
+        "target_band": "Medium",
+        "measurement": "Contagem de pm2 reload em produção por semana"
+      },
+      {
+        "metric": "Lead Time for Changes",
+        "description": "Tempo entre commit no main e deploy em produção",
+        "target": "< 1 dia",
+        "current_band": "N/A",
+        "target_band": "High",
+        "measurement": "Timestamp do merge no main vs timestamp do deploy"
+      },
+      {
+        "metric": "Change Failure Rate",
+        "description": "Percentual de deploys que causam degradação ou rollback",
+        "target": "< 15%",
+        "current_band": "N/A",
+        "target_band": "Medium",
+        "measurement": "Deploys com rollback / total de deploys no período"
+      },
+      {
+        "metric": "Mean Time to Recovery (MTTR)",
+        "description": "Tempo médio para restaurar o serviço após incidente",
+        "target": "< 30 minutos",
+        "current_band": "N/A",
+        "target_band": "High",
+        "measurement": "Tempo entre detecção do incidente e restauração confirmada"
+      }
+    ],
+    "notes": "Targets calibrados para MVP com equipe enxuta e VPS único. À medida que o produto escala, migrar para CI/CD automatizado (GitHub Actions) e melhorar frequência de deploy."
+  },
+
+  "monitoring": {
+    "healthcheck": {
+      "endpoint": "/api/categories",
+      "method": "GET",
+      "expected_status": 200,
+      "interval": "60s",
+      "timeout": "5s"
+    },
+    "pm2_monitoring": {
+      "metrics": ["cpu", "memory", "restarts", "uptime"],
+      "log_rotation": {
+        "max_size": "50M",
+        "retain": 10,
+        "compress": true
+      }
+    },
+    "nginx_access_log": "/var/log/nginx/foodflow-access.log",
+    "nginx_error_log": "/var/log/nginx/foodflow-error.log",
+    "application_logs": {
+      "stdout": "/root/.pm2/logs/foodflow-out.log",
+      "stderr": "/root/.pm2/logs/foodflow-error.log"
+    }
+  },
+
+  "hitl": {
+    "hitl_number": 11,
+    "description": "Validação da configuração de infraestrutura, GMUD, SLOs e dashboard operacional",
+    "decision": "pending",
+    "feedback": null
+  }
+}

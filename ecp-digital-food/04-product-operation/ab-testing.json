@@ -1,0 +1,277 @@
+{
+  "agent": "product-manager",
+  "phase": "04-product-operation",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "methodology_references": [
+    "Ronny Kohavi — Trustworthy Online Controlled Experiments (A/B testing bible)",
+    "Evan Miller — Sample Size Calculator (power analysis)",
+    "Stefan Thomke — Experimentation Works (HBR)",
+    "Marty Cagan — Continuous Discovery Habits adaptado para validacao pos-lancamento"
+  ],
+  "experimentation_strategy": {
+    "approach": "Experimentos sequenciais com 1 experimento ativo por vez para evitar interacao entre variaveis. Prioridade definida pelo impacto esperado nos KRs e pela facilidade de implementacao.",
+    "tooling": "Feature flags via variavel de ambiente + logica condicional no frontend (React). Atribuicao de grupo via hash do user_id (deterministica, sem cookies). Analytics via logs estruturados do Fastify + agregacao manual em SQLite.",
+    "statistical_method": "Teste Z bicaudal para proporcoes (conversao, recompra) e teste T para medias (ticket). Significancia alpha = 0.05, power = 0.80.",
+    "guardrail_metrics": [
+      "Taxa de erro 5xx (SLO-4) nao deve aumentar mais que 0.2pp durante experimento",
+      "Latencia P95 (SLO-2) nao deve degradar mais que 50ms",
+      "NPS nao deve cair mais que 5 pontos no grupo variante",
+      "Taxa de reclamacoes nao deve aumentar mais que 1pp"
+    ]
+  },
+  "experiments": [
+    {
+      "id": "EXP-001",
+      "name": "Checkout Simplificado (2 Steps vs 3 Steps)",
+      "status": "planned",
+      "priority": 1,
+      "linked_krs": ["KR1"],
+      "linked_stories": ["US-033", "US-034", "US-035"],
+      "hypothesis": "Se reduzirmos o checkout de 3 etapas (endereco -> pagamento -> confirmacao) para 2 etapas (endereco+pagamento combinados -> confirmacao), entao a taxa de conversao visitor-to-order aumentara em pelo menos 2 pontos percentuais, porque a principal causa de abandono de carrinho e a friccao no numero de passos entre 'quero pedir' e 'pedido confirmado'.",
+      "rationale": "O principio de produto 'Checkout e sagrado' define que cada segundo a mais no checkout e um pedido perdido. Dados de mercado (Baymard Institute 2025) mostram que 17% dos abandonos sao causados por checkout longo/complicado. O OPP-02 (RICE 25.0) confirma que essa e a segunda maior oportunidade do FoodFlow.",
+      "control": {
+        "name": "Checkout 3 Steps",
+        "description": "Fluxo atual: Step 1 (selecionar endereco + aplicar cupom) -> Step 2 (selecionar metodo de pagamento e pagar) -> Step 3 (tela de confirmacao com resumo e botao 'Confirmar Pedido')",
+        "variant_id": "A"
+      },
+      "variant": {
+        "name": "Checkout 2 Steps",
+        "description": "Fluxo simplificado: Step 1 (endereco + cupom + metodo de pagamento em uma unica tela com sections colapsaveis) -> Step 2 (tela de confirmacao com resumo e botao 'Confirmar Pedido'). Pagamento inicia ao clicar em confirmar.",
+        "variant_id": "B",
+        "implementation_notes": "Combinar AddressSelector + CouponInput + PaymentMethodSelector em uma unica pagina /checkout. Usar accordion/sections para organizar. O resumo financeiro atualiza em tempo real conforme endereco e cupom sao alterados."
+      },
+      "primary_metric": {
+        "name": "Taxa de conversao visitor-to-order",
+        "definition": "Numero de pedidos completados (status != payment_failed e != cancelled) / numero de sessoes unicas no periodo",
+        "current_baseline": "Estimado 6-8% (baseline a ser coletado nas 2 primeiras semanas pos-lancamento)",
+        "minimum_detectable_effect": "2pp absoluto (ex: de 6% para 8%)"
+      },
+      "secondary_metrics": [
+        {
+          "name": "Taxa de abandono de carrinho",
+          "definition": "Carrinhos com itens que nao resultam em pedido / total de carrinhos com itens",
+          "expected_direction": "Reducao de pelo menos 5pp"
+        },
+        {
+          "name": "Tempo medio do checkout",
+          "definition": "Mediana do tempo entre entrada na pagina /checkout e pedido confirmado",
+          "expected_direction": "Reducao de pelo menos 30 segundos"
+        },
+        {
+          "name": "Ticket medio",
+          "definition": "GMV total / numero de pedidos no grupo",
+          "expected_direction": "Neutro (nao deve cair)"
+        }
+      ],
+      "sample_size": {
+        "per_group": 1200,
+        "total": 2400,
+        "calculation": "Para detectar 2pp de diferenca (de 6% para 8%) com alpha=0.05, power=0.80, usando formula de Evan Miller: n = 16 * p*(1-p) / delta^2 = 16 * 0.06*0.94 / 0.02^2 = 2256 por grupo. Arredondado para 1200 por grupo considerando baseline possivelmente maior.",
+        "split_ratio": "50/50",
+        "assignment_method": "Hash deterministico do user_id (SHA-256 mod 2). Usuarios nao-logados excluidos do experimento."
+      },
+      "duration_days": 14,
+      "duration_rationale": "Com meta de 90 pedidos/dia nos primeiros meses e ~60% dos visitantes sendo unicos, estimamos ~750 sessoes unicas/semana. Para atingir 2400, precisamos de ~3.2 semanas. Arredondamos para 2 semanas assumindo crescimento gradual, com extensao se amostra insuficiente.",
+      "decision_criteria": {
+        "proceed": "Variante B mostra aumento >= 2pp na taxa de conversao com p-value < 0.05 E nenhuma metrica guardrail violada. Decisao: adotar checkout 2 steps como padrao para 100% dos usuarios.",
+        "reject": "Variante B mostra queda na conversao OU aumento < 1pp sem significancia estatistica OU qualquer metrica guardrail violada. Decisao: manter checkout 3 steps e investigar outros pontos de friccao.",
+        "inconclusive": "Resultado entre 1pp e 2pp com p-value entre 0.05 e 0.10. Decisao: estender experimento por mais 7 dias para aumentar amostra. Se ainda inconclusivo, manter controle e redesenhar experimento."
+      },
+      "risks": [
+        "Combinar muitas informacoes em uma tela pode gerar sobrecarga cognitiva, especialmente no mobile",
+        "Fluxo de pagamento PIX (que abre SSE) pode conflitar com a logica de accordion colapsavel",
+        "Usuarios que ja se acostumaram ao fluxo 3 steps podem se confundir temporariamente"
+      ]
+    },
+    {
+      "id": "EXP-002",
+      "name": "Home Discovery — Hero Personalizado vs Generico",
+      "status": "planned",
+      "priority": 2,
+      "linked_krs": ["KR1", "KR3"],
+      "linked_stories": ["US-001", "US-002", "US-003"],
+      "hypothesis": "Se exibirmos um hero banner com promocao personalizada baseada no historico de pedidos do consumidor (ultima categoria pedida, restaurante favorito) em vez de uma promocao generica igual para todos, entao a taxa de adicao ao carrinho aumentara em pelo menos 3 pontos percentuais, porque consumidores respondem melhor a conteudo relevante do que a ofertas genericas.",
+      "rationale": "O OPP-01 (RICE 26.67) e a oportunidade #1 do FoodFlow — resolver fadiga de decisao com curadoria. O hero banner e o primeiro ponto de contato da sessao e define o tom da experiencia. Personalizar a primeira impressao pode impactar tanto conversao (KR1) quanto ticket medio (KR3) ao direcionar para restaurantes com ticket mais alto.",
+      "control": {
+        "name": "Hero Generico",
+        "description": "Hero banner padrao exibindo a promocao global ativa (ex: 'Frete gratis acima de R$ 120' ou 'Use MVP10 e ganhe R$ 10 OFF'). Mesmo conteudo para todos os usuarios logados.",
+        "variant_id": "A"
+      },
+      "variant": {
+        "name": "Hero Personalizado",
+        "description": "Hero banner dinamico: se o usuario tem historico de pedidos, exibe 'Que tal pedir de [restaurante favorito] novamente?' com CTA direto para o restaurante. Se nao tem historico mas tem categoria clicada, exibe 'Descubra novos [categoria] perto de voce'. Se nao tem nenhum dado, fallback para hero generico.",
+        "variant_id": "B",
+        "implementation_notes": "Logica no frontend: verificar localStorage/API para ultimo pedido e ultima categoria. Rendering condicional no HeroBanner component. Dados necessarios: GET /api/orders?limit=1&sort=created_at:desc e GET /api/consumer/favorites."
+      },
+      "primary_metric": {
+        "name": "Taxa de adicao ao carrinho",
+        "definition": "Numero de sessoes com pelo menos 1 item adicionado ao carrinho / total de sessoes unicas",
+        "current_baseline": "Estimado 20-25% (baseline a ser coletado)",
+        "minimum_detectable_effect": "3pp absoluto (ex: de 22% para 25%)"
+      },
+      "secondary_metrics": [
+        {
+          "name": "Taxa de conversao visitor-to-order",
+          "definition": "Pedidos completados / sessoes unicas",
+          "expected_direction": "Aumento de pelo menos 1pp"
+        },
+        {
+          "name": "Ticket medio",
+          "definition": "GMV / pedidos completados",
+          "expected_direction": "Aumento de pelo menos R$ 3 (restaurantes favoritos tendem a ter ticket recorrente)"
+        },
+        {
+          "name": "Tempo ate primeira adicao ao carrinho",
+          "definition": "Mediana do tempo entre inicio da sessao e primeiro add-to-cart",
+          "expected_direction": "Reducao de pelo menos 15 segundos"
+        },
+        {
+          "name": "CTR do hero banner",
+          "definition": "Cliques no CTA do hero / impressoes do hero",
+          "expected_direction": "Aumento de pelo menos 5pp"
+        }
+      ],
+      "sample_size": {
+        "per_group": 900,
+        "total": 1800,
+        "calculation": "Para detectar 3pp (de 22% para 25%) com alpha=0.05, power=0.80: n = 16 * 0.22*0.78 / 0.03^2 = 3046. Considerando que nem todos os usuarios tem historico (estimativa 40% no inicio), ajustamos para 900 por grupo focando em usuarios com dados.",
+        "split_ratio": "50/50",
+        "assignment_method": "Hash deterministico do user_id. Usuarios sem login veem hero generico (excluidos do experimento)."
+      },
+      "duration_days": 21,
+      "duration_rationale": "Personalizacao requer usuarios com historico, o que limita a amostra elegivel nos primeiros dias. Estimamos 3 semanas para acumular amostra suficiente de usuarios recorrentes.",
+      "decision_criteria": {
+        "proceed": "Variante B mostra aumento >= 3pp na taxa de adicao ao carrinho com p-value < 0.05 E ticket medio nao cai E nenhuma metrica guardrail violada. Decisao: adotar hero personalizado como padrao.",
+        "reject": "Variante B nao mostra diferenca significativa OU ticket medio cai mais que R$ 2 OU metricas guardrail violadas. Decisao: manter hero generico e investigar personalizacao em outras areas (ex: ordenacao do catalogo).",
+        "inconclusive": "Resultado com p-value entre 0.05 e 0.10. Decisao: estender por mais 7 dias. Se ainda inconclusivo, manter controle."
+      },
+      "risks": [
+        "Usuarios novos (sem historico) nao sao impactados pelo experimento — pode limitar o reach",
+        "Personalizacao baseada apenas em ultimo pedido pode ser pouco relevante (ex: pediu sushi ontem, nao quer sushi hoje)",
+        "Complexidade de manter dois renders do hero pode introduzir bugs visuais"
+      ]
+    },
+    {
+      "id": "EXP-003",
+      "name": "Recompra — Push/Email 'Repetir Pedido' 24h Apos Entrega",
+      "status": "planned",
+      "priority": 3,
+      "linked_krs": ["KR2"],
+      "linked_stories": ["US-029", "US-030"],
+      "hypothesis": "Se enviarmos uma notificacao (push notification ou email) 24 horas apos a entrega de um pedido com CTA 'Repetir seu pedido de [restaurante]' e um incentivo de 5% de desconto na recompra, entao a taxa de recompra em 30 dias aumentara em pelo menos 5 pontos percentuais, porque a janela de 24h captura o momento em que a satisfacao com o pedido anterior ainda esta fresca e reduz o esforco de decisao.",
+      "rationale": "O KR2 (recompra > 25%) e o principal driver de crescimento sustentavel. O OPP-06 identifica que consumidores esquecem de plataformas novas quando nao ha razao para voltar. O segmento C2 (Pratico Recorrente) tem JTBD explicito de 'repetir pedido com minimo esforco'. Uma notificacao proativa 24h apos entrega ataca diretamente a formacao de habito.",
+      "control": {
+        "name": "Sem Notificacao",
+        "description": "Comportamento atual: apos entrega, nenhuma comunicacao proativa. O consumidor so retorna se lembrar espontaneamente do FoodFlow ou ao receber promocao generica.",
+        "variant_id": "A"
+      },
+      "variant": {
+        "name": "Notificacao de Recompra 24h",
+        "description": "24 horas apos status 'delivered', enviar email transacional com: foto/emoji do restaurante do ultimo pedido, mensagem 'Gostou do [restaurante]? Repita seu pedido com 5% OFF', botao deep-link direto para o carrinho com os mesmos itens pre-carregados, cupom auto-aplicavel RECOMPRA5 valido por 48h.",
+        "variant_id": "B",
+        "implementation_notes": "Implementar via cron job ou worker que verifica pedidos com status=delivered e delivered_at entre 23h e 25h atras. Email via servico transacional (Resend ou similar). Deep link para /cart?repeat=ORDER_ID. Cupom RECOMPRA5 criado automaticamente com discount_type=percent, discount_value=5, max_uses=1, expires_at=48h."
+      },
+      "primary_metric": {
+        "name": "Taxa de recompra em 30 dias",
+        "definition": "Percentual de consumidores que fazem >= 2 pedidos em uma janela de 30 dias corridos",
+        "current_baseline": "Estimado 15-20% (baseline a ser coletado nas primeiras 4 semanas)",
+        "minimum_detectable_effect": "5pp absoluto (ex: de 18% para 23%)"
+      },
+      "secondary_metrics": [
+        {
+          "name": "Taxa de abertura do email",
+          "definition": "Emails abertos / emails enviados (apenas grupo B)",
+          "expected_direction": "Meta: > 30% (emails transacionais de food delivery tipicamente 25-40%)"
+        },
+        {
+          "name": "Taxa de clique no CTA",
+          "definition": "Cliques no botao 'Repetir Pedido' / emails abertos",
+          "expected_direction": "Meta: > 12%"
+        },
+        {
+          "name": "Tempo entre pedidos consecutivos",
+          "definition": "Mediana dos dias entre o primeiro e o segundo pedido de cada consumidor",
+          "expected_direction": "Reducao de pelo menos 3 dias (ex: de 12 para 9 dias)"
+        },
+        {
+          "name": "Uso do cupom RECOMPRA5",
+          "definition": "Pedidos com cupom RECOMPRA5 / total de cupons RECOMPRA5 gerados",
+          "expected_direction": "Meta: > 8%"
+        },
+        {
+          "name": "Ticket medio do segundo pedido",
+          "definition": "GMV do segundo pedido dos consumidores que recompraram",
+          "expected_direction": "Neutro ou leve aumento (desconto compensa com conveniencia de repetir pedido completo)"
+        }
+      ],
+      "sample_size": {
+        "per_group": 500,
+        "total": 1000,
+        "calculation": "Para detectar 5pp (de 18% para 23%) com alpha=0.05, power=0.80: n = 16 * 0.18*0.82 / 0.05^2 = 945. Arredondado para 500 por grupo. Amostra elegivel: consumidores que fizeram pelo menos 1 pedido entregue com sucesso.",
+        "split_ratio": "50/50",
+        "assignment_method": "Hash deterministico do user_id. Atribuicao no momento do primeiro pedido entregue (evento OrderDelivered)."
+      },
+      "duration_days": 30,
+      "duration_rationale": "A metrica primaria (recompra em 30 dias) requer pelo menos 30 dias de observacao apos o primeiro pedido de cada consumidor na amostra. Considerando ramp-up de usuarios, estimamos 30 dias para acumular amostra e mais 30 dias de observacao = total de ~45 dias, mas o experimento roda continuamente nos primeiros 30 dias de atribuicao.",
+      "decision_criteria": {
+        "proceed": "Variante B mostra aumento >= 5pp na taxa de recompra com p-value < 0.05 E taxa de unsubscribe do email < 2% E nenhuma metrica guardrail violada. Decisao: implementar notificacao de recompra como feature permanente e expandir para push notification.",
+        "reject": "Variante B nao mostra diferenca significativa OU taxa de unsubscribe > 5% (sinal de irritacao) OU metricas guardrail violadas. Decisao: testar outras abordagens de recompra (ex: in-app notification ao abrir o app, sugestao na home).",
+        "inconclusive": "Resultado com p-value entre 0.05 e 0.10 OU amostra insuficiente apos 30 dias. Decisao: estender coleta por mais 15 dias."
+      },
+      "risks": [
+        "Emails podem cair em spam se dominio food.ecportilho.com nao tiver SPF/DKIM/DMARC configurados",
+        "Desconto de 5% pode atrair recompras que teriam acontecido organicamente (cannibalizacao)",
+        "Consumidores que tiveram experiencia ruim no primeiro pedido podem reagir negativamente a notificacao",
+        "Janela de 24h pode nao ser ideal para todos os segmentos (C2 pode preferir janela mais curta)"
+      ]
+    }
+  ],
+  "experimentation_roadmap": {
+    "phase_1_weeks_1_4": {
+      "description": "Baseline collection — nenhum experimento ativo",
+      "actions": [
+        "Coletar metricas baseline: taxa de conversao, taxa de adicao ao carrinho, ticket medio, taxa de recompra",
+        "Instrumentar eventos de analytics: page_view, add_to_cart, checkout_started, order_completed, hero_clicked",
+        "Validar que o sistema de feature flags funciona corretamente",
+        "Validar atribuicao de grupos via hash de user_id"
+      ]
+    },
+    "phase_2_weeks_5_6": {
+      "description": "EXP-001 — Checkout Simplificado",
+      "actions": [
+        "Ativar feature flag checkout_variant para 50% dos usuarios",
+        "Monitorar metricas guardrail diariamente",
+        "Analisar resultados ao final de 14 dias"
+      ]
+    },
+    "phase_3_weeks_7_10": {
+      "description": "EXP-002 — Hero Personalizado",
+      "actions": [
+        "Se EXP-001 aprovado, adotar checkout 2 steps como padrao antes de iniciar EXP-002",
+        "Ativar feature flag hero_variant para 50% dos usuarios logados com historico",
+        "Monitorar metricas guardrail diariamente",
+        "Analisar resultados ao final de 21 dias"
+      ]
+    },
+    "phase_4_weeks_8_14": {
+      "description": "EXP-003 — Recompra 24h (roda em paralelo com EXP-002, pois metricas primarias sao independentes)",
+      "actions": [
+        "Ativar notificacao para 50% dos novos pedidos entregues",
+        "Monitorar taxa de unsubscribe e metricas guardrail",
+        "Analisar resultados apos 30 dias de coleta"
+      ]
+    }
+  },
+  "next_hitl": 12,
+  "hitl_12_agenda": {
+    "description": "Revisao final do ciclo de produto: validacao dos 3 experimentos planejados, aprovacao do site de documentacao e decisao de go-live para early adopters",
+    "items": [
+      "Revisar design dos 3 experimentos e validar hipoteses",
+      "Aprovar site de documentacao como registro oficial do ciclo",
+      "Confirmar que todas as condicoes de deploy do QA report foram enderecadas",
+      "Decidir data de go-live para early adopters (grupo de 50-100 usuarios convidados)",
+      "Definir cadencia de review semanal dos KRs pos-lancamento"
+    ]
+  }
+}

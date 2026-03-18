@@ -1,0 +1,615 @@
+{
+  "agent": "product-owner",
+  "phase": "02-product-discovery",
+  "step": "priorizacao",
+  "product": "FoodFlow",
+  "methodology": "RICE adaptado (Reach x Impact x Confidence / Effort)",
+  "methodology_notes": {
+    "reach_scale": "1 = 1 segmento impactado, 2 = 2 segmentos, 3 = 3 segmentos, 4 = 4 segmentos, 5 = todos os 5 segmentos (C1, C2, C3, R1, R2)",
+    "impact_scale": "1 = marginal, 2 = baixo, 3 = medio, 4 = alto, 5 = transformacional para o KR",
+    "confidence_scale": "1 = palpite, 2 = opiniao informada, 3 = evidencia indireta, 4 = evidencia forte, 5 = dado validado",
+    "effort_scale": "1 = trivial, 2 = baixo, 3 = medio, 4 = alto, 5 = muito alto",
+    "formula": "RICE = (Reach x Impact x Confidence) / Effort",
+    "corte_mvp": "RICE >= 12.0 ou oportunidades essenciais para viabilidade do marketplace (must-have estrategico)"
+  },
+  "total_opportunities": 19,
+  "selected_for_mvp": [
+    {
+      "id": "OPP-01",
+      "kr_id": "KR1",
+      "tipo": "dor",
+      "descricao": "Consumidores sentem fadiga de decisao ao navegar catalogos longos e genericos — precisam de curadoria que reduza o esforco cognitivo de escolha",
+      "rice": {
+        "reach": {
+          "score": 4,
+          "rationale": "Impacta diretamente C1 (Explorador Gastronomico), C2 (Pratico Recorrente), C3 (Cacador de Ofertas) e indiretamente R1 (restaurantes que ganham visibilidade com curadoria). 4 dos 5 segmentos."
+        },
+        "impact": {
+          "score": 5,
+          "rationale": "Fadiga de decisao e o problema central do mercado identificado na analise competitiva. Resolver isso e a razao de existir do FoodFlow — impacto transformacional no KR1 (conversao)."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: reviews de app stores do iFood mencionam UI poluida; analise competitiva confirma que todos os concorrentes priorizam volume sobre curadoria; tendencia de mercado 'Experiencia Premium e Curadoria como Diferencial' valida a oportunidade."
+        },
+        "effort": {
+          "score": 3,
+          "rationale": "Esforco medio — requer design de UX de descoberta com categorias, filtros e layout curado. Nao envolve integracao externa complexa, mas exige investimento significativo em design e front-end."
+        },
+        "total": 26.67
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C2", "C3", "R1"],
+      "justification": "Esta e a oportunidade #1 do FoodFlow. O produto nasce para resolver fadiga de decisao com curadoria premium. E o principal driver de conversao (KR1) e o diferencial competitivo central versus iFood. Sem endereca-la, nao ha razao para o produto existir."
+    },
+    {
+      "id": "OPP-02",
+      "kr_id": "KR1",
+      "tipo": "dor",
+      "descricao": "Consumidores abandonam o pedido quando o checkout tem passos inesperados ou o preco final surpreende negativamente (frete, taxa, cupom que nao funciona)",
+      "rice": {
+        "reach": {
+          "score": 5,
+          "rationale": "Impacta todos os 5 segmentos — todo usuario que chega ao checkout e afetado. Restaurantes tambem sofrem com abandono (pedidos perdidos)."
+        },
+        "impact": {
+          "score": 5,
+          "rationale": "Impacto transformacional no KR1. O principio de produto 'Checkout e sagrado' define isso como prioridade absoluta. Cada segundo de friccao destroi conversao. O checkout e o gargalo mais critico de qualquer marketplace."
+        },
+        "confidence": {
+          "score": 5,
+          "rationale": "Dado validado: abandono de carrinho em e-commerce/delivery e amplamente documentado (60-80% em benchmarks). Pain points de C2 e C3 confirmam — checkout lento e cupons que nao funcionam sao dores explicitas."
+        },
+        "effort": {
+          "score": 3,
+          "rationale": "Esforco medio — requer transparencia de precos desde a descoberta, calculo de frete visivel, validacao de cupom em tempo real. A integracao com ecp-digital-bank adiciona complexidade controlavel."
+        },
+        "total": 41.67
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C2", "C3", "R1", "R2"],
+      "justification": "Maior RICE score do portfolio. Abandonar o checkout e a forma mais cara de perder um cliente — ja investiu-se em aquisicao, descoberta e selecao. Transparencia de precos e checkout sem surpresas sao pre-requisitos para atingir a meta de 8% de conversao."
+    },
+    {
+      "id": "OPP-03",
+      "kr_id": "KR1",
+      "tipo": "necessidade",
+      "descricao": "Consumidores precisam de filtros e categorias relevantes que conectem diretamente com o que desejam comer naquele momento (por tipo de cozinha, tempo de entrega, faixa de preco)",
+      "rice": {
+        "reach": {
+          "score": 4,
+          "rationale": "Impacta C1 (navega categorias antes de decidir), C2 (quer encontrar favoritos rapido), C3 (filtra por preco) e R1 (categorias dao visibilidade). 4 segmentos."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR1. Filtros e categorias sao o mecanismo primario de descoberta definido no briefing (F02 — Home e Descoberta). Conectam intencao do consumidor ao restaurante certo."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: o briefing define categorias iniciais (Hamburguer, Japones, Pizza, Saudavel, Massas, Brasileira). Comportamento de C1 confirma — navega categorias e promocoes antes de decidir."
+        },
+        "effort": {
+          "score": 2,
+          "rationale": "Esforco baixo-medio — filtros por categoria, ETA e preco sao funcionalidades padrao de marketplace. Ja esta previsto no escopo do MVP (F02)."
+        },
+        "total": 32.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C2", "C3", "R1"],
+      "justification": "Filtros e categorias sao infraestrutura basica de descoberta. Sem eles, a curadoria (OPP-01) nao funciona. E o mecanismo que conecta a intencao 'quero comer japones agora' ao restaurante certo. Ja previsto no briefing como F02."
+    },
+    {
+      "id": "OPP-04",
+      "kr_id": "KR1",
+      "tipo": "desejo",
+      "descricao": "Consumidores desejam sentir confianca antes de pedir de um restaurante novo — evidencias visuais de qualidade (fotos reais, badges, ratings) reduzem a barreira de experimentacao",
+      "rice": {
+        "reach": {
+          "score": 4,
+          "rationale": "Impacta C1 (influenciado por fotos, reviews e badges), C3 (precisa de sinais de qualidade para justificar gasto), R1 (restaurantes artesanais que investem em apresentacao visual) e R2 (dark kitchens que precisam de marca visual forte). 4 segmentos."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR1 e tambem no KR3 (ticket medio). Confianca visual e o que transforma browsing em pedido. O principio 'Design como diferencial competitivo' valida que fotos que dao fome e badges sao essenciais."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: pain point de C1 — 'nao confia em restaurantes com poucas avaliacoes'. O briefing ja preve badges (Best seller, Vegetariano) e ratings no card do restaurante (F02, F03)."
+        },
+        "effort": {
+          "score": 2,
+          "rationale": "Esforco baixo — cards visuais com rating, badges e fotos ja estao previstos no escopo do MVP. E primariamente trabalho de design e seed de dados de qualidade."
+        },
+        "total": 32.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C3", "R1", "R2"],
+      "justification": "Confianca visual e o que converte visitantes em compradores, especialmente em uma plataforma nova sem reputacao estabelecida. Fotos premium, badges e ratings sao diferenciais do posicionamento Midnight Express e ja estao no escopo do briefing."
+    },
+    {
+      "id": "OPP-05",
+      "kr_id": "KR1",
+      "tipo": "dor",
+      "descricao": "Consumidores desistem quando o fluxo de pagamento exige muitos passos ou autenticacao complexa — qualquer friccao entre 'quero pedir' e 'pedido confirmado' destroi conversao",
+      "rice": {
+        "reach": {
+          "score": 5,
+          "rationale": "Todo usuario que faz checkout e impactado. Todos os 5 segmentos — consumidores e restaurantes (que perdem pedidos por abandono no pagamento)."
+        },
+        "impact": {
+          "score": 5,
+          "rationale": "Transformacional para KR1. A suposicao A3 da Fase 01 identifica a integracao ecp-digital-bank como risco medio de usabilidade. Se o pagamento falhar, nada mais importa."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: PIX e amplamente adotado (150M+ usuarios), mas exigir autenticacao no ecp-digital-bank adiciona passo extra. A Fase 01 ja flaggou como risco e propos teste de usabilidade."
+        },
+        "effort": {
+          "score": 4,
+          "rationale": "Esforco alto — integracao com ecp-digital-bank via API (auth, cards, balance, PIX transfer, QR code, webhook, SSE). E a integracao mais complexa do MVP."
+        },
+        "total": 25.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C2", "C3", "R1", "R2"],
+      "justification": "Pagamento e pre-requisito absoluto do marketplace. A integracao com ecp-digital-bank e restricao do projeto — nao ha alternativa. O desafio e minimizar friccao. Risco medio de usabilidade (A3) exige atencao especial no design do fluxo."
+    },
+    {
+      "id": "OPP-06",
+      "kr_id": "KR2",
+      "tipo": "necessidade",
+      "descricao": "Consumidores recorrentes precisam de um caminho ultra-rapido para repetir pedidos anteriores sem refazer toda a jornada de descoberta",
+      "rice": {
+        "reach": {
+          "score": 3,
+          "rationale": "Impacta diretamente C2 (Pratico Recorrente — usa 'repetir pedido' frequentemente) e C1 (Explorador que tambem repete favoritos). Indiretamente R1 (recebe pedidos recorrentes). 3 segmentos."
+        },
+        "impact": {
+          "score": 5,
+          "rationale": "Transformacional para KR2 (recompra > 25%). 'Repetir Pedido' e o leading indicator definido na OST (target > 15% dos pedidos). E o caminho mais curto entre intencao e pedido — driver direto de habito."
+        },
+        "confidence": {
+          "score": 5,
+          "rationale": "Dado validado: C2 explicita que 'usa repetir pedido frequentemente' e reclama de 'falta de atalho real para recompra'. Feature ja prevista no briefing (F06 — Historico e Favoritos)."
+        },
+        "effort": {
+          "score": 2,
+          "rationale": "Esforco baixo — botao 'Repetir pedido' no historico que pre-popula carrinho. Logica simples: copiar itens do pedido anterior para carrinho ativo."
+        },
+        "total": 37.5
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C2", "R1"],
+      "justification": "E o mecanismo central de retencao do FoodFlow. Sem recompra rapida, consumidores voltam ao iFood por inércia. Leading indicator do KR2 depende diretamente desta oportunidade. Esforco baixo com impacto transformacional — melhor ratio do portfolio."
+    },
+    {
+      "id": "OPP-07",
+      "kr_id": "KR2",
+      "tipo": "dor",
+      "descricao": "Consumidores esquecem de plataformas novas quando nao ha razao para voltar — a ausencia de incentivo de retorno faz com que voltem ao app habitual (iFood)",
+      "rice": {
+        "reach": {
+          "score": 5,
+          "rationale": "Todos os 5 segmentos sao impactados. Todo usuario novo pode esquecer da plataforma. Restaurantes tambem sofrem (menos pedidos recorrentes)."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR2. A suposicao A1 da Fase 01 identifica o efeito de rede do iFood como risco — consumidores tem favoritos, historico e creditos la. FoodFlow precisa criar razoes para retorno."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: cold start problem e bem documentado em marketplaces. A Fase 01 identifica como risco alto (A1, A5). Cupom de primeiro pedido (MVP10) ja esta no briefing."
+        },
+        "effort": {
+          "score": 2,
+          "rationale": "Esforco baixo para MVP — cupom de boas-vindas (MVP10 ja definido), frete gratis acima de R$120, e promocoes visíveis na home ja estao no escopo. Programa de fidelidade completo esta fora do MVP."
+        },
+        "total": 40.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C2", "C3", "R1", "R2"],
+      "justification": "Sem mecanismo de retorno, o FoodFlow perde para o habito do iFood. No MVP, cupom de boas-vindas e promocoes visiveis na home sao o minimo viavel para criar incentivo de retorno. E um must-have para sobrevivencia do marketplace."
+    },
+    {
+      "id": "OPP-10",
+      "kr_id": "KR3",
+      "tipo": "necessidade",
+      "descricao": "Consumidores precisam de confianca na qualidade para justificar pedidos de valor mais alto — sem evidencias de qualidade, optam pelo menor preco",
+      "rice": {
+        "reach": {
+          "score": 4,
+          "rationale": "Impacta C1 (disposto a pagar mais por qualidade), C3 (precisa de justificativa para gastar mais), R1 (restaurantes artesanais que cobram mais) e R2 (dark kitchens premium). 4 segmentos."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR3 (ticket medio > R$45). Se consumidores nao percebem qualidade, pedem o mais barato. Posicionamento premium depende de comunicar valor, nao preco."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: WTP dos segmentos confirma — C1 tem ticket R$50-80, C2 R$40-60. O posicionamento Midnight Express e a curadoria de restaurantes artesanais sao evidencias de que o publico aceita pagar mais."
+        },
+        "effort": {
+          "score": 2,
+          "rationale": "Esforco baixo — cardapio visual com fotos, descricoes ricas e badges ja esta no escopo (F03). E convergente com OPP-04 (confianca visual)."
+        },
+        "total": 32.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C3", "R1", "R2"],
+      "justification": "Ticket medio > R$45 so e possivel se consumidores percebem que estao pedindo de restaurantes premium. Convergente com OPP-04 — evidencias visuais de qualidade justificam o preco. Sem isso, FoodFlow vira mais um app de delivery barato."
+    },
+    {
+      "id": "OPP-12",
+      "kr_id": "KR3",
+      "tipo": "dor",
+      "descricao": "Consumidores sentem frustracao quando o frete torna pedidos pequenos inviaveis — a percepcao de 'nao vale a pena pedir pouco' deveria ser transformada em incentivo a pedir mais",
+      "rice": {
+        "reach": {
+          "score": 4,
+          "rationale": "Impacta C1, C2, C3 diretamente (todos pagam frete) e R1 indiretamente (menos pedidos por abandono por custo). 4 segmentos."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR3. O briefing ja define frete gratis acima de R$120, o que incentiva ticket maior. Comunicar isso claramente transforma a dor em alavanca de ticket."
+        },
+        "confidence": {
+          "score": 5,
+          "rationale": "Dado validado: frete alto que anula desconto e pain point explicito de C3. Frete gratis acima de threshold e pratica comprovada no mercado (iFood, Amazon)."
+        },
+        "effort": {
+          "score": 1,
+          "rationale": "Esforco trivial — regra de frete gratis > R$120 ja esta no briefing (F04). Requer apenas exibicao clara da regra no carrinho (ex: 'faltam R$X para frete gratis')."
+        },
+        "total": 80.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "C2", "C3", "R1"],
+      "justification": "Maior RICE ajustado do portfolio pelo esforco trivial. Regra de frete gratis ja esta definida no briefing — basta comunicar de forma inteligente no carrinho para incentivar ticket maior. Alavanca direta do KR3."
+    },
+    {
+      "id": "OPP-13",
+      "kr_id": "KR3",
+      "tipo": "necessidade",
+      "descricao": "Restaurantes artesanais precisam comunicar o valor dos seus pratos de forma visual e descritiva — cardapios com fotos, descricoes e badges justificam precos premium",
+      "rice": {
+        "reach": {
+          "score": 3,
+          "rationale": "Impacta diretamente R1 (restaurantes artesanais que investem em apresentacao), R2 (dark kitchens que precisam de marca forte) e C1 (influenciado por fotos e badges). 3 segmentos."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR3 e KR4. Cardapio visual premium e o que diferencia FoodFlow. Se restaurantes nao conseguem mostrar o valor dos pratos, o ticket medio nao sustenta R$45."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: R1 'investe em apresentacao visual dos pratos' e 'quer controle sobre preco, promocoes e marca'. O briefing define F03 e F08 com campos ricos de cardapio."
+        },
+        "effort": {
+          "score": 2,
+          "rationale": "Esforco baixo-medio — CRUD de cardapio com nome, descricao, preco, badge, emoji ja esta previsto no briefing (F08). Requer design de card de item e painel admin."
+        },
+        "total": 24.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "R1", "R2"],
+      "justification": "Restaurantes artesanais sao o supply-side do FoodFlow. Se nao conseguem apresentar seus pratos de forma premium, perdem para fast-food generico. Cardapio visual e a ponte entre posicionamento premium e ticket medio saudavel."
+    },
+    {
+      "id": "OPP-14",
+      "kr_id": "KR4",
+      "tipo": "dor",
+      "descricao": "Restaurantes artesanais sao invisiveis em plataformas dominadas por grandes redes e algoritmos pay-to-play — precisam de um canal onde qualidade seja o criterio de destaque",
+      "rice": {
+        "reach": {
+          "score": 3,
+          "rationale": "Impacta diretamente R1 (razao principal para adotar FoodFlow), R2 (dark kitchens buscam visibilidade) e C1 (beneficia-se de descobrir restaurantes artesanais). 3 segmentos."
+        },
+        "impact": {
+          "score": 5,
+          "rationale": "Transformacional para KR4 (50+ restaurantes ativos). E a proposta de valor central para o supply-side. O principio 'Restaurante parceiro, nao refem' e o posicionamento estrategico que diferencia FoodFlow de iFood."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: analise competitiva identifica 'algoritmo de ranking opaco' do iFood como fraqueza. R1 explicita 'invisibilidade em plataformas dominadas por grandes redes' como dor principal."
+        },
+        "effort": {
+          "score": 3,
+          "rationale": "Esforco medio — requer ranking por qualidade (nao por pagamento), curadoria de restaurantes no onboarding, e design de listagem que valorize todos igualmente."
+        },
+        "total": 20.0
+      },
+      "priority": "must-have",
+      "segments_impacted": ["C1", "R1", "R2"],
+      "justification": "Sem restaurantes, nao ha marketplace. Esta oportunidade e a razao pela qual restaurantes artesanais escolheriam FoodFlow sobre iFood. Ranking por qualidade (nao por pagamento) e o compromisso estrategico do produto."
+    },
+    {
+      "id": "OPP-15",
+      "kr_id": "KR4",
+      "tipo": "necessidade",
+      "descricao": "Restaurantes precisam de autonomia real para gerenciar cardapio, precos e promocoes sem depender de intermediarios ou regras opacas da plataforma",
+      "rice": {
+        "reach": {
+          "score": 2,
+          "rationale": "Impacta diretamente R1 e R2. E uma necessidade exclusiva do lado restaurante. 2 segmentos."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR4. Autonomia de gestao e o segundo maior driver de adocao apos visibilidade. R1 explicita 'quer controle sobre preco, promocoes e marca'."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: R1 e R2 confirmam necessidade de autonomia. O briefing ja preve painel admin (F08, F09, F10) com gestao de cardapio, pedidos e dados."
+        },
+        "effort": {
+          "score": 3,
+          "rationale": "Esforco medio — painel admin do restaurante com CRUD de cardapio (F08), gestao de pedidos (F09) e edicao de dados (F10). Funcionalidade significativa mas bem definida no briefing."
+        },
+        "total": 10.67
+      },
+      "priority": "must-have",
+      "segments_impacted": ["R1", "R2"],
+      "justification": "Painel admin do restaurante e pre-requisito para operacao do marketplace. Restaurantes precisam gerenciar cardapio e pedidos autonomamente. Sem isso, o onboarding depende de suporte manual que nao escala. Ja previsto no briefing como F08, F09, F10."
+    },
+    {
+      "id": "OPP-18",
+      "kr_id": "KR4",
+      "tipo": "necessidade",
+      "descricao": "Restaurantes precisam de um onboarding simples e rapido — cadastrar cardapio, configurar entrega e comecar a receber pedidos sem burocracia",
+      "rice": {
+        "reach": {
+          "score": 2,
+          "rationale": "Impacta R1 e R2 diretamente. E necessidade exclusiva do supply-side. 2 segmentos."
+        },
+        "impact": {
+          "score": 5,
+          "rationale": "Transformacional para KR4. Leading indicator 'tempo medio de onboarding < 7 dias' depende diretamente disso. Se onboarding e dificil, restaurantes desistem antes de receber o primeiro pedido."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: suposicao A2 identifica que restaurantes 'operam com equipe enxuta e nao querem gerenciar mais uma plataforma'. Onboarding rapido e diferencial para superar essa resistencia."
+        },
+        "effort": {
+          "score": 3,
+          "rationale": "Esforco medio — cadastro de restaurante, upload de cardapio, configuracao de entrega e preco. Requer painel admin funcional (convergente com OPP-15)."
+        },
+        "total": 13.33
+      },
+      "priority": "must-have",
+      "segments_impacted": ["R1", "R2"],
+      "justification": "Gargalo critico do cold start. Se onboarding leva semanas, FoodFlow nao atinge 50 restaurantes em 3 meses. Cada dia de friccao no cadastro e um restaurante perdido. Suposicao A2 valida que restaurantes tem baixa tolerancia a complexidade."
+    }
+  ],
+  "deferred": [
+    {
+      "id": "OPP-08",
+      "kr_id": "KR2",
+      "tipo": "desejo",
+      "descricao": "Consumidores desejam sentir que a plataforma os conhece — que suas preferencias, favoritos e historico criem uma experiencia cada vez mais personalizada",
+      "rice": {
+        "reach": {
+          "score": 3,
+          "rationale": "Impacta C1 (quer descobrir baseado em perfil), C2 (quer acesso rapido a favoritos) e C3 (quer ofertas personalizadas). 3 segmentos consumidores."
+        },
+        "impact": {
+          "score": 3,
+          "rationale": "Medio impacto no KR2. Personalizacao aumenta retencao, mas no MVP com poucos dados de historico, o impacto e limitado. Torna-se poderoso com escala."
+        },
+        "confidence": {
+          "score": 2,
+          "rationale": "Opiniao informada: tendencia de mercado 'IA para Personalizacao' valida a direcao, mas no MVP com dados seed e base pequena, nao ha massa critica para personalizacao real."
+        },
+        "effort": {
+          "score": 4,
+          "rationale": "Esforco alto — recomendacao personalizada requer motor de sugestao, dados de comportamento e algoritmos. A Fase 01 ja posiciona isso como LATER (6-12 meses)."
+        },
+        "total": 4.5
+      },
+      "priority": "deferred",
+      "segments_impacted": ["C1", "C2", "C3"],
+      "justification": "Personalizacao real requer volume de dados que o MVP nao tera. Com base pequena de usuarios e restaurantes, heuristicas simples (popularidade, recencia) sao suficientes. A OST posiciona IA de recomendacao no horizonte LATER. Reavaliar apos 6 meses de dados."
+    },
+    {
+      "id": "OPP-09",
+      "kr_id": "KR2",
+      "tipo": "necessidade",
+      "descricao": "Consumidores precisam de consistencia na experiencia — se o primeiro pedido foi excelente mas o segundo falhou (entrega atrasada, item errado), a confianca quebra e nao voltam",
+      "rice": {
+        "reach": {
+          "score": 5,
+          "rationale": "Todos os 5 segmentos sao impactados — consistencia afeta todo o marketplace."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR2. Consistencia e pre-requisito para retencao. Porem, no MVP com entrega simulada, o risco de falha operacional e menor."
+        },
+        "confidence": {
+          "score": 2,
+          "rationale": "Opiniao informada: com entrega simulada no MVP, o risco real de falha operacional e baixo. Esta oportunidade se torna critica quando entrega for real."
+        },
+        "effort": {
+          "score": 5,
+          "rationale": "Esforco muito alto — garantir consistencia end-to-end requer logistica de entrega, controle de qualidade de restaurantes, gestao de reclamacoes. Muito alem do escopo MVP."
+        },
+        "total": 8.0
+      },
+      "priority": "deferred",
+      "segments_impacted": ["C1", "C2", "C3", "R1", "R2"],
+      "justification": "Importantissima mas fora de controle no MVP. Com entrega simulada, o risco operacional e artificial. Quando logistica real entrar, esta oportunidade sobe para must-have. Para o MVP, tracking de status do pedido (F05) oferece transparencia minima."
+    },
+    {
+      "id": "OPP-11",
+      "kr_id": "KR3",
+      "tipo": "desejo",
+      "descricao": "Consumidores desejam montar refeicoes completas (entrada + prato + bebida) de forma intuitiva — combos e sugestoes de complemento elevam o ticket naturalmente",
+      "rice": {
+        "reach": {
+          "score": 3,
+          "rationale": "Impacta C1 (monta refeicoes completas), C2 (pedidos recorrentes maiores) e R1 (aumenta ticket por pedido). 3 segmentos."
+        },
+        "impact": {
+          "score": 3,
+          "rationale": "Medio impacto no KR3. Combos e sugestoes elevam ticket, mas no MVP com cardapio simples (sem secoes entrada/prato/sobremesa), o impacto e limitado."
+        },
+        "confidence": {
+          "score": 3,
+          "rationale": "Evidencia indireta: upsell por sugestao e pratica comum em e-commerce. Porem, no contexto food delivery, a eficacia depende de como o cardapio esta organizado."
+        },
+        "effort": {
+          "score": 4,
+          "rationale": "Esforco alto — requer logica de sugestao de complementos, organizacao de cardapio por categorias internas, e design de UX de cross-sell. Nao previsto no MVP."
+        },
+        "total": 6.75
+      },
+      "priority": "nice-to-have",
+      "segments_impacted": ["C1", "C2", "R1"],
+      "justification": "Combos e sugestoes de complemento sao alavancas poderosas de ticket, mas requerem motor de recomendacao e organizacao de cardapio por secoes que nao estao no MVP. O briefing preve cardapio flat (itens com badge). Reavaliar na iteracao pos-MVP quando cardapios estiverem mais maduros."
+    },
+    {
+      "id": "OPP-16",
+      "kr_id": "KR4",
+      "tipo": "desejo",
+      "descricao": "Donos de restaurantes desejam entender o comportamento dos consumidores que pedem seus pratos — quais itens vendem mais, em quais horarios, qual ticket medio",
+      "rice": {
+        "reach": {
+          "score": 2,
+          "rationale": "Impacta R1 e R2 diretamente. Analytics e necessidade do supply-side. 2 segmentos."
+        },
+        "impact": {
+          "score": 3,
+          "rationale": "Medio impacto no KR4. Analytics diferencia FoodFlow, mas nao e o driver primario de adocao. Restaurantes onboardam por visibilidade (OPP-14), nao por dashboard."
+        },
+        "confidence": {
+          "score": 3,
+          "rationale": "Evidencia indireta: R1 'busca dados de performance para otimizar operacao' e R2 'decisoes 100% orientadas a dados'. Porem, no MVP com volume baixo, analytics tem pouco dado para mostrar."
+        },
+        "effort": {
+          "score": 3,
+          "rationale": "Esforco medio — requer coleta de metricas por restaurante, dashboard com graficos, e exportacao de dados. Nao previsto no escopo MVP."
+        },
+        "total": 6.0
+      },
+      "priority": "should-have",
+      "segments_impacted": ["R1", "R2"],
+      "justification": "Analytics para restaurantes e diferencial competitivo importante (lacuna do iFood para restaurantes pequenos), mas no MVP com volume baixo de pedidos, os dados nao serao estatisticamente relevantes. O briefing preve metricas basicas no admin global (F11), mas dashboard detalhado por restaurante fica para iteracao pos-MVP. Reavaliar em 3 meses."
+    },
+    {
+      "id": "OPP-17",
+      "kr_id": "KR4",
+      "tipo": "dor",
+      "descricao": "Restaurantes sofrem com comissoes altas que corroem margem — especialmente artesanais que ja operam com custo de ingrediente elevado",
+      "rice": {
+        "reach": {
+          "score": 2,
+          "rationale": "Impacta R1 e R2 diretamente. E uma dor exclusiva do supply-side. 2 segmentos."
+        },
+        "impact": {
+          "score": 4,
+          "rationale": "Alto impacto no KR4. Comissao competitiva e alavanca de onboarding. A suposicao A2 propoe '0% comissao nos primeiros 3 meses' como estrategia de aquisicao."
+        },
+        "confidence": {
+          "score": 4,
+          "rationale": "Evidencia forte: fraqueza do iFood (comissoes 12-27%) e bem documentada. R1 aceita 10-18% se houver visibilidade real. R2 aceita 15-22% se volume justificar."
+        },
+        "effort": {
+          "score": 1,
+          "rationale": "Esforco trivial no produto — comissao e decisao de negocio, nao de tecnologia. Definir modelo de comissao e parametrizacao simples no sistema."
+        },
+        "total": 32.0
+      },
+      "priority": "should-have",
+      "segments_impacted": ["R1", "R2"],
+      "justification": "Comissao competitiva e forte alavanca de adocao, mas e decisao de negocio (OQ1 da Fase 01), nao de produto. O PO recomenda que o PM defina o modelo de comissao antes do Discovery. No produto, basta parametrizar a comissao por restaurante. Classificado como should-have porque depende de decisao de negocio externa ao escopo do PO."
+    },
+    {
+      "id": "OPP-19",
+      "kr_id": "KR2",
+      "tipo": "desejo",
+      "descricao": "Consumidores desejam descobrir novidades curadas para eles — nao apenas repetir, mas tambem expandir seu repertorio gastronomico com sugestoes relevantes",
+      "rice": {
+        "reach": {
+          "score": 3,
+          "rationale": "Impacta C1 (motivacao central — descobrir restaurantes novos), C3 (quer ofertas de novos lugares) e R1 (ganha visibilidade quando sugerido). 3 segmentos."
+        },
+        "impact": {
+          "score": 3,
+          "rationale": "Medio impacto no KR2. Descoberta de novidades aumenta retencao a longo prazo, mas no MVP a curadoria sera manual/limitada. Outcome roadmap posiciona 'media de 3+ restaurantes distintos por usuario' no horizonte NEXT."
+        },
+        "confidence": {
+          "score": 3,
+          "rationale": "Evidencia indireta: segmento C1 explicita desejo por 'experiencias gastronomicas variadas'. Tendencia de curadoria como diferencial valida. Mas eficacia depende de base de restaurantes suficiente."
+        },
+        "effort": {
+          "score": 3,
+          "rationale": "Esforco medio — curadoria manual (destaques editoriais, 'restaurante da semana') e viavel no MVP. Curadoria automatizada e LATER."
+        },
+        "total": 9.0
+      },
+      "priority": "nice-to-have",
+      "segments_impacted": ["C1", "C3", "R1"],
+      "justification": "Curadoria de novidades e alinhada com a visao do FoodFlow, mas no MVP com 50 restaurantes, a variedade natural ja gera descoberta. Hero banner com promo do dia (F02) oferece descoberta minima. Curadoria editorial e sugestoes personalizadas ficam para NEXT (3-6 meses)."
+    }
+  ],
+  "opportunity_themes": [
+    {
+      "theme": "Descoberta Curada e Sem Friccao",
+      "description": "Experiencia de navegacao que reduz fadiga de decisao atraves de curadoria visual, categorias relevantes e evidencias de qualidade. O consumidor deve encontrar o que quer comer em menos de 2 minutos.",
+      "opportunities": ["OPP-01", "OPP-03", "OPP-04"],
+      "linked_krs": ["KR1", "KR3"],
+      "designer_brief": "Projetar fluxo de descoberta com: home curada (hero + categorias + cards visuais), filtros por tipo de cozinha/ETA/preco, cards de restaurante com rating + badges + fotos que comunicam qualidade. O design deve guiar o consumidor da intencao ao restaurante em poucos toques."
+    },
+    {
+      "theme": "Checkout Transparente e Pagamento Fluido",
+      "description": "Fluxo de carrinho ate pedido confirmado com zero surpresas de preco, cupons que funcionam e integracao de pagamento via ecp-digital-bank que minimiza friccao de autenticacao.",
+      "opportunities": ["OPP-02", "OPP-05", "OPP-12"],
+      "linked_krs": ["KR1", "KR3"],
+      "designer_brief": "Projetar checkout com: precos transparentes desde o card do restaurante, resumo financeiro claro no carrinho (subtotal + frete + desconto = total), indicador de 'faltam R$X para frete gratis', fluxo de pagamento ecp-digital-bank com minimo de passos (cartao virtual e PIX QR Code)."
+    },
+    {
+      "theme": "Retencao e Formacao de Habito",
+      "description": "Mecanismos que trazem o consumidor de volta: recompra rapida, incentivos de retorno e razoes para nao voltar ao iFood. O objetivo e transformar o primeiro pedido em habito.",
+      "opportunities": ["OPP-06", "OPP-07"],
+      "linked_krs": ["KR2"],
+      "designer_brief": "Projetar: botao 'Repetir pedido' proeminente no historico (1 toque para carrinho pre-populado), tela de historico com pedidos anteriores claros, sistema de favoritos acessivel, e comunicacao de cupons/promocoes de retorno na home e no pos-pedido."
+    },
+    {
+      "theme": "Empoderamento do Restaurante Artesanal",
+      "description": "Ferramentas e posicionamento que atraem e retem restaurantes artesanais: visibilidade por qualidade (nao por pagamento), autonomia de gestao e onboarding rapido.",
+      "opportunities": ["OPP-13", "OPP-14", "OPP-15", "OPP-18"],
+      "linked_krs": ["KR3", "KR4"],
+      "designer_brief": "Projetar: painel admin do restaurante para gestao de cardapio (CRUD de itens com foto, descricao, badge, preco), gestao de pedidos em tempo real, edicao de perfil do restaurante, e fluxo de onboarding que leve o restaurante do cadastro ao primeiro item publicado em menos de 30 minutos."
+    },
+    {
+      "theme": "Ticket Premium Sustentavel",
+      "description": "Alavancas que sustentam ticket medio acima de R$45 sem dependencia de desconto: apresentacao premium dos pratos, comunicacao de valor e incentivo inteligente de frete gratis.",
+      "opportunities": ["OPP-10", "OPP-13"],
+      "linked_krs": ["KR3"],
+      "designer_brief": "Projetar: cardapio visual com fotos premium, descricoes que geram desejo, badges que comunicam qualidade (Best seller, Chef's choice, Vegetariano). No carrinho, exibir progresso ate frete gratis de forma motivacional. Design Midnight Express deve transmitir premium em cada pixel."
+    }
+  ],
+  "prioritization_rationale": "A priorizacao seguiu 3 criterios hierarquicos: (1) Viabilidade do marketplace — sem supply-side (restaurantes) e sem demand-side (conversao), nao existe produto; (2) RICE score — oportunidades com maior ratio Reach x Impact x Confidence / Effort; (3) Convergencia com escopo MVP do briefing — priorizamos oportunidades que o briefing ja endereca ou que sao pre-requisitos para features definidas. Das 19 oportunidades, 13 foram selecionadas como must-have para o MVP, cobrindo os 4 KRs. As 6 oportunidades deferred ou nice-to-have nao sao irrelevantes — sao importantes mas dependem de escala (personalizacao, analytics), decisao de negocio (comissoes), maturidade operacional (consistencia de entrega) ou volume de dados (curadoria automatizada). O corte reflete a realidade de um MVP: validar a experiencia core antes de otimizar. Os 5 temas agrupam as oportunidades em blocos coerentes para guiar a ideacao do Designer, cada um com um brief claro de design.",
+  "references": [
+    "Teresa Torres — Opportunity Solution Tree: oportunidades priorizadas sao espacos de problema, nao solucoes",
+    "SAFe 6.0 — WSJF adaptado via RICE para priorizacao quantitativa de oportunidades",
+    "Marty Cagan — 4 Riscos: priorizacao considera riscos de valor, usabilidade, viabilidade e negocio mapeados na Fase 01"
+  ],
+  "next_hitl": 2,
+  "hitl_request": {
+    "hitl_number": 2,
+    "type": "approval",
+    "summary": "Priorizacao de oportunidades concluida. 13 oportunidades selecionadas para MVP (must-have) e 6 diferidas (2 should-have, 2 nice-to-have, 2 deferred). 5 temas de discovery definidos para guiar ideacao do Designer. Solicita-se aprovacao humana para prosseguir a etapa de ideacao.",
+    "items_for_review": [
+      "13 oportunidades must-have cobrindo 4 KRs com RICE score e justificativa",
+      "6 oportunidades deferred/nice-to-have/should-have com justificativa de exclusao",
+      "5 temas de discovery com brief para o Designer",
+      "Rationale geral da priorizacao",
+      "Convergencia com escopo MVP do product briefing"
+    ],
+    "key_decisions_for_human": [
+      "OPP-17 (comissoes) depende de decisao de negocio do PM — qual modelo de comissao?",
+      "OPP-09 (consistencia operacional) esta deferred por entrega simulada — correto?",
+      "OPP-08 (personalizacao) adiada para LATER — aceita heuristicas simples no MVP?",
+      "Corte de 13/19 oportunidades para MVP e adequado?"
+    ],
+    "decision_options": ["approved", "rejected", "approved_with_reservations"]
+  }
+}

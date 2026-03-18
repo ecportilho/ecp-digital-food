@@ -1,0 +1,38 @@
+.screenTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  margin: 0 auto 18px;
+  box-shadow: 0 8px 24px rgba(123, 97, 255, 0.3);
+  font-weight: 900;
+  color: #fff;
+}
+
+.profileItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+.label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.value {
+  font-weight: 700;
+}

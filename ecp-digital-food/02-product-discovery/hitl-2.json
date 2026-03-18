@@ -1,0 +1,11 @@
+{
+  "hitl": 2,
+  "phase": "02-product-discovery",
+  "step": "priorizacao",
+  "agent": "product-owner",
+  "decision": "approved",
+  "feedback": "",
+  "timestamp": "2026-03-17",
+  "next_step": "ideacao",
+  "next_agent": "product-designer"
+}

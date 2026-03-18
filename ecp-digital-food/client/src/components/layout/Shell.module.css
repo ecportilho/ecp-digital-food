@@ -1,0 +1,14 @@
+.shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: max(18px, env(safe-area-inset-left)) max(18px, env(safe-area-inset-right));
+  padding-bottom: calc(88px + max(18px, env(safe-area-inset-bottom)));
+  min-height: 100vh;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 12px;
+    padding-bottom: calc(88px + 12px);
+  }
+}

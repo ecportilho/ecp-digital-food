@@ -1,0 +1,13 @@
+{
+  "hitl": 10,
+  "phase": "03-product-delivery",
+  "step": "qa",
+  "agent": "qa",
+  "decision": "approved",
+  "feedback": "",
+  "timestamp": "2026-03-17",
+  "quality_score": 82,
+  "bugs_open": 6,
+  "next_phase": "04-product-operation",
+  "next_agent": "operations"
+}

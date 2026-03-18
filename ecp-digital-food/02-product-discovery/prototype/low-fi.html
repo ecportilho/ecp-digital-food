@@ -1,0 +1,2491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ECP Food — Low-Fi Wireframe Prototype</title>
+<!--
+============================================================
+  MAPA DE FLUXO — ECP Food Low-Fi Prototype
+============================================================
+
+  FLUXO CONSUMIDOR:
+  [login] → [cadastro] (link)
+  [login] → [home] (após login)
+  [home] → [restaurante-detalhe] (tap card)
+  [restaurante-detalhe] → [carrinho] (tap carrinho / bottom nav)
+  [carrinho] → [checkout] (CTA checkout)
+  [checkout] → [pagamento-cartao] (opção Cartão ECP)
+  [checkout] → [pagamento-pix] (opção PIX)
+  [pagamento-cartao] → [pedido-confirmado]
+  [pagamento-pix] → [pedido-confirmado]
+  [pedido-confirmado] → [home]
+  [home] → [historico] (bottom nav Conta → historico)
+  [home] → [favoritos] (bottom nav Buscar → favoritos)
+  [home] → [perfil] (bottom nav Conta)
+
+  FLUXO RESTAURANTE:
+  [home] → [painel-cardapio] (via menu)
+  [painel-cardapio] → [painel-pedidos]
+  [painel-pedidos] → [painel-config]
+
+  FLUXO ADMIN:
+  [home] → [admin-dashboard] (via menu)
+  [admin-dashboard] → [admin-restaurantes]
+
+  NAVEGAÇÃO BOTTOM NAV (5 itens):
+  Início → [home]
+  Buscar → [buscar]
+  Pedidos → [historico]
+  Carrinho → [carrinho]
+  Conta → [perfil]
+
+============================================================
+-->
+<style>
+:root {
+  --wireframe-bg: #f5f5f5;
+  --wireframe-surface: #ffffff;
+  --wireframe-border: #cccccc;
+  --wireframe-text: #333333;
+  --wireframe-text-secondary: #888888;
+  --wireframe-cta: #555555;
+  --wireframe-cta-text: #ffffff;
+  --wireframe-radius: 8px;
+  --wireframe-font: system-ui, -apple-system, sans-serif;
+  --wireframe-success: #4a8c5c;
+  --wireframe-warning: #b8860b;
+  --wireframe-danger: #a04040;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--wireframe-font);
+  background: var(--wireframe-bg);
+  color: var(--wireframe-text);
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Screen system */
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding-bottom: 70px;
+  background: var(--wireframe-bg);
+}
+.screen.active { display: block; }
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--wireframe-surface);
+  border-bottom: 1px solid var(--wireframe-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.top-bar h1 {
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+.btn-back {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--wireframe-text);
+  padding: 4px 8px 4px 0;
+  line-height: 1;
+}
+.top-bar-spacer { width: 30px; }
+
+/* Bottom navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  background: var(--wireframe-surface);
+  border-top: 1px solid var(--wireframe-border);
+  z-index: 100;
+}
+.bottom-nav button {
+  flex: 1;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--wireframe-text-secondary);
+  font-size: 10px;
+  position: relative;
+}
+.bottom-nav button.active { color: var(--wireframe-text); font-weight: 600; }
+.bottom-nav button .nav-icon { font-size: 20px; }
+.cart-badge {
+  position: absolute;
+  top: 2px;
+  right: calc(50% - 18px);
+  background: var(--wireframe-cta);
+  color: var(--wireframe-cta-text);
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.cart-badge.hidden { display: none; }
+
+/* Shared styles */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: var(--wireframe-cta);
+  color: var(--wireframe-cta-text);
+  border: none;
+  border-radius: var(--wireframe-radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--wireframe-surface);
+  color: var(--wireframe-text);
+  border: 1px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+.input-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  font-size: 14px;
+  font-family: var(--wireframe-font);
+  background: var(--wireframe-surface);
+}
+.input-field:focus { outline: 2px solid var(--wireframe-cta); }
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--wireframe-text-secondary);
+}
+.card {
+  background: var(--wireframe-surface);
+  border: 1px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 16px 0 10px;
+  padding: 0 16px;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #e8e8e8;
+  color: var(--wireframe-text);
+  margin-right: 4px;
+}
+.badge-best { background: #ddd; }
+.badge-veg { background: #e0e8e0; }
+.badge-new { background: #e0e0ea; }
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--wireframe-cta);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: var(--wireframe-font);
+}
+.divider {
+  height: 1px;
+  background: var(--wireframe-border);
+  margin: 12px 0;
+}
+.text-secondary { color: var(--wireframe-text-secondary); font-size: 13px; }
+.text-center { text-align: center; }
+.p-16 { padding: 16px; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.gap-8 { gap: 8px; }
+
+/* Status timeline */
+.timeline { display: flex; flex-direction: column; gap: 0; padding: 0 16px; }
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  padding-bottom: 20px;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--wireframe-border);
+  background: var(--wireframe-surface);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.timeline-dot.done { background: var(--wireframe-cta); border-color: var(--wireframe-cta); }
+.timeline-dot.current { border-color: var(--wireframe-cta); background: var(--wireframe-surface); box-shadow: 0 0 0 3px rgba(85,85,85,0.2); }
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 20px;
+  width: 2px;
+  height: calc(100% - 20px);
+  background: var(--wireframe-border);
+}
+.timeline-item.done:not(:last-child)::after { background: var(--wireframe-cta); }
+.timeline-text strong { font-size: 14px; }
+.timeline-text span { font-size: 12px; color: var(--wireframe-text-secondary); display: block; margin-top: 2px; }
+
+/* Toggle switch */
+.toggle-wrap { display: flex; align-items: center; gap: 8px; }
+.toggle {
+  width: 42px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--wireframe-border);
+  position: relative;
+  cursor: pointer;
+  border: none;
+}
+.toggle.on { background: var(--wireframe-cta); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s;
+}
+.toggle.on::after { left: 21px; }
+
+/* Chip filters */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--wireframe-border);
+  background: var(--wireframe-surface);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: var(--wireframe-font);
+}
+.chip.active { background: var(--wireframe-cta); color: var(--wireframe-cta-text); border-color: var(--wireframe-cta); }
+
+/* Restaurant card */
+.restaurant-card {
+  background: var(--wireframe-surface);
+  border: 1px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  overflow: hidden;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.restaurant-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.restaurant-card-img {
+  height: 120px;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  position: relative;
+}
+.restaurant-card-img .promo-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--wireframe-cta);
+  color: var(--wireframe-cta-text);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.restaurant-card-img .fav-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255,255,255,0.85);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.restaurant-card-body { padding: 10px 12px; }
+.restaurant-card-body h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+.restaurant-card-body .subtitle { font-size: 12px; color: var(--wireframe-text-secondary); margin-bottom: 6px; }
+.restaurant-card-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--wireframe-text-secondary);
+  flex-wrap: wrap;
+}
+.restaurant-card-meta span { display: flex; align-items: center; gap: 3px; }
+
+/* Menu item card */
+.menu-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+.menu-item-emoji { font-size: 36px; flex-shrink: 0; }
+.menu-item-info { flex: 1; }
+.menu-item-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.menu-item-info p { font-size: 12px; color: var(--wireframe-text-secondary); margin-bottom: 4px; }
+.menu-item-info .price { font-size: 15px; font-weight: 600; color: var(--wireframe-text); }
+.menu-item .btn-add {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--wireframe-cta);
+  background: var(--wireframe-surface);
+  color: var(--wireframe-cta);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Cart item */
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+.cart-item-info { flex: 1; }
+.cart-item-info h4 { font-size: 14px; font-weight: 500; }
+.cart-item-info .text-secondary { font-size: 12px; }
+.qty-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  padding: 2px;
+}
+.qty-control button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--wireframe-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qty-control span { font-size: 14px; font-weight: 600; min-width: 20px; text-align: center; }
+
+/* Free shipping bar */
+.free-ship-bar {
+  background: #eef;
+  border-radius: var(--wireframe-radius);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.free-ship-bar .bar-track {
+  height: 6px;
+  background: var(--wireframe-border);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.free-ship-bar .bar-fill {
+  height: 100%;
+  background: var(--wireframe-cta);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* Payment option */
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 2px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.payment-option:hover, .payment-option.selected { border-color: var(--wireframe-cta); }
+.payment-option .pay-icon { font-size: 28px; }
+.payment-option h4 { font-size: 14px; font-weight: 600; }
+.payment-option p { font-size: 12px; color: var(--wireframe-text-secondary); }
+
+/* QR code placeholder */
+.qr-placeholder {
+  width: 200px;
+  height: 200px;
+  border: 2px dashed var(--wireframe-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px auto;
+  border-radius: var(--wireframe-radius);
+  font-size: 14px;
+  color: var(--wireframe-text-secondary);
+  background: var(--wireframe-surface);
+}
+
+/* Admin table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-table th, .admin-table td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--wireframe-border);
+}
+.admin-table th { font-weight: 600; background: var(--wireframe-bg); }
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-active { background: #d4edda; color: #2d6a3f; }
+.status-pending { background: #fff3cd; color: #856404; }
+.status-preparing { background: #d1ecf1; color: #0c5460; }
+
+/* Metric card */
+.metric-card {
+  background: var(--wireframe-surface);
+  border: 1px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  padding: 14px;
+  text-align: center;
+}
+.metric-card .metric-value { font-size: 24px; font-weight: 700; }
+.metric-card .metric-label { font-size: 12px; color: var(--wireframe-text-secondary); margin-top: 2px; }
+.metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
+
+/* Hero */
+.hero {
+  background: #ddd;
+  padding: 24px 16px;
+  margin-bottom: 0;
+  position: relative;
+}
+.hero h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.hero p { font-size: 13px; color: var(--wireframe-text-secondary); margin-bottom: 12px; }
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--wireframe-surface);
+  border: 1px solid var(--wireframe-border);
+  border-radius: 24px;
+  padding: 10px 16px;
+  gap: 8px;
+}
+.search-bar input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  font-family: var(--wireframe-font);
+  background: transparent;
+}
+.search-bar .search-icon { color: var(--wireframe-text-secondary); font-size: 16px; }
+
+/* Live metrics bar */
+.live-metrics {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 16px;
+  background: var(--wireframe-surface);
+  border-bottom: 1px solid var(--wireframe-border);
+}
+.live-metric { text-align: center; }
+.live-metric .lm-value { font-size: 16px; font-weight: 700; }
+.live-metric .lm-label { font-size: 10px; color: var(--wireframe-text-secondary); }
+
+/* Results count */
+.results-count {
+  padding: 6px 16px;
+  font-size: 12px;
+  color: var(--wireframe-text-secondary);
+}
+
+/* Tabs for restaurant panel */
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--wireframe-border);
+  background: var(--wireframe-surface);
+}
+.panel-tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--wireframe-text-secondary);
+  font-family: var(--wireframe-font);
+  border-bottom: 2px solid transparent;
+}
+.panel-tab.active { color: var(--wireframe-text); border-bottom-color: var(--wireframe-cta); font-weight: 600; }
+
+/* Copy field */
+.copy-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--wireframe-bg);
+  border: 1px solid var(--wireframe-border);
+  border-radius: var(--wireframe-radius);
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+.copy-field input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--wireframe-text);
+}
+.copy-field button {
+  padding: 6px 12px;
+  background: var(--wireframe-cta);
+  color: var(--wireframe-cta-text);
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Dev nav (for prototype navigation helper) */
+.dev-nav {
+  background: #333;
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 11px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.dev-nav button {
+  background: #555;
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  font-family: var(--wireframe-font);
+}
+.dev-nav button:hover { background: #777; }
+.dev-nav-label { font-weight: 700; margin-right: 4px; display: flex; align-items: center; }
+</style>
+</head>
+<body>
+
+<!-- DEV NAVIGATION BAR (for testers) -->
+<div class="dev-nav">
+  <span class="dev-nav-label">Telas:</span>
+  <button onclick="navigateTo('login')">Login</button>
+  <button onclick="navigateTo('cadastro')">Cadastro</button>
+  <button onclick="navigateTo('home')">Home</button>
+  <button onclick="navigateTo('restaurante-detalhe')">Restaurante</button>
+  <button onclick="navigateTo('carrinho')">Carrinho</button>
+  <button onclick="navigateTo('checkout')">Checkout</button>
+  <button onclick="navigateTo('pagamento-cartao')">Cartao</button>
+  <button onclick="navigateTo('pagamento-pix')">PIX</button>
+  <button onclick="navigateTo('pedido-confirmado')">Confirmado</button>
+  <button onclick="navigateTo('historico')">Historico</button>
+  <button onclick="navigateTo('favoritos')">Favoritos</button>
+  <button onclick="navigateTo('perfil')">Perfil</button>
+  <button onclick="navigateTo('painel-cardapio')">P.Cardapio</button>
+  <button onclick="navigateTo('painel-pedidos')">P.Pedidos</button>
+  <button onclick="navigateTo('painel-config')">P.Config</button>
+  <button onclick="navigateTo('admin-dashboard')">Admin</button>
+  <button onclick="navigateTo('admin-restaurantes')">Admin Rest.</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 1: LOGIN -->
+<!-- ============================================================ -->
+<div id="login" class="screen active">
+  <div style="padding: 60px 24px 24px; text-align: center;">
+    <div style="font-size: 40px; margin-bottom: 8px;">🍽️</div>
+    <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 4px;">ECP Food</h1>
+    <p class="text-secondary" style="margin-bottom: 32px;">Pedir comida pode ser lindo, rapido e viciante.</p>
+
+    <div class="form-group" style="text-align: left;">
+      <label>Email</label>
+      <input type="email" class="input-field" placeholder="seu@email.com" value="maria@email.com">
+    </div>
+    <div class="form-group" style="text-align: left;">
+      <label>Senha</label>
+      <input type="password" class="input-field" placeholder="Sua senha" value="********">
+    </div>
+
+    <button class="btn-primary" onclick="navigateTo('home')" style="margin-top: 8px;">Entrar</button>
+
+    <p style="margin-top: 20px; font-size: 14px;">
+      Nao tem conta? <button class="link-btn" onclick="navigateTo('cadastro')">Criar conta</button>
+    </p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 2: CADASTRO -->
+<!-- ============================================================ -->
+<div id="cadastro" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('login')">&#8592;</button>
+    <h1>Criar Conta</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+  <div class="p-16">
+    <div class="form-group">
+      <label>Nome completo</label>
+      <input type="text" class="input-field" placeholder="Maria Silva">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" class="input-field" placeholder="seu@email.com">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" class="input-field" placeholder="Minimo 8 caracteres">
+    </div>
+    <div class="form-group">
+      <label>Telefone</label>
+      <input type="tel" class="input-field" placeholder="(11) 99999-0000">
+    </div>
+    <div class="form-group">
+      <label>Endereco de entrega</label>
+      <input type="text" class="input-field" placeholder="Rua, numero — Bairro, Cidade">
+    </div>
+
+    <button class="btn-primary mt-16" onclick="navigateTo('home')">Criar conta</button>
+
+    <p class="text-center mt-16" style="font-size: 14px;">
+      Ja tem conta? <button class="link-btn" onclick="navigateTo('login')">Entrar</button>
+    </p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 3: HOME -->
+<!-- ============================================================ -->
+<div id="home" class="screen">
+  <!-- Hero with search -->
+  <div class="hero">
+    <h2>Promo do Dia 🔥</h2>
+    <p>20% OFF no primeiro pedido com MVP10</p>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Busque restaurante, prato ou categoria...">
+    </div>
+  </div>
+
+  <!-- Live metrics -->
+  <div class="live-metrics">
+    <div class="live-metric">
+      <div class="lm-value">24</div>
+      <div class="lm-label">Restaurantes online</div>
+    </div>
+    <div class="live-metric">
+      <div class="lm-value">8</div>
+      <div class="lm-label">Cupons ativos</div>
+    </div>
+    <div class="live-metric">
+      <div class="lm-value">R$ 6,90</div>
+      <div class="lm-label">Frete medio</div>
+    </div>
+  </div>
+
+  <!-- Category chips -->
+  <div class="chip-row" id="category-chips">
+    <button class="chip active" onclick="filterCategory('Todos')">Todos</button>
+    <button class="chip" onclick="filterCategory('Hamburguer')">🍔 Hamburguer</button>
+    <button class="chip" onclick="filterCategory('Japones')">🍣 Japones</button>
+    <button class="chip" onclick="filterCategory('Pizza')">🍕 Pizza</button>
+    <button class="chip" onclick="filterCategory('Saudavel')">🥗 Saudavel</button>
+    <button class="chip" onclick="filterCategory('Massas')">🍝 Massas</button>
+    <button class="chip" onclick="filterCategory('Brasileira')">🍖 Brasileira</button>
+  </div>
+
+  <!-- Results count -->
+  <div class="results-count" id="results-count">Mostrando 6 restaurantes</div>
+
+  <!-- Restaurant grid -->
+  <div class="p-16" style="padding-top: 0;" id="restaurant-list">
+
+    <div class="restaurant-card" data-cat="Massas" onclick="navigateTo('restaurante-detalhe')">
+      <div class="restaurant-card-img" style="background:#e0dbd5;">
+        🍝
+        <span class="promo-tag">20% OFF</span>
+        <button class="fav-btn" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Pasta & Fogo</h3>
+        <p class="subtitle">Massas artesanais feitas na hora</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.8 (234)</span>
+          <span>⏱️ 35-45 min</span>
+          <span>🛵 R$ 6,90</span>
+          <span>📦 Min R$ 25</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="restaurant-card" data-cat="Japones" onclick="openRestaurant('sushi-wave')">
+      <div class="restaurant-card-img" style="background:#dce5e0;">
+        🍣
+        <button class="fav-btn" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Sushi Wave</h3>
+        <p class="subtitle">Sushi artesanal e sashimi premium</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.7 (189)</span>
+          <span>⏱️ 40-55 min</span>
+          <span>🛵 R$ 8,90</span>
+          <span>📦 Min R$ 40</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="restaurant-card" data-cat="Hamburguer" onclick="openRestaurant('burger-lab')">
+      <div class="restaurant-card-img" style="background:#e5ddd5;">
+        🍔
+        <span class="promo-tag">Frete Gratis</span>
+        <button class="fav-btn" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Burger Lab</h3>
+        <p class="subtitle">Hamburgueres gourmet com blend exclusivo</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.9 (412)</span>
+          <span>⏱️ 30-40 min</span>
+          <span>🛵 Gratis</span>
+          <span>📦 Min R$ 30</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="restaurant-card" data-cat="Saudavel" onclick="openRestaurant('green-bowl')">
+      <div class="restaurant-card-img" style="background:#d8e8d5;">
+        🥗
+        <button class="fav-btn" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Green Bowl Co.</h3>
+        <p class="subtitle">Bowls saudaveis e sucos naturais</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.6 (98)</span>
+          <span>⏱️ 25-35 min</span>
+          <span>🛵 R$ 5,90</span>
+          <span>📦 Min R$ 20</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="restaurant-card" data-cat="Pizza" onclick="openRestaurant('pizza-club')">
+      <div class="restaurant-card-img" style="background:#e8ddd5;">
+        🍕
+        <span class="promo-tag">Combo 2 por 1</span>
+        <button class="fav-btn" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Pizza Club 24h</h3>
+        <p class="subtitle">Pizzas napoletanas com massa de longa fermentacao</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.5 (305)</span>
+          <span>⏱️ 45-60 min</span>
+          <span>🛵 R$ 7,90</span>
+          <span>📦 Min R$ 35</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="restaurant-card" data-cat="Brasileira" onclick="openRestaurant('brasa-lenha')">
+      <div class="restaurant-card-img" style="background:#e5dcd0;">
+        🍖
+        <button class="fav-btn" onclick="event.stopPropagation(); toggleFav(this)">♡</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Brasa & Lenha</h3>
+        <p class="subtitle">Churrasco artesanal e acompanhamentos</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.7 (176)</span>
+          <span>⏱️ 40-50 min</span>
+          <span>🛵 R$ 9,90</span>
+          <span>📦 Min R$ 30</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <button class="active" onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button onclick="navigateTo('carrinho')">
+      <span class="nav-icon">🛒</span>Carrinho
+      <span class="cart-badge" id="cart-badge-home">3</span>
+    </button>
+    <button onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 4: DETALHE DO RESTAURANTE -->
+<!-- ============================================================ -->
+<div id="restaurante-detalhe" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goBack()">&#8592;</button>
+    <h1>Pasta & Fogo</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <!-- Restaurant banner -->
+  <div style="background:#e0dbd5; padding: 20px 16px; text-align: center;">
+    <div style="font-size: 48px; margin-bottom: 8px;">🍝</div>
+    <h2 style="font-size: 20px; font-weight: 700;">Pasta & Fogo</h2>
+    <p class="text-secondary mb-8">Massas artesanais feitas na hora</p>
+    <div style="display: flex; justify-content: center; gap: 16px; font-size: 13px; color: var(--wireframe-text-secondary);">
+      <span>⭐ 4.8 (234 avaliacoes)</span>
+      <span>⏱️ 35-45 min</span>
+    </div>
+    <div style="display: flex; justify-content: center; gap: 16px; font-size: 13px; color: var(--wireframe-text-secondary); margin-top: 4px;">
+      <span>🛵 R$ 6,90</span>
+      <span>📦 Min R$ 25</span>
+      <span class="badge" style="background: var(--wireframe-cta); color: var(--wireframe-cta-text);">20% OFF</span>
+    </div>
+  </div>
+
+  <h3 class="section-title">Cardapio</h3>
+
+  <!-- Menu items -->
+  <div style="background: var(--wireframe-surface);">
+    <div class="menu-item">
+      <span class="menu-item-emoji">🍝</span>
+      <div class="menu-item-info">
+        <div style="display: flex; gap: 4px; margin-bottom: 2px;">
+          <span class="badge badge-best">Best seller</span>
+        </div>
+        <h4>Fettuccine Alfredo</h4>
+        <p>Massa fresca com molho cremoso de parmesao</p>
+        <span class="price">R$ 42,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Fettuccine Alfredo', 42.90)">+</button>
+    </div>
+
+    <div class="menu-item">
+      <span class="menu-item-emoji">🍝</span>
+      <div class="menu-item-info">
+        <h4>Spaghetti Carbonara</h4>
+        <p>Guanciale, ovo, pimenta preta e pecorino</p>
+        <span class="price">R$ 44,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Spaghetti Carbonara', 44.90)">+</button>
+    </div>
+
+    <div class="menu-item">
+      <span class="menu-item-emoji">🥩</span>
+      <div class="menu-item-info">
+        <div style="display: flex; gap: 4px; margin-bottom: 2px;">
+          <span class="badge badge-new">Novo</span>
+        </div>
+        <h4>Ravioli de Ossobuco</h4>
+        <p>Massa recheada com ragu de ossobuco ao vinho tinto</p>
+        <span class="price">R$ 54,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Ravioli de Ossobuco', 54.90)">+</button>
+    </div>
+
+    <div class="menu-item">
+      <span class="menu-item-emoji">🥗</span>
+      <div class="menu-item-info">
+        <div style="display: flex; gap: 4px; margin-bottom: 2px;">
+          <span class="badge badge-veg">Vegetariano</span>
+        </div>
+        <h4>Penne ao Pesto</h4>
+        <p>Penne com pesto de manjericao fresco e castanhas</p>
+        <span class="price">R$ 38,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Penne ao Pesto', 38.90)">+</button>
+    </div>
+
+    <div class="menu-item">
+      <span class="menu-item-emoji">🧀</span>
+      <div class="menu-item-info">
+        <h4>Nhoque de Batata</h4>
+        <p>Nhoque caseiro ao molho quatro queijos</p>
+        <span class="price">R$ 36,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Nhoque de Batata', 36.90)">+</button>
+    </div>
+
+    <div class="menu-item">
+      <span class="menu-item-emoji">🍷</span>
+      <div class="menu-item-info">
+        <h4>Lasanha Bolognese</h4>
+        <p>Camadas de massa fresca, ragu bolognese e bechamel</p>
+        <span class="price">R$ 48,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Lasanha Bolognese', 48.90)">+</button>
+    </div>
+
+    <div class="menu-item">
+      <span class="menu-item-emoji">🍰</span>
+      <div class="menu-item-info">
+        <h4>Tiramisu</h4>
+        <p>Classico italiano com mascarpone e cafe</p>
+        <span class="price">R$ 22,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Tiramisu', 22.90)">+</button>
+    </div>
+
+    <div class="menu-item">
+      <span class="menu-item-emoji">🥤</span>
+      <div class="menu-item-info">
+        <h4>Limonada Siciliana</h4>
+        <p>Limao siciliano, hortela e agua com gas</p>
+        <span class="price">R$ 18,90</span>
+      </div>
+      <button class="btn-add" onclick="addToCart('Limonada Siciliana', 18.90)">+</button>
+    </div>
+  </div>
+
+  <!-- Floating cart button -->
+  <div style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 388px; z-index: 50;" id="floating-cart-btn">
+    <button class="btn-primary" onclick="navigateTo('carrinho')" style="display: flex; justify-content: space-between; align-items: center;">
+      <span>🛒 Ver carrinho (<span id="floating-cart-count">3</span>)</span>
+      <span id="floating-cart-total">R$ 126,70</span>
+    </button>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button onclick="navigateTo('carrinho')">
+      <span class="nav-icon">🛒</span>Carrinho
+      <span class="cart-badge" id="cart-badge-rest">3</span>
+    </button>
+    <button onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 5: CARRINHO -->
+<!-- ============================================================ -->
+<div id="carrinho" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goBack()">&#8592;</button>
+    <h1>Carrinho</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16" id="cart-content">
+    <!-- Free shipping bar -->
+    <div class="free-ship-bar">
+      <div class="flex-between" style="font-size: 13px;">
+        <span>🚚 Frete gratis acima de R$ 120</span>
+        <strong id="ship-msg">Faltam R$ 0!</strong>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="ship-bar" style="width: 100%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart items -->
+    <div class="card">
+      <div style="font-size: 12px; color: var(--wireframe-text-secondary); margin-bottom: 8px;">Pasta & Fogo</div>
+      <div class="cart-item">
+        <span style="font-size: 24px;">🍝</span>
+        <div class="cart-item-info">
+          <h4>Fettuccine Alfredo</h4>
+          <span class="text-secondary">R$ 42,90</span>
+        </div>
+        <div class="qty-control">
+          <button onclick="updateQty(this, -1)">-</button>
+          <span>1</span>
+          <button onclick="updateQty(this, 1)">+</button>
+        </div>
+      </div>
+      <div class="cart-item">
+        <span style="font-size: 24px;">🥩</span>
+        <div class="cart-item-info">
+          <h4>Ravioli de Ossobuco</h4>
+          <span class="text-secondary">R$ 54,90</span>
+        </div>
+        <div class="qty-control">
+          <button onclick="updateQty(this, -1)">-</button>
+          <span>1</span>
+          <button onclick="updateQty(this, 1)">+</button>
+        </div>
+      </div>
+      <div class="cart-item" style="border-bottom: none;">
+        <span style="font-size: 24px;">🍰</span>
+        <div class="cart-item-info">
+          <h4>Tiramisu</h4>
+          <span class="text-secondary">R$ 22,90</span>
+        </div>
+        <div class="qty-control">
+          <button onclick="updateQty(this, -1)">-</button>
+          <span>1</span>
+          <button onclick="updateQty(this, 1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coupon -->
+    <div class="card" style="display: flex; gap: 8px; align-items: center;">
+      <span style="font-size: 18px;">🏷️</span>
+      <input type="text" class="input-field" placeholder="Codigo do cupom" value="MVP10" style="flex:1;">
+      <button class="btn-secondary" style="width: auto; padding: 12px 16px; white-space: nowrap;" onclick="applyCoupon()">Aplicar</button>
+    </div>
+
+    <!-- Order summary -->
+    <div class="card">
+      <h4 style="margin-bottom: 10px; font-size: 15px;">Resumo</h4>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">Subtotal</span>
+        <span>R$ 120,70</span>
+      </div>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">Entrega</span>
+        <span style="color: var(--wireframe-success); font-weight: 600;">Gratis</span>
+      </div>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">Desconto (MVP10 -10%)</span>
+        <span style="color: var(--wireframe-success);">- R$ 12,07</span>
+      </div>
+      <div class="divider"></div>
+      <div class="flex-between">
+        <strong style="font-size: 16px;">Total</strong>
+        <strong style="font-size: 18px;">R$ 108,63</strong>
+      </div>
+    </div>
+
+    <button class="btn-primary mt-8" onclick="navigateTo('checkout')">Ir para checkout</button>
+  </div>
+
+  <!-- Empty cart state (hidden by default) -->
+  <div class="p-16" id="cart-empty" style="display: none; text-align: center; padding-top: 60px;">
+    <div style="font-size: 60px; margin-bottom: 16px;">🛒</div>
+    <h3 style="font-size: 18px; margin-bottom: 8px;">Seu carrinho esta vazio</h3>
+    <p class="text-secondary mb-16">Adicione itens de um restaurante para comecar</p>
+    <button class="btn-primary" onclick="navigateTo('home')">Explorar restaurantes</button>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button class="active" onclick="navigateTo('carrinho')">
+      <span class="nav-icon">🛒</span>Carrinho
+      <span class="cart-badge" id="cart-badge-cart">3</span>
+    </button>
+    <button onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 6: CHECKOUT -->
+<!-- ============================================================ -->
+<div id="checkout" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goBack()">&#8592;</button>
+    <h1>Checkout</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16">
+    <!-- Order summary -->
+    <div class="card">
+      <h4 style="margin-bottom: 10px;">Resumo do pedido</h4>
+      <div style="font-size: 13px; color: var(--wireframe-text-secondary); margin-bottom: 6px;">Pasta & Fogo</div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>1x Fettuccine Alfredo</span><span>R$ 42,90</span>
+      </div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>1x Ravioli de Ossobuco</span><span>R$ 54,90</span>
+      </div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>1x Tiramisu</span><span>R$ 22,90</span>
+      </div>
+      <div class="divider"></div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>Subtotal</span><span>R$ 120,70</span>
+      </div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>Entrega</span><span style="color: var(--wireframe-success);">Gratis</span>
+      </div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>Cupom MVP10 (-10%)</span><span style="color: var(--wireframe-success);">- R$ 12,07</span>
+      </div>
+      <div class="divider"></div>
+      <div class="flex-between">
+        <strong>Total</strong><strong style="font-size: 18px;">R$ 108,63</strong>
+      </div>
+    </div>
+
+    <!-- Delivery address -->
+    <div class="card">
+      <h4 style="margin-bottom: 8px;">📍 Endereco de entrega</h4>
+      <p style="font-size: 14px;">Rua Augusta, 1234 — Sao Paulo, SP</p>
+      <button class="link-btn mt-8" style="font-size: 13px;">Alterar endereco</button>
+    </div>
+
+    <!-- Coupon applied -->
+    <div class="card" style="display: flex; align-items: center; gap: 8px;">
+      <span>🏷️</span>
+      <span style="font-size: 14px; flex: 1;">Cupom <strong>MVP10</strong> aplicado</span>
+      <span style="color: var(--wireframe-success); font-size: 14px; font-weight: 600;">-10%</span>
+    </div>
+
+    <!-- Payment method selection -->
+    <h3 class="section-title" style="padding: 0; margin-top: 12px;">Forma de pagamento</h3>
+
+    <div class="payment-option" onclick="navigateTo('pagamento-cartao')" style="margin-top: 10px;">
+      <span class="pay-icon">💳</span>
+      <div>
+        <h4>Cartao ECP Digital Bank</h4>
+        <p>Pague com seu cartao virtual</p>
+      </div>
+      <span style="margin-left: auto; color: var(--wireframe-text-secondary);">›</span>
+    </div>
+
+    <div class="payment-option" onclick="navigateTo('pagamento-pix')">
+      <span class="pay-icon">📱</span>
+      <div>
+        <h4>PIX</h4>
+        <p>Pague via QR Code ou copia-e-cola</p>
+      </div>
+      <span style="margin-left: auto; color: var(--wireframe-text-secondary);">›</span>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button onclick="navigateTo('carrinho')">
+      <span class="nav-icon">🛒</span>Carrinho
+      <span class="cart-badge">3</span>
+    </button>
+    <button onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 7: PAGAMENTO CARTAO ECP -->
+<!-- ============================================================ -->
+<div id="pagamento-cartao" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goBack()">&#8592;</button>
+    <h1>Cartao ECP Digital Bank</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16">
+    <!-- Step 1: Login banco -->
+    <div class="card" id="bank-login-step">
+      <h4 style="margin-bottom: 4px;">🏦 Conecte sua conta ECP Digital Bank</h4>
+      <p class="text-secondary mb-16" style="font-size: 13px;">Informe seus dados do banco digital para listar seus cartoes.</p>
+      <div class="form-group">
+        <label>Email do banco</label>
+        <input type="email" class="input-field" placeholder="seu@email.com" value="maria@ecpbank.com">
+      </div>
+      <div class="form-group">
+        <label>Senha do banco</label>
+        <input type="password" class="input-field" placeholder="Senha" value="********">
+      </div>
+      <button class="btn-primary" onclick="showCardSelection()">Conectar</button>
+    </div>
+
+    <!-- Step 2: Card selection (hidden initially) -->
+    <div id="card-selection-step" style="display: none;">
+      <div class="card" style="border: 2px solid var(--wireframe-cta); cursor: pointer;" onclick="selectCard(this)">
+        <div class="flex-between">
+          <div>
+            <h4>💳 Cartao Virtual</h4>
+            <p class="text-secondary" style="font-size: 13px;">**** **** **** 4521</p>
+          </div>
+          <div style="text-align: right;">
+            <p class="text-secondary" style="font-size: 11px;">Saldo disponivel</p>
+            <strong>R$ 320,00</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="cursor: pointer;" onclick="selectCard(this)">
+        <div class="flex-between">
+          <div>
+            <h4>💳 Cartao Virtual 2</h4>
+            <p class="text-secondary" style="font-size: 13px;">**** **** **** 7893</p>
+          </div>
+          <div style="text-align: right;">
+            <p class="text-secondary" style="font-size: 11px;">Saldo disponivel</p>
+            <strong>R$ 1.250,00</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation -->
+      <div class="card" style="background: #f8f8f8; margin-top: 12px;">
+        <h4 style="margin-bottom: 10px;">Confirmar pagamento</h4>
+        <div class="flex-between mb-8">
+          <span class="text-secondary">Cartao</span>
+          <span>**** 4521</span>
+        </div>
+        <div class="flex-between mb-8">
+          <span class="text-secondary">Saldo atual</span>
+          <span>R$ 320,00</span>
+        </div>
+        <div class="flex-between mb-8">
+          <span class="text-secondary">Valor a debitar</span>
+          <strong style="font-size: 18px;">R$ 108,63</strong>
+        </div>
+        <div class="flex-between mb-8">
+          <span class="text-secondary">Saldo apos pagamento</span>
+          <span>R$ 211,37</span>
+        </div>
+        <div class="divider"></div>
+        <button class="btn-primary" onclick="navigateTo('pedido-confirmado')">Confirmar Pagamento — R$ 108,63</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 8: PAGAMENTO PIX -->
+<!-- ============================================================ -->
+<div id="pagamento-pix" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="goBack()">&#8592;</button>
+    <h1>Pagamento PIX</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16 text-center">
+    <div id="pix-waiting">
+      <h3 style="font-size: 18px; margin-bottom: 4px;">Valor a pagar</h3>
+      <p style="font-size: 28px; font-weight: 700; margin-bottom: 16px;">R$ 108,63</p>
+
+      <!-- QR Code -->
+      <div class="qr-placeholder">
+        <div>
+          <div style="font-size: 60px; margin-bottom: 8px;">📱</div>
+          <span>QR Code PIX</span>
+        </div>
+      </div>
+
+      <!-- Timer -->
+      <div style="margin: 12px 0; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>⏱️</span>
+        <span style="font-size: 14px; color: var(--wireframe-warning); font-weight: 600;" id="pix-timer">QR Code valido por 14:59</span>
+      </div>
+
+      <!-- Instructions -->
+      <div class="card" style="text-align: left; margin-top: 16px;">
+        <h4 style="margin-bottom: 10px;">Como pagar:</h4>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start;">
+          <span style="background: var(--wireframe-cta); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">1</span>
+          <span style="font-size: 14px;">Abra o app do seu banco</span>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start;">
+          <span style="background: var(--wireframe-cta); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">2</span>
+          <span style="font-size: 14px;">Escaneie o QR Code acima</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <span style="background: var(--wireframe-cta); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">3</span>
+          <span style="font-size: 14px;">Confirme o pagamento de R$ 108,63</span>
+        </div>
+      </div>
+
+      <!-- Copy and paste -->
+      <div style="text-align: left; margin-top: 12px;">
+        <p class="text-secondary" style="font-size: 12px; margin-bottom: 4px;">Ou copie o codigo PIX:</p>
+        <div class="copy-field">
+          <input type="text" value="00020126580014br.gov.bcb.pix..." readonly>
+          <button onclick="this.textContent='Copiado!'">Copiar</button>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div style="margin-top: 20px; padding: 12px; background: #fff8e1; border-radius: var(--wireframe-radius);">
+        <p style="font-size: 14px; color: var(--wireframe-warning);">⏳ Aguardando pagamento...</p>
+      </div>
+
+      <!-- Simulate payment button (for prototype) -->
+      <button class="btn-secondary mt-16" onclick="simulatePixPayment()" style="font-size: 13px;">
+        [Simular: Pagamento recebido]
+      </button>
+    </div>
+
+    <!-- Success state (hidden) -->
+    <div id="pix-success" style="display: none; padding-top: 40px;">
+      <div style="font-size: 60px; margin-bottom: 16px;">✅</div>
+      <h3 style="font-size: 20px; margin-bottom: 8px;">Pagamento confirmado!</h3>
+      <p class="text-secondary mb-16">Seu pedido #12847 esta sendo preparado</p>
+      <button class="btn-primary" onclick="navigateTo('pedido-confirmado')">Acompanhar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 9: PEDIDO CONFIRMADO -->
+<!-- ============================================================ -->
+<div id="pedido-confirmado" class="screen">
+  <div class="top-bar">
+    <h1 style="text-align: center; width: 100%;">Pedido Confirmado</h1>
+  </div>
+
+  <div class="p-16 text-center">
+    <div style="font-size: 60px; margin: 16px 0;">✅</div>
+    <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 4px;">Pedido #12847</h2>
+    <p class="text-secondary mb-16">Pasta & Fogo</p>
+
+    <!-- Status timeline -->
+    <div class="card" style="text-align: left;">
+      <h4 style="margin-bottom: 14px;">Status do pedido</h4>
+      <div class="timeline">
+        <div class="timeline-item done">
+          <div class="timeline-dot done"></div>
+          <div class="timeline-text">
+            <strong>Pedido confirmado</strong>
+            <span>14:32 — Pagamento aprovado</span>
+          </div>
+        </div>
+        <div class="timeline-item done">
+          <div class="timeline-dot done"></div>
+          <div class="timeline-text">
+            <strong>Preparando</strong>
+            <span>14:35 — O restaurante esta preparando seu pedido</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot current"></div>
+          <div class="timeline-text">
+            <strong>Saiu para entrega</strong>
+            <span>Estimativa: 15:10</span>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-text">
+            <strong>Entregue</strong>
+            <span>—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order details -->
+    <div class="card" style="text-align: left;">
+      <h4 style="margin-bottom: 8px;">Detalhes</h4>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>1x Fettuccine Alfredo</span><span>R$ 42,90</span>
+      </div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>1x Ravioli de Ossobuco</span><span>R$ 54,90</span>
+      </div>
+      <div class="flex-between" style="font-size: 13px; margin-bottom: 4px;">
+        <span>1x Tiramisu</span><span>R$ 22,90</span>
+      </div>
+      <div class="divider"></div>
+      <div class="flex-between">
+        <strong>Total pago</strong><strong>R$ 108,63</strong>
+      </div>
+    </div>
+
+    <!-- Delivery address -->
+    <div class="card" style="text-align: left;">
+      <p style="font-size: 13px;">📍 Rua Augusta, 1234 — Sao Paulo, SP</p>
+      <p style="font-size: 13px; color: var(--wireframe-text-secondary); margin-top: 4px;">⏱️ Previsao: 35-45 min</p>
+    </div>
+
+    <button class="btn-primary mt-8" onclick="navigateTo('home')">Voltar ao inicio</button>
+    <button class="btn-secondary mt-8" onclick="navigateTo('historico')">Ver historico</button>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button class="active" onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button onclick="navigateTo('carrinho')"><span class="nav-icon">🛒</span>Carrinho</button>
+    <button onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 10: HISTORICO DE PEDIDOS -->
+<!-- ============================================================ -->
+<div id="historico" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+    <h1>Meus Pedidos</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16">
+    <!-- Current order -->
+    <div class="card" style="border-left: 3px solid var(--wireframe-cta);">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">Pasta & Fogo</h4>
+          <p class="text-secondary" style="font-size: 12px;">Pedido #12847 — Hoje, 14:32</p>
+        </div>
+        <span class="status-badge status-preparing">Preparando</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 6px;">Fettuccine Alfredo, Ravioli de Ossobuco, Tiramisu</p>
+      <div class="flex-between">
+        <strong>R$ 108,63</strong>
+        <button class="btn-secondary" style="width: auto; padding: 8px 16px; font-size: 12px;" onclick="navigateTo('pedido-confirmado')">Acompanhar</button>
+      </div>
+    </div>
+
+    <!-- Past orders -->
+    <div class="card">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">Burger Lab</h4>
+          <p class="text-secondary" style="font-size: 12px;">Pedido #12801 — 15 Mar, 20:15</p>
+        </div>
+        <span class="status-badge status-active">Entregue</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 6px;">Smash Burger Duplo, Batata Trufa, Milkshake</p>
+      <div class="flex-between">
+        <strong>R$ 78,70</strong>
+        <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 12px;" onclick="navigateTo('carrinho')">Repetir pedido</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">Sushi Wave</h4>
+          <p class="text-secondary" style="font-size: 12px;">Pedido #12756 — 12 Mar, 19:45</p>
+        </div>
+        <span class="status-badge status-active">Entregue</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 6px;">Combo Sashimi Premium, Temaki Salmao, Edamame</p>
+      <div class="flex-between">
+        <strong>R$ 134,70</strong>
+        <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 12px;" onclick="navigateTo('carrinho')">Repetir pedido</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">Pizza Club 24h</h4>
+          <p class="text-secondary" style="font-size: 12px;">Pedido #12688 — 8 Mar, 21:30</p>
+        </div>
+        <span class="status-badge status-active">Entregue</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 6px;">Margherita Grande, Pepperoni Media</p>
+      <div class="flex-between">
+        <strong>R$ 89,80</strong>
+        <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 12px;" onclick="navigateTo('carrinho')">Repetir pedido</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">Green Bowl Co.</h4>
+          <p class="text-secondary" style="font-size: 12px;">Pedido #12610 — 5 Mar, 12:20</p>
+        </div>
+        <span class="status-badge status-active">Entregue</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 6px;">Acai Bowl 500ml, Suco Verde Detox</p>
+      <div class="flex-between">
+        <strong>R$ 42,80</strong>
+        <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 12px;" onclick="navigateTo('carrinho')">Repetir pedido</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button class="active" onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button onclick="navigateTo('carrinho')">
+      <span class="nav-icon">🛒</span>Carrinho
+      <span class="cart-badge">3</span>
+    </button>
+    <button onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 11: FAVORITOS -->
+<!-- ============================================================ -->
+<div id="favoritos" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+    <h1>Favoritos</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16">
+    <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+      <div class="restaurant-card-img" style="background:#e0dbd5;">
+        🍝
+        <button class="fav-btn" onclick="event.stopPropagation();" style="color: red;">♥</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Pasta & Fogo</h3>
+        <p class="subtitle">Massas artesanais feitas na hora</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.8 (234)</span>
+          <span>⏱️ 35-45 min</span>
+          <span>🛵 R$ 6,90</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+      <div class="restaurant-card-img" style="background:#e5ddd5;">
+        🍔
+        <button class="fav-btn" onclick="event.stopPropagation();" style="color: red;">♥</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Burger Lab</h3>
+        <p class="subtitle">Hamburgueres gourmet com blend exclusivo</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.9 (412)</span>
+          <span>⏱️ 30-40 min</span>
+          <span>🛵 Gratis</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+      <div class="restaurant-card-img" style="background:#dce5e0;">
+        🍣
+        <button class="fav-btn" onclick="event.stopPropagation();" style="color: red;">♥</button>
+      </div>
+      <div class="restaurant-card-body">
+        <h3>Sushi Wave</h3>
+        <p class="subtitle">Sushi artesanal e sashimi premium</p>
+        <div class="restaurant-card-meta">
+          <span>⭐ 4.7 (189)</span>
+          <span>⏱️ 40-55 min</span>
+          <span>🛵 R$ 8,90</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button class="active" onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button onclick="navigateTo('carrinho')">
+      <span class="nav-icon">🛒</span>Carrinho
+      <span class="cart-badge">3</span>
+    </button>
+    <button onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 12: PERFIL -->
+<!-- ============================================================ -->
+<div id="perfil" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+    <h1>Minha Conta</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16">
+    <!-- Profile header -->
+    <div class="card text-center" style="padding: 20px;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: #ddd; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 28px;">👤</div>
+      <h3 style="font-size: 18px;">Maria Silva</h3>
+      <p class="text-secondary">maria@email.com</p>
+    </div>
+
+    <!-- Personal data -->
+    <div class="card">
+      <h4 style="margin-bottom: 10px;">Dados pessoais</h4>
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" class="input-field" value="Maria Silva">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="input-field" value="maria@email.com">
+      </div>
+      <div class="form-group">
+        <label>Telefone</label>
+        <input type="tel" class="input-field" value="(11) 98765-4321">
+      </div>
+      <button class="btn-secondary">Salvar alteracoes</button>
+    </div>
+
+    <!-- Addresses -->
+    <div class="card">
+      <h4 style="margin-bottom: 10px;">📍 Enderecos</h4>
+      <div style="padding: 10px; background: var(--wireframe-bg); border-radius: var(--wireframe-radius); margin-bottom: 8px;">
+        <div class="flex-between">
+          <div>
+            <p style="font-size: 14px; font-weight: 500;">Casa</p>
+            <p class="text-secondary" style="font-size: 12px;">Rua Augusta, 1234 — Sao Paulo, SP</p>
+          </div>
+          <span class="badge">Principal</span>
+        </div>
+      </div>
+      <div style="padding: 10px; background: var(--wireframe-bg); border-radius: var(--wireframe-radius); margin-bottom: 8px;">
+        <div>
+          <p style="font-size: 14px; font-weight: 500;">Trabalho</p>
+          <p class="text-secondary" style="font-size: 12px;">Av. Paulista, 900 — Sao Paulo, SP</p>
+        </div>
+      </div>
+      <button class="btn-secondary mt-8">+ Adicionar endereco</button>
+    </div>
+
+    <!-- Coupons -->
+    <div class="card">
+      <h4 style="margin-bottom: 10px;">🏷️ Meus cupons</h4>
+      <div style="padding: 10px; background: #f8f8f0; border: 1px dashed var(--wireframe-border); border-radius: var(--wireframe-radius); margin-bottom: 8px;">
+        <div class="flex-between">
+          <div>
+            <strong style="font-size: 15px;">MVP10</strong>
+            <p class="text-secondary" style="font-size: 12px;">10% de desconto — Sem minimo</p>
+          </div>
+          <span style="font-size: 13px; color: var(--wireframe-success); font-weight: 600;">Ativo</span>
+        </div>
+      </div>
+      <div style="padding: 10px; background: #f8f8f0; border: 1px dashed var(--wireframe-border); border-radius: var(--wireframe-radius);">
+        <div class="flex-between">
+          <div>
+            <strong style="font-size: 15px;">VOLTA20</strong>
+            <p class="text-secondary" style="font-size: 12px;">20% de desconto — Pedido acima de R$ 80</p>
+          </div>
+          <span style="font-size: 13px; color: var(--wireframe-success); font-weight: 600;">Ativo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu links -->
+    <div class="card">
+      <div style="padding: 10px 0; border-bottom: 1px solid #eee; cursor: pointer;" onclick="navigateTo('historico')">
+        <span style="font-size: 14px;">📋 Historico de pedidos</span>
+      </div>
+      <div style="padding: 10px 0; border-bottom: 1px solid #eee; cursor: pointer;" onclick="navigateTo('favoritos')">
+        <span style="font-size: 14px;">♥ Meus favoritos</span>
+      </div>
+      <div style="padding: 10px 0; cursor: pointer;" onclick="navigateTo('login')">
+        <span style="font-size: 14px; color: var(--wireframe-danger);">🚪 Sair da conta</span>
+      </div>
+    </div>
+
+    <!-- Panel navigation (for testing) -->
+    <div class="card" style="background: #f0f0f0; margin-top: 12px;">
+      <p class="text-secondary" style="font-size: 11px; margin-bottom: 8px;">Acesso rapido (protótipo):</p>
+      <button class="btn-secondary mb-8" onclick="navigateTo('painel-cardapio')" style="font-size: 12px;">Painel Restaurante</button>
+      <button class="btn-secondary" onclick="navigateTo('admin-dashboard')" style="font-size: 12px;">Painel Admin</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="navigateTo('home')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button onclick="navigateTo('favoritos')"><span class="nav-icon">🔍</span>Buscar</button>
+    <button onclick="navigateTo('historico')"><span class="nav-icon">📋</span>Pedidos</button>
+    <button onclick="navigateTo('carrinho')">
+      <span class="nav-icon">🛒</span>Carrinho
+      <span class="cart-badge">3</span>
+    </button>
+    <button class="active" onclick="navigateTo('perfil')"><span class="nav-icon">👤</span>Conta</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 13: PAINEL RESTAURANTE — CARDAPIO -->
+<!-- ============================================================ -->
+<div id="painel-cardapio" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+    <h1>Painel — Pasta & Fogo</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="panel-tabs">
+    <button class="panel-tab active" onclick="navigateTo('painel-cardapio')">Cardapio</button>
+    <button class="panel-tab" onclick="navigateTo('painel-pedidos')">Pedidos</button>
+    <button class="panel-tab" onclick="navigateTo('painel-config')">Config</button>
+  </div>
+
+  <div class="p-16">
+    <div class="flex-between mb-16">
+      <h3 style="font-size: 16px;">Itens do Cardapio</h3>
+      <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 13px;">+ Novo item</button>
+    </div>
+
+    <!-- Menu items list -->
+    <div class="card">
+      <div class="flex-between" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🍝</span>
+          <div>
+            <h4 style="font-size: 14px;">Fettuccine Alfredo</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 42,90 — <span class="badge badge-best" style="font-size: 10px;">Best seller</span></p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="flex-between" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🍝</span>
+          <div>
+            <h4 style="font-size: 14px;">Spaghetti Carbonara</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 44,90</p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="flex-between" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🥩</span>
+          <div>
+            <h4 style="font-size: 14px;">Ravioli de Ossobuco</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 54,90 — <span class="badge badge-new" style="font-size: 10px;">Novo</span></p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="flex-between" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🥗</span>
+          <div>
+            <h4 style="font-size: 14px;">Penne ao Pesto</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 38,90 — <span class="badge badge-veg" style="font-size: 10px;">Vegetariano</span></p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="flex-between" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🧀</span>
+          <div>
+            <h4 style="font-size: 14px;">Nhoque de Batata</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 36,90</p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="flex-between" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🍷</span>
+          <div>
+            <h4 style="font-size: 14px;">Lasanha Bolognese</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 48,90</p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="flex-between" style="padding: 10px 0; border-bottom: 1px solid #eee;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🍰</span>
+          <div>
+            <h4 style="font-size: 14px;">Tiramisu</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 22,90</p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="flex-between" style="padding: 10px 0; opacity: 0.5;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <span style="font-size: 24px;">🥤</span>
+          <div>
+            <h4 style="font-size: 14px;">Limonada Siciliana</h4>
+            <p class="text-secondary" style="font-size: 12px;">R$ 18,90 — Desativado</p>
+          </div>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 14: PAINEL RESTAURANTE — PEDIDOS -->
+<!-- ============================================================ -->
+<div id="painel-pedidos" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+    <h1>Painel — Pasta & Fogo</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="panel-tabs">
+    <button class="panel-tab" onclick="navigateTo('painel-cardapio')">Cardapio</button>
+    <button class="panel-tab active" onclick="navigateTo('painel-pedidos')">Pedidos</button>
+    <button class="panel-tab" onclick="navigateTo('painel-config')">Config</button>
+  </div>
+
+  <div class="p-16">
+    <h3 style="font-size: 16px; margin-bottom: 12px;">Pedidos em tempo real</h3>
+
+    <!-- New order -->
+    <div class="card" style="border-left: 3px solid var(--wireframe-warning);">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">#12847 — Maria S.</h4>
+          <p class="text-secondary" style="font-size: 12px;">Hoje, 14:32 — ha 3 min</p>
+        </div>
+        <span class="status-badge status-pending">Novo</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 4px;">1x Fettuccine Alfredo — R$ 42,90</p>
+      <p style="font-size: 13px; margin-bottom: 4px;">1x Ravioli de Ossobuco — R$ 54,90</p>
+      <p style="font-size: 13px; margin-bottom: 8px;">1x Tiramisu — R$ 22,90</p>
+      <div class="flex-between mb-8">
+        <strong>Total: R$ 108,63</strong>
+        <span class="text-secondary" style="font-size: 12px;">Cupom MVP10 aplicado</span>
+      </div>
+      <p class="text-secondary" style="font-size: 12px; margin-bottom: 10px;">📍 Rua Augusta, 1234 — Sao Paulo, SP</p>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" style="flex: 1; font-size: 13px;" onclick="this.parentElement.parentElement.querySelector('.status-badge').textContent='Preparando'; this.parentElement.parentElement.querySelector('.status-badge').className='status-badge status-preparing'; this.textContent='Pronto para retirada';">Aceitar e preparar</button>
+        <button class="btn-secondary" style="width: auto; padding: 10px 16px; font-size: 13px; color: var(--wireframe-danger);">Recusar</button>
+      </div>
+    </div>
+
+    <!-- Preparing -->
+    <div class="card" style="border-left: 3px solid #17a2b8;">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">#12845 — Joao P.</h4>
+          <p class="text-secondary" style="font-size: 12px;">Hoje, 14:20 — ha 15 min</p>
+        </div>
+        <span class="status-badge status-preparing">Preparando</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 4px;">2x Spaghetti Carbonara — R$ 89,80</p>
+      <p style="font-size: 13px; margin-bottom: 8px;">1x Nhoque de Batata — R$ 36,90</p>
+      <div class="flex-between mb-8">
+        <strong>Total: R$ 126,70</strong>
+      </div>
+      <button class="btn-primary" style="font-size: 13px;">Marcar como pronto</button>
+    </div>
+
+    <!-- Completed -->
+    <div class="card" style="opacity: 0.6;">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">#12840 — Ana L.</h4>
+          <p class="text-secondary" style="font-size: 12px;">Hoje, 13:50</p>
+        </div>
+        <span class="status-badge status-active">Entregue</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 4px;">1x Lasanha Bolognese, 1x Tiramisu</p>
+      <div class="flex-between">
+        <strong>Total: R$ 71,80</strong>
+      </div>
+    </div>
+
+    <div class="card" style="opacity: 0.6;">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">#12838 — Carlos M.</h4>
+          <p class="text-secondary" style="font-size: 12px;">Hoje, 13:15</p>
+        </div>
+        <span class="status-badge status-active">Entregue</span>
+      </div>
+      <p style="font-size: 13px; margin-bottom: 4px;">1x Penne ao Pesto, 1x Limonada Siciliana</p>
+      <div class="flex-between">
+        <strong>Total: R$ 57,80</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 15: PAINEL RESTAURANTE — CONFIG -->
+<!-- ============================================================ -->
+<div id="painel-config" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+    <h1>Painel — Pasta & Fogo</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="panel-tabs">
+    <button class="panel-tab" onclick="navigateTo('painel-cardapio')">Cardapio</button>
+    <button class="panel-tab" onclick="navigateTo('painel-pedidos')">Pedidos</button>
+    <button class="panel-tab active" onclick="navigateTo('painel-config')">Config</button>
+  </div>
+
+  <div class="p-16">
+    <!-- Restaurant info -->
+    <div class="card">
+      <h4 style="margin-bottom: 12px;">Dados do Restaurante</h4>
+      <div class="form-group">
+        <label>Nome do restaurante</label>
+        <input type="text" class="input-field" value="Pasta & Fogo">
+      </div>
+      <div class="form-group">
+        <label>Subtitulo</label>
+        <input type="text" class="input-field" value="Massas artesanais feitas na hora">
+      </div>
+      <div class="form-group">
+        <label>Tipo de culinaria</label>
+        <input type="text" class="input-field" value="Massas">
+      </div>
+      <div class="form-group">
+        <label>Tempo estimado de entrega (minutos)</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="number" class="input-field" value="35" style="width: 80px;">
+          <span style="display: flex; align-items: center;">a</span>
+          <input type="number" class="input-field" value="45" style="width: 80px;">
+          <span style="display: flex; align-items: center;">min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery settings -->
+    <div class="card">
+      <h4 style="margin-bottom: 12px;">Entrega e Precos</h4>
+      <div class="form-group">
+        <label>Taxa de entrega</label>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span>R$</span>
+          <input type="text" class="input-field" value="6,90" style="width: 100px;">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Pedido minimo</label>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span>R$</span>
+          <input type="text" class="input-field" value="25,00" style="width: 100px;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Promotions -->
+    <div class="card">
+      <h4 style="margin-bottom: 12px;">Promocao Ativa</h4>
+      <div class="form-group">
+        <label>Texto da promocao</label>
+        <input type="text" class="input-field" value="20% OFF em massas ate sexta">
+      </div>
+      <div class="form-group">
+        <label>Desconto (%)</label>
+        <input type="number" class="input-field" value="20" style="width: 100px;">
+      </div>
+      <div class="flex-between">
+        <label style="font-size: 13px;">Promocao ativa</label>
+        <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="card">
+      <h4 style="margin-bottom: 12px;">Status do Restaurante</h4>
+      <div class="flex-between mb-8">
+        <label style="font-size: 14px;">Restaurante aberto</label>
+        <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+      </div>
+      <div class="flex-between">
+        <label style="font-size: 14px;">Aceitar novos pedidos</label>
+        <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+      </div>
+    </div>
+
+    <button class="btn-primary mt-8">Salvar configuracoes</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 16: ADMIN DASHBOARD -->
+<!-- ============================================================ -->
+<div id="admin-dashboard" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+    <h1>Admin — ECP Food</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16">
+    <h3 style="font-size: 16px; margin-bottom: 12px;">Dashboard Geral</h3>
+
+    <div class="metrics-grid" style="padding: 0;">
+      <div class="metric-card">
+        <div class="metric-value">24</div>
+        <div class="metric-label">Restaurantes ativos</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">187</div>
+        <div class="metric-label">Pedidos hoje</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">R$ 52,40</div>
+        <div class="metric-label">Ticket medio</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">3.420</div>
+        <div class="metric-label">Usuarios cadastrados</div>
+      </div>
+    </div>
+
+    <div class="card mt-16">
+      <h4 style="margin-bottom: 10px;">Metricas de Conversao</h4>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">Taxa de conversao</span>
+        <strong>9.2%</strong>
+      </div>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">Taxa de recompra (30d)</span>
+        <strong>28%</strong>
+      </div>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">Tempo medio ate 1o pedido</span>
+        <strong>4 min 12s</strong>
+      </div>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">NPS estimado</span>
+        <strong>43</strong>
+      </div>
+      <div class="flex-between">
+        <span class="text-secondary">Cupons utilizados hoje</span>
+        <strong>42</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4 style="margin-bottom: 10px;">Resumo Financeiro (hoje)</h4>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">GMV</span>
+        <strong>R$ 9.798,80</strong>
+      </div>
+      <div class="flex-between mb-8">
+        <span class="text-secondary">Receita comissao (12%)</span>
+        <strong>R$ 1.175,86</strong>
+      </div>
+      <div class="flex-between">
+        <span class="text-secondary">Descontos concedidos</span>
+        <strong>R$ 487,20</strong>
+      </div>
+    </div>
+
+    <button class="btn-primary mt-8" onclick="navigateTo('admin-restaurantes')">Gerenciar restaurantes</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TELA 17: ADMIN — GESTAO DE RESTAURANTES -->
+<!-- ============================================================ -->
+<div id="admin-restaurantes" class="screen">
+  <div class="top-bar">
+    <button class="btn-back" onclick="navigateTo('admin-dashboard')">&#8592;</button>
+    <h1>Gestao Restaurantes</h1>
+    <div class="top-bar-spacer"></div>
+  </div>
+
+  <div class="p-16">
+    <div class="flex-between mb-16">
+      <h3 style="font-size: 16px;">24 restaurantes</h3>
+      <div class="search-bar" style="width: 180px; padding: 6px 12px;">
+        <span class="search-icon" style="font-size: 12px;">🔍</span>
+        <input type="text" placeholder="Buscar..." style="font-size: 12px;">
+      </div>
+    </div>
+
+    <!-- Pending approval -->
+    <p class="text-secondary mb-8" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Aguardando aprovacao</p>
+
+    <div class="card" style="border-left: 3px solid var(--wireframe-warning);">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">🍜 Ramen House</h4>
+          <p class="text-secondary" style="font-size: 12px;">Japones — Cadastro 16 Mar</p>
+        </div>
+        <span class="status-badge status-pending">Pendente</span>
+      </div>
+      <p class="text-secondary" style="font-size: 12px; margin-bottom: 8px;">12 itens no cardapio — Frete R$ 7,90 — Min R$ 30</p>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" style="flex: 1; font-size: 13px;" onclick="this.closest('.card').querySelector('.status-badge').textContent='Ativo'; this.closest('.card').querySelector('.status-badge').className='status-badge status-active'; this.closest('.card').style.borderLeftColor='var(--wireframe-success)';">Aprovar</button>
+        <button class="btn-secondary" style="width: auto; padding: 10px 16px; font-size: 13px; color: var(--wireframe-danger);">Rejeitar</button>
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--wireframe-warning);">
+      <div class="flex-between mb-8">
+        <div>
+          <h4 style="font-size: 15px;">🥘 Tempero da Terra</h4>
+          <p class="text-secondary" style="font-size: 12px;">Brasileira — Cadastro 16 Mar</p>
+        </div>
+        <span class="status-badge status-pending">Pendente</span>
+      </div>
+      <p class="text-secondary" style="font-size: 12px; margin-bottom: 8px;">8 itens no cardapio — Frete R$ 6,90 — Min R$ 25</p>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" style="flex: 1; font-size: 13px;" onclick="this.closest('.card').querySelector('.status-badge').textContent='Ativo'; this.closest('.card').querySelector('.status-badge').className='status-badge status-active'; this.closest('.card').style.borderLeftColor='var(--wireframe-success)';">Aprovar</button>
+        <button class="btn-secondary" style="width: auto; padding: 10px 16px; font-size: 13px; color: var(--wireframe-danger);">Rejeitar</button>
+      </div>
+    </div>
+
+    <!-- Active restaurants -->
+    <p class="text-secondary mb-8 mt-16" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Restaurantes ativos</p>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h4 style="font-size: 15px;">🍝 Pasta & Fogo</h4>
+          <p class="text-secondary" style="font-size: 12px;">Massas — ⭐ 4.8 — 234 avaliacoes — 87 pedidos/semana</p>
+        </div>
+        <span class="status-badge status-active">Ativo</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h4 style="font-size: 15px;">🍔 Burger Lab</h4>
+          <p class="text-secondary" style="font-size: 12px;">Hamburguer — ⭐ 4.9 — 412 avaliacoes — 124 pedidos/semana</p>
+        </div>
+        <span class="status-badge status-active">Ativo</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h4 style="font-size: 15px;">🍣 Sushi Wave</h4>
+          <p class="text-secondary" style="font-size: 12px;">Japones — ⭐ 4.7 — 189 avaliacoes — 65 pedidos/semana</p>
+        </div>
+        <span class="status-badge status-active">Ativo</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h4 style="font-size: 15px;">🥗 Green Bowl Co.</h4>
+          <p class="text-secondary" style="font-size: 12px;">Saudavel — ⭐ 4.6 — 98 avaliacoes — 43 pedidos/semana</p>
+        </div>
+        <span class="status-badge status-active">Ativo</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h4 style="font-size: 15px;">🍕 Pizza Club 24h</h4>
+          <p class="text-secondary" style="font-size: 12px;">Pizza — ⭐ 4.5 — 305 avaliacoes — 98 pedidos/semana</p>
+        </div>
+        <span class="status-badge status-active">Ativo</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <h4 style="font-size: 15px;">🍖 Brasa & Lenha</h4>
+          <p class="text-secondary" style="font-size: 12px;">Brasileira — ⭐ 4.7 — 176 avaliacoes — 71 pedidos/semana</p>
+        </div>
+        <span class="status-badge status-active">Ativo</span>
+      </div>
+    </div>
+
+    <!-- Suspended -->
+    <p class="text-secondary mb-8 mt-16" style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Suspensos</p>
+
+    <div class="card" style="opacity: 0.6; border-left: 3px solid var(--wireframe-danger);">
+      <div class="flex-between">
+        <div>
+          <h4 style="font-size: 15px;">🍕 Pizza Express</h4>
+          <p class="text-secondary" style="font-size: 12px;">Suspenso em 10 Mar — Motivo: Reclamacoes de qualidade</p>
+        </div>
+        <button class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">Reativar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================ -->
+<script>
+// --- Navigation system ---
+var history_stack = ['login'];
+
+function navigateTo(screenId) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) {
+    screens[i].classList.remove('active');
+  }
+  var target = document.getElementById(screenId);
+  if (target) {
+    target.classList.add('active');
+    history_stack.push(screenId);
+    window.scrollTo(0, 0);
+  }
+
+  // Reset certain states when navigating
+  if (screenId === 'pagamento-cartao') {
+    document.getElementById('bank-login-step').style.display = 'block';
+    document.getElementById('card-selection-step').style.display = 'none';
+  }
+  if (screenId === 'pagamento-pix') {
+    document.getElementById('pix-waiting').style.display = 'block';
+    document.getElementById('pix-success').style.display = 'none';
+  }
+}
+
+function goBack() {
+  if (history_stack.length > 1) {
+    history_stack.pop(); // remove current
+    var prev = history_stack[history_stack.length - 1];
+    var screens = document.querySelectorAll('.screen');
+    for (var i = 0; i < screens.length; i++) {
+      screens[i].classList.remove('active');
+    }
+    var target = document.getElementById(prev);
+    if (target) {
+      target.classList.add('active');
+      window.scrollTo(0, 0);
+    }
+  }
+}
+
+// --- Category filter ---
+function filterCategory(cat) {
+  var chips = document.querySelectorAll('#category-chips .chip');
+  for (var i = 0; i < chips.length; i++) {
+    chips[i].classList.remove('active');
+  }
+  event.target.classList.add('active');
+
+  var cards = document.querySelectorAll('#restaurant-list .restaurant-card');
+  var count = 0;
+  for (var j = 0; j < cards.length; j++) {
+    if (cat === 'Todos' || cards[j].getAttribute('data-cat') === cat) {
+      cards[j].style.display = 'block';
+      count++;
+    } else {
+      cards[j].style.display = 'none';
+    }
+  }
+  document.getElementById('results-count').textContent = 'Mostrando ' + count + (count === 1 ? ' restaurante' : ' restaurantes');
+}
+
+// --- Favorites toggle ---
+function toggleFav(btn) {
+  if (btn.textContent.trim() === '\u2661') {
+    btn.textContent = '\u2665';
+    btn.style.color = 'red';
+  } else {
+    btn.textContent = '\u2661';
+    btn.style.color = '';
+  }
+}
+
+// --- Open restaurant (all go to same detail for prototype) ---
+function openRestaurant(id) {
+  navigateTo('restaurante-detalhe');
+}
+
+// --- Add to cart simulation ---
+var cartCount = 3;
+function addToCart(name, price) {
+  cartCount++;
+  updateCartBadges();
+  var btn = event.target;
+  btn.textContent = '\u2713';
+  btn.style.background = 'var(--wireframe-cta)';
+  btn.style.color = 'white';
+  setTimeout(function() {
+    btn.textContent = '+';
+    btn.style.background = 'var(--wireframe-surface)';
+    btn.style.color = 'var(--wireframe-cta)';
+  }, 800);
+}
+
+function updateCartBadges() {
+  var badges = document.querySelectorAll('.cart-badge');
+  for (var i = 0; i < badges.length; i++) {
+    badges[i].textContent = cartCount;
+    if (cartCount > 0) {
+      badges[i].classList.remove('hidden');
+    } else {
+      badges[i].classList.add('hidden');
+    }
+  }
+  var fc = document.getElementById('floating-cart-count');
+  if (fc) fc.textContent = cartCount;
+}
+
+// --- Quantity control ---
+function updateQty(btn, delta) {
+  var container = btn.parentElement;
+  var span = container.querySelector('span');
+  var qty = parseInt(span.textContent) + delta;
+  if (qty < 0) qty = 0;
+  if (qty === 0) {
+    var item = container.closest('.cart-item');
+    if (item) {
+      item.style.opacity = '0.3';
+      item.style.textDecoration = 'line-through';
+    }
+    cartCount--;
+    updateCartBadges();
+  }
+  span.textContent = qty;
+}
+
+// --- Coupon ---
+function applyCoupon() {
+  alert('Cupom MVP10 aplicado! 10% de desconto.');
+}
+
+// --- Bank card selection ---
+function showCardSelection() {
+  document.getElementById('bank-login-step').style.display = 'none';
+  document.getElementById('card-selection-step').style.display = 'block';
+}
+
+function selectCard(el) {
+  var cards = el.parentElement.querySelectorAll('.card');
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].style.borderWidth = '1px';
+    cards[i].style.borderColor = 'var(--wireframe-border)';
+  }
+  el.style.borderWidth = '2px';
+  el.style.borderColor = 'var(--wireframe-cta)';
+}
+
+// --- PIX simulation ---
+function simulatePixPayment() {
+  document.getElementById('pix-waiting').style.display = 'none';
+  document.getElementById('pix-success').style.display = 'block';
+}
+
+// --- PIX timer ---
+var pixMinutes = 14;
+var pixSeconds = 59;
+setInterval(function() {
+  var timerEl = document.getElementById('pix-timer');
+  if (!timerEl) return;
+  if (pixSeconds > 0) {
+    pixSeconds--;
+  } else if (pixMinutes > 0) {
+    pixMinutes--;
+    pixSeconds = 59;
+  }
+  var mm = pixMinutes < 10 ? '0' + pixMinutes : pixMinutes;
+  var ss = pixSeconds < 10 ? '0' + pixSeconds : pixSeconds;
+  timerEl.textContent = 'QR Code valido por ' + mm + ':' + ss;
+}, 1000);
+</script>
+
+</body>
+</html>

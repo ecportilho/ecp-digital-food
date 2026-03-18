@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ECP Food — High-Fidelity Prototype</title>
+<!--
+============================================================
+  MAPA DE FLUXO — ECP Food High-Fi Prototype (Midnight Express)
+============================================================
+  FLUXO CONSUMIDOR:
+  [login] → [cadastro] (link)
+  [login] → [home] (após login)
+  [home] → [restaurante-detalhe] (tap card)
+  [restaurante-detalhe] → [carrinho] (tap carrinho / bottom nav)
+  [carrinho] → [checkout] (CTA checkout)
+  [checkout] → [pagamento-cartao] (opção Cartão ECP)
+  [checkout] → [pagamento-pix] (opção PIX)
+  [pagamento-cartao] → [pedido-confirmado]
+  [pagamento-pix] → [pedido-confirmado]
+  [pedido-confirmado] → [home]
+  [home] → [historico] (bottom nav)
+  [home] → [favoritos] (bottom nav)
+  [home] → [perfil] (bottom nav)
+
+  FLUXO RESTAURANTE:
+  [perfil] → [painel-cardapio]
+  [painel-cardapio] → [painel-pedidos]
+  [painel-pedidos] → [painel-config]
+
+  FLUXO ADMIN:
+  [perfil] → [admin-dashboard]
+  [admin-dashboard] → [admin-restaurantes]
+============================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS — Midnight Express
+   ============================================================ */
+:root {
+  --bg: #0d1020;
+  --bg-soft: #101429;
+  --surface: rgba(19, 24, 47, 0.86);
+  --surface-strong: #151b34;
+  --surface-elevated: rgba(21, 27, 52, 0.95);
+  --text: #f4f6ff;
+  --muted: #a7b0d3;
+  --line: rgba(160, 174, 255, 0.12);
+  --brand: #7b61ff;
+  --brand-2: #ff5fa2;
+  --accent: #59d8ff;
+  --success: #2fd387;
+  --danger: #ff6b81;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.36);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.26);
+  --hero: linear-gradient(135deg, rgba(123, 97, 255, 0.98), rgba(255, 95, 162, 0.90));
+  --card-glow: radial-gradient(circle at top right, rgba(89, 216, 255, 0.20), transparent 48%);
+  --promo: linear-gradient(135deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03));
+  --chip-active-bg: linear-gradient(135deg, var(--brand), var(--brand-2));
+  --tag-bg: rgba(123, 97, 255, 0.18);
+  --tag-text: #d8d0ff;
+  --nav-bg: rgba(13, 16, 32, 0.92);
+  --hero-text: #ffffff;
+  --chip-active-text: #ffffff;
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--brand); text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+img { max-width: 100%; }
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+.h1 { font-size: clamp(2rem, 5vw, 3.6rem); font-weight: 900; letter-spacing: -0.04em; line-height: 0.95; }
+.h2 { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; }
+.h3 { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; }
+.h4 { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; }
+.body-text { font-size: 1rem; font-weight: 400; line-height: 1.55; }
+.small { font-size: 0.88rem; font-weight: 600; letter-spacing: 0.01em; line-height: 1.45; }
+.meta { font-size: 0.84rem; font-weight: 600; letter-spacing: 0.01em; line-height: 1.45; color: var(--muted); }
+.price { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.stat-value { font-size: 1.55rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+.shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 18px;
+  padding-bottom: calc(88px + 18px);
+}
+.screen {
+  display: none;
+  min-height: 100vh;
+  animation: fadeIn 0.25s ease;
+}
+.screen.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ============================================================
+   GLASS CARD
+   ============================================================ */
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+}
+.card-pad { padding: 22px; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: #fff; color: #111; border: none;
+  border-radius: 18px; padding: 14px 18px;
+  font-weight: 800; font-size: 1rem;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.12);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(0,0,0,0.18); }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 18px; padding: 14px 18px;
+  font-weight: 700; font-size: 0.92rem;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.btn-ghost:hover { transform: translateY(-1px); background: rgba(255,255,255,0.18); }
+
+.btn-mini {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--chip-active-bg); color: #fff; border: none;
+  border-radius: 16px; padding: 10px 14px;
+  font-weight: 700; font-size: 0.88rem;
+  box-shadow: 0 8px 20px rgba(123,97,255,0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-mini:hover { transform: translateY(-1px); }
+
+.btn-checkout {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 16px 18px;
+  background: var(--chip-active-bg); color: #fff; border: none;
+  border-radius: 20px; font-weight: 900; font-size: 1rem;
+  box-shadow: 0 14px 28px rgba(123,97,255,0.30);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-checkout:hover { transform: translateY(-1px); }
+.btn-checkout:disabled { opacity: 0.55; box-shadow: none; cursor: not-allowed; transform: none; }
+
+.btn-theme {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--tag-bg); color: var(--tag-text); border: none;
+  border-radius: 999px; padding: 10px 14px;
+  font-weight: 800; font-size: 0.88rem;
+  transition: transform 0.18s ease;
+}
+.btn-theme:hover { transform: translateY(-1px); }
+
+.btn-icon {
+  display: inline-grid; place-items: center;
+  width: 42px; height: 42px;
+  background: var(--tag-bg); color: var(--tag-text); border: none;
+  border-radius: 14px; font-size: 1.1rem;
+  transition: transform 0.18s ease;
+}
+.btn-icon:hover { transform: translateY(-1px); }
+
+.btn-back {
+  display: inline-grid; place-items: center;
+  width: 42px; height: 42px;
+  background: var(--tag-bg); color: var(--tag-text); border: none;
+  border-radius: 14px; font-size: 1.2rem;
+  transition: transform 0.18s ease;
+}
+
+.btn-danger {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(255,107,129,0.14); color: var(--danger); border: 1px solid rgba(255,107,129,0.28);
+  border-radius: 18px; padding: 14px 18px;
+  font-weight: 700; font-size: 0.92rem;
+  transition: transform 0.18s ease;
+}
+
+.btn-success {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(47,211,135,0.14); color: var(--success); border: 1px solid rgba(47,211,135,0.28);
+  border-radius: 18px; padding: 14px 18px;
+  font-weight: 700; font-size: 0.92rem;
+  transition: transform 0.18s ease;
+}
+
+/* ============================================================
+   INPUT FIELDS
+   ============================================================ */
+.input-field {
+  width: 100%; padding: 14px 16px;
+  background: var(--surface-strong); color: var(--text);
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  font-size: 1rem; font-weight: 400;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+.input-field::placeholder { color: var(--muted); }
+.input-field:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(123,97,255,0.14); }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.88rem; color: var(--muted); }
+
+/* ============================================================
+   TAGS, BADGES, PILLS
+   ============================================================ */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--tag-bg); color: var(--tag-text);
+  border-radius: 999px; padding: 7px 12px;
+  font-size: 0.82rem; font-weight: 700;
+}
+.badge-hero {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,0.16); color: #fff;
+  border-radius: 999px; padding: 8px 12px;
+  font-size: 0.82rem; font-weight: 700;
+}
+.cover-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,0.18); color: #fff;
+  border-radius: 999px; padding: 6px 10px;
+  font-size: 0.78rem; font-weight: 700;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.meta-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--tag-bg); color: var(--tag-text);
+  border-radius: 999px; padding: 7px 12px;
+  font-size: 0.82rem; font-weight: 700;
+}
+.status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface); color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px; padding: 10px 14px;
+  font-size: 0.84rem; font-weight: 600;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+
+/* ============================================================
+   CATEGORY CHIPS
+   ============================================================ */
+.chips-row {
+  display: flex; flex-wrap: wrap; gap: 10px; padding: 18px 0;
+}
+.chip {
+  padding: 11px 14px; border-radius: 999px;
+  font-weight: 700; font-size: 0.88rem;
+  border: 1px solid var(--line); background: var(--bg-soft); color: var(--muted);
+  cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+}
+.chip.active {
+  background: var(--chip-active-bg); color: var(--chip-active-text);
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(123,97,255,0.22);
+}
+.chip:hover:not(.active) { border-color: rgba(160,174,255,0.28); color: var(--text); }
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  padding: 18px 0; gap: 12px;
+}
+.brand-mark {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 999px; padding: 8px 16px 8px 10px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+.brand-icon {
+  width: 40px; height: 40px; border-radius: 14px;
+  background: var(--chip-active-bg);
+  display: grid; place-items: center; font-size: 20px;
+}
+.brand-name { font-weight: 900; font-size: 1.1rem; letter-spacing: -0.03em; }
+.top-bar-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ============================================================
+   HERO BANNER
+   ============================================================ */
+.hero {
+  background: var(--hero); border-radius: var(--radius-xl);
+  padding: 20px 22px; position: relative; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 0.85fr; gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.hero::before {
+  content: ''; position: absolute; top: -60px; right: -40px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+}
+.hero::after {
+  content: ''; position: absolute; bottom: -60px; left: 30%;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.hero > * { position: relative; z-index: 1; }
+.hero-left { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.hero-right { display: flex; flex-direction: column; gap: 10px; }
+
+.search-box {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 8px;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.20);
+  border-radius: var(--radius-lg); padding: 8px;
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.search-input {
+  background: transparent; border: none; color: #fff;
+  padding: 10px 14px; font-size: 0.95rem; outline: none;
+}
+.search-input::placeholder { color: rgba(255,255,255,0.55); }
+.search-btn {
+  padding: 10px 16px; border-radius: 16px; border: none;
+  font-weight: 700; font-size: 0.88rem; cursor: pointer;
+  transition: transform 0.18s ease;
+}
+.search-btn:hover { transform: translateY(-1px); }
+.search-btn-primary { background: #fff; color: #111; }
+.search-btn-ghost { background: rgba(255,255,255,0.14); color: #fff; }
+
+.promo-card {
+  background: var(--promo); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius-md); padding: 14px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.promo-progress {
+  height: 4px; border-radius: 999px; background: rgba(255,255,255,0.18);
+  margin: 6px 0; overflow: hidden;
+}
+.promo-progress-fill {
+  height: 100%; border-radius: 999px; background: #fff; width: 65%;
+}
+.promo-stats { display: flex; gap: 14px; }
+.promo-stat { text-align: center; }
+.promo-stat-value { font-size: 1rem; font-weight: 900; color: #fff; }
+.promo-stat-label { font-size: 0.68rem; font-weight: 600; color: rgba(255,255,255,0.7); margin-top: 1px; }
+
+.map-card {
+  background: var(--promo); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius-md); padding: 14px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.map-dots {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  margin-bottom: 8px;
+}
+.map-dot {
+  aspect-ratio: 1; border-radius: 10px;
+  background: rgba(255,255,255,0.08); display: grid; place-items: center;
+  font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.10);
+}
+.map-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.map-metric { text-align: center; }
+.map-metric-value { font-size: 0.95rem; font-weight: 900; color: #fff; }
+.map-metric-label { font-size: 0.65rem; font-weight: 600; color: rgba(255,255,255,0.6); margin-top: 1px; }
+
+/* ============================================================
+   RESTAURANT CARD
+   ============================================================ */
+.restaurant-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  padding-bottom: 18px;
+}
+.restaurant-card {
+  background: var(--card-glow), var(--surface-strong);
+  border: 1px solid var(--line); border-radius: 24px;
+  padding: 14px; cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.2s ease;
+}
+.restaurant-card:hover {
+  transform: translateY(-3px); box-shadow: var(--shadow-soft);
+}
+.restaurant-card.selected {
+  border-color: rgba(123,97,255,0.48);
+  box-shadow: 0 0 0 3px rgba(123,97,255,0.14);
+}
+.restaurant-cover {
+  min-height: 160px; border-radius: 20px;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; padding: 14px;
+}
+.restaurant-cover::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.02) 100%);
+  pointer-events: none;
+}
+.restaurant-cover > * { position: relative; z-index: 1; }
+.restaurant-cover-tags {
+  display: flex; gap: 6px; flex-wrap: wrap; align-self: flex-end;
+}
+.restaurant-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.restaurant-logo-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: rgba(255,255,255,0.18); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  border: 1px solid rgba(255,255,255,0.22);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+.restaurant-logo-text {
+  display: flex; flex-direction: column; gap: 1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.restaurant-logo-name {
+  font-size: 1.1rem; font-weight: 800; color: #fff;
+  letter-spacing: -0.02em; line-height: 1.15;
+}
+.restaurant-logo-sub {
+  font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.78);
+  letter-spacing: 0.02em; text-transform: uppercase;
+}
+.restaurant-body { padding: 14px 4px 4px; display: flex; flex-direction: column; gap: 10px; }
+.restaurant-name { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.03em; }
+.restaurant-cuisine { font-size: 0.84rem; color: var(--muted); font-weight: 600; }
+.restaurant-metas { display: flex; flex-wrap: wrap; gap: 8px; }
+.restaurant-promo { font-size: 0.82rem; color: var(--success); font-weight: 700; }
+.restaurant-cta { margin-top: 4px; }
+
+/* ============================================================
+   MENU ITEM CARD
+   ============================================================ */
+.menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.menu-item {
+  display: grid; gap: 14px; padding: 18px;
+  background: var(--surface-strong); border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  transition: transform 0.22s ease;
+}
+.menu-item:hover { transform: translateY(-2px); }
+.menu-item-top { display: flex; justify-content: space-between; gap: 12px; }
+.menu-item-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.menu-item-badge { display: inline-flex; margin-bottom: 4px; }
+.menu-item-desc { font-size: 0.84rem; color: var(--muted); font-weight: 400; line-height: 1.4; }
+.emoji-box {
+  width: 46px; height: 46px; border-radius: 16px;
+  background: var(--tag-bg); display: grid; place-items: center;
+  font-size: 1.4rem; flex-shrink: 0;
+}
+.menu-item-bottom { display: flex; justify-content: space-between; align-items: center; }
+
+/* ============================================================
+   CART PANEL
+   ============================================================ */
+.cart-sidebar {
+  position: sticky; top: 18px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+.cart-item {
+  display: grid; gap: 10px; padding: 14px;
+  background: var(--bg-soft); border: 1px solid var(--line);
+  border-radius: 18px; margin-bottom: 10px;
+}
+.cart-item-row { display: flex; justify-content: space-between; align-items: center; }
+.cart-item-name { font-weight: 700; font-size: 0.92rem; }
+.cart-item-restaurant { font-size: 0.78rem; color: var(--muted); }
+.qty-control {
+  display: inline-flex; align-items: center; gap: 2px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface); padding: 3px;
+}
+.qty-btn {
+  width: 30px; height: 30px; border-radius: 999px;
+  background: var(--surface-strong); border: none;
+  color: var(--text); font-weight: 900; font-size: 1rem;
+  display: grid; place-items: center;
+  transition: background 0.18s ease;
+}
+.qty-btn:hover { background: var(--tag-bg); }
+.qty-value { min-width: 28px; text-align: center; font-weight: 800; font-size: 0.92rem; }
+
+.cart-summary { display: grid; gap: 10px; padding: 14px 0; border-top: 1px solid var(--line); margin-top: 10px; }
+.cart-summary-row { display: flex; justify-content: space-between; font-size: 0.92rem; }
+.cart-summary-row.total { font-weight: 900; font-size: 1.1rem; }
+.cart-summary-row .discount { color: var(--success); }
+
+.frete-bar {
+  background: var(--bg-soft); border-radius: var(--radius-md); padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.frete-bar-progress { height: 4px; border-radius: 999px; background: var(--line); margin-top: 8px; overflow: hidden; }
+.frete-bar-fill { height: 100%; border-radius: 999px; background: var(--success); transition: width 0.3s ease; }
+
+.cart-empty {
+  text-align: center; padding: 40px 20px;
+}
+.cart-empty-icon {
+  width: 74px; height: 74px; border-radius: 24px;
+  background: var(--tag-bg); display: inline-grid; place-items: center;
+  font-size: 2rem; margin-bottom: 16px;
+}
+
+/* ============================================================
+   BOTTOM NAVIGATION
+   ============================================================ */
+.bottom-nav {
+  position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+  z-index: 35; width: min(760px, calc(100vw - 24px));
+  padding: 10px; border-radius: 22px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow); border: 1px solid var(--line);
+  display: flex;
+}
+.nav-item {
+  flex: 1; display: grid; place-items: center; gap: 4px;
+  padding: 8px 4px; border-radius: 16px;
+  background: none; border: none; color: var(--muted);
+  font-size: 0.79rem; font-weight: 700;
+  transition: all 0.2s ease; cursor: pointer; position: relative;
+}
+.nav-item.active { background: var(--tag-bg); color: var(--tag-text); }
+.nav-item-icon { font-size: 1.3rem; line-height: 1; }
+.nav-item-label { white-space: nowrap; }
+.nav-badge {
+  position: absolute; top: 2px; right: calc(50% - 16px);
+  background: var(--brand-2); color: #fff;
+  font-size: 0.65rem; font-weight: 900;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: grid; place-items: center;
+}
+.nav-badge.hidden { display: none; }
+
+/* ============================================================
+   PAYMENT METHOD SELECTOR
+   ============================================================ */
+.payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.payment-method-card {
+  padding: 18px; border-radius: 22px;
+  background: var(--surface-strong); border: 1px solid var(--line);
+  cursor: pointer; transition: all 0.2s ease; text-align: center;
+}
+.payment-method-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.payment-method-card.selected {
+  border-color: rgba(123,97,255,0.48);
+  box-shadow: 0 0 0 3px rgba(123,97,255,0.14);
+}
+.payment-method-icon {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: var(--tag-bg); display: inline-grid; place-items: center;
+  font-size: 1.6rem; margin-bottom: 12px;
+}
+.payment-method-title { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+.payment-method-desc { font-size: 0.84rem; color: var(--muted); }
+
+/* ============================================================
+   BANK LOGIN / CARD SELECTOR / PIX
+   ============================================================ */
+.bank-login {
+  max-width: 480px; margin: 0 auto;
+}
+.bank-login-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.bank-login-icon { width: 42px; height: 42px; border-radius: 14px; background: var(--tag-bg); display: grid; place-items: center; font-size: 1.2rem; }
+.security-note {
+  background: var(--tag-bg); border-radius: 16px; padding: 14px 16px;
+  font-size: 0.84rem; color: var(--tag-text); margin-top: 18px;
+  display: flex; align-items: flex-start; gap: 10px; line-height: 1.5;
+}
+
+.card-selector { display: grid; gap: 12px; max-width: 480px; margin: 0 auto; }
+.bank-card-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px; border-radius: 18px;
+  background: var(--surface-strong); border: 1px solid var(--line);
+  cursor: pointer; transition: all 0.2s ease;
+}
+.bank-card-item.selected {
+  border-color: rgba(123,97,255,0.48);
+  box-shadow: 0 0 0 3px rgba(123,97,255,0.14);
+}
+.bank-card-item.blocked { opacity: 0.5; cursor: not-allowed; border-style: dashed; border-color: var(--danger); }
+.bank-card-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--tag-bg); display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; }
+.bank-card-info { flex: 1; }
+.bank-card-name { font-weight: 700; font-size: 0.92rem; }
+.bank-card-number { font-size: 0.84rem; color: var(--muted); }
+.bank-card-balance { font-weight: 800; color: var(--brand); white-space: nowrap; }
+
+.pix-display { max-width: 480px; margin: 0 auto; text-align: center; }
+.qr-container {
+  display: inline-block; padding: 16px;
+  background: var(--surface-strong); border: 4px solid rgba(255,255,255,0.10);
+  border-radius: 22px; margin: 18px 0;
+}
+.qr-code {
+  width: 240px; height: 240px; border-radius: 14px;
+  background: #fff; display: grid; place-items: center;
+  font-size: 3rem; color: #111;
+  position: relative;
+}
+.qr-pattern {
+  width: 100%; height: 100%;
+  background:
+    repeating-linear-gradient(90deg, #111 0px, #111 4px, transparent 4px, transparent 8px),
+    repeating-linear-gradient(0deg, #111 0px, #111 4px, transparent 4px, transparent 8px);
+  opacity: 0.08; border-radius: 14px;
+  position: absolute; top: 0; left: 0;
+}
+.copy-field {
+  display: flex; gap: 8px; margin: 14px 0;
+}
+.copy-input {
+  flex: 1; padding: 12px 14px;
+  background: var(--surface-strong); color: var(--muted);
+  border: 1px solid var(--line); border-radius: 16px;
+  font-size: 0.82rem; font-family: monospace;
+  outline: none;
+}
+.copy-btn {
+  padding: 12px 16px; border-radius: 16px;
+  background: var(--tag-bg); color: var(--tag-text);
+  border: none; font-weight: 700; font-size: 0.84rem;
+  cursor: pointer; transition: transform 0.18s ease;
+}
+.copy-btn:hover { transform: translateY(-1px); }
+
+.timer-circle { position: relative; display: inline-block; margin: 14px 0; }
+.timer-circle svg { transform: rotate(-90deg); }
+.timer-text {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-weight: 800; font-size: 1.1rem;
+}
+
+/* Dots animation */
+.dots-pulse { display: inline-flex; gap: 4px; align-items: center; }
+.dots-pulse span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--brand); animation: dotPulse 1.2s infinite;
+}
+.dots-pulse span:nth-child(2) { animation-delay: 0.2s; }
+.dots-pulse span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.1); } }
+
+/* Payment status */
+.payment-status { text-align: center; padding: 40px 20px; }
+.payment-status-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  display: inline-grid; place-items: center;
+  font-size: 2.5rem; margin-bottom: 18px;
+  animation: checkPop 0.3s ease-out;
+}
+@keyframes checkPop { from { transform: scale(0); } to { transform: scale(1); } }
+.status-success { background: rgba(47,211,135,0.14); color: var(--success); }
+.status-danger { background: rgba(255,107,129,0.14); color: var(--danger); }
+.status-processing { background: var(--tag-bg); color: var(--brand); animation: processingPulse 2s infinite; }
+@keyframes processingPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(123,97,255,0.2); } 50% { box-shadow: 0 0 0 16px rgba(123,97,255,0); } }
+
+/* ============================================================
+   ORDER TIMELINE
+   ============================================================ */
+.timeline { display: grid; gap: 0; padding: 18px 0; }
+.timeline-step { display: flex; gap: 14px; padding: 14px 0; position: relative; }
+.timeline-dot {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 0.9rem;
+  background: var(--surface-strong); border: 2px solid var(--line);
+  position: relative; z-index: 1;
+}
+.timeline-dot.done { background: rgba(47,211,135,0.14); border-color: var(--success); }
+.timeline-dot.active { background: var(--tag-bg); border-color: var(--brand); animation: processingPulse 2s infinite; }
+.timeline-step:not(:last-child)::before {
+  content: ''; position: absolute; left: 15px; top: 46px;
+  width: 2px; height: calc(100% - 32px);
+  background: var(--line);
+}
+.timeline-step:not(:last-child).done::before { background: var(--success); }
+.timeline-info { flex: 1; }
+.timeline-title { font-weight: 700; font-size: 0.92rem; }
+.timeline-desc { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+.timeline-time { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+/* ============================================================
+   ADMIN / RESTAURANT PANELS
+   ============================================================ */
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.data-table th {
+  text-align: left; padding: 12px 14px; font-size: 0.82rem;
+  color: var(--muted); font-weight: 700; border-bottom: 1px solid var(--line);
+}
+.data-table td {
+  padding: 14px; font-size: 0.88rem; border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.data-table tr:hover td { background: rgba(123,97,255,0.04); }
+
+.toggle {
+  width: 44px; height: 24px; border-radius: 999px;
+  background: var(--line); border: none; cursor: pointer;
+  position: relative; transition: background 0.2s ease;
+}
+.toggle.on { background: var(--success); }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; transition: transform 0.2s ease;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+.stat-card {
+  background: var(--surface-strong); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); padding: 18px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.stat-card-value { font-size: 1.55rem; font-weight: 900; letter-spacing: -0.04em; }
+.stat-card-label { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+
+/* ============================================================
+   ORDER HISTORY CARD
+   ============================================================ */
+.order-card {
+  background: var(--surface-strong); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); padding: 18px; margin-bottom: 14px;
+  transition: transform 0.22s ease;
+}
+.order-card:hover { transform: translateY(-2px); }
+.order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.order-items-list { font-size: 0.88rem; color: var(--muted); margin-bottom: 12px; line-height: 1.6; }
+.order-footer { display: flex; justify-content: space-between; align-items: center; }
+
+/* ============================================================
+   FAVORITES GRID
+   ============================================================ */
+.fav-heart {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+  display: grid; place-items: center; font-size: 1.1rem;
+  border: none; cursor: pointer; transition: transform 0.18s ease;
+}
+.fav-heart:hover { transform: scale(1.1); }
+.fav-heart.active { background: rgba(255,95,162,0.3); }
+
+/* ============================================================
+   PROFILE
+   ============================================================ */
+.profile-avatar {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--chip-active-bg); display: grid; place-items: center;
+  font-size: 2rem; margin: 0 auto 18px;
+  box-shadow: 0 8px 24px rgba(123,97,255,0.3);
+}
+.profile-section { margin-bottom: 24px; }
+.profile-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0; border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+.profile-item-label { color: var(--muted); font-weight: 600; }
+.profile-item-value { font-weight: 700; }
+
+/* ============================================================
+   SECTION HEADER
+   ============================================================ */
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 0 12px;
+}
+.section-count { font-size: 0.84rem; color: var(--muted); font-weight: 600; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1180px) {
+  .main-grid { grid-template-columns: 1fr !important; }
+  .cart-sidebar-wrapper { display: none; }
+  .mobile-cart-btn { display: flex !important; }
+}
+@media (max-width: 980px) {
+  .hero { grid-template-columns: 1fr; }
+  .restaurant-grid { grid-template-columns: 1fr; }
+  .menu-grid { grid-template-columns: 1fr; }
+  .payment-methods { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .shell { padding: 12px; padding-bottom: calc(88px + 12px); }
+  .hero { padding: 16px; }
+  .search-box { grid-template-columns: 1fr; }
+  .top-bar { flex-direction: column; align-items: flex-start; }
+  .nav-item { font-size: 0.72rem; }
+  .bottom-nav { width: calc(100vw - 16px); }
+  .qr-code { width: 200px; height: 200px; }
+}
+
+/* ============================================================
+   SCREEN-SPECIFIC: Top bar with back button
+   ============================================================ */
+.screen-top {
+  display: flex; align-items: center; gap: 14px; padding: 18px 0;
+}
+.screen-top .h2 { flex: 1; }
+
+/* ============================================================
+   MAIN GRID
+   ============================================================ */
+.main-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 24px;
+}
+
+/* Mobile cart floating button */
+.mobile-cart-btn {
+  display: none !important;
+  position: fixed; bottom: 82px; left: 50%; transform: translateX(-50%);
+  z-index: 30; padding: 14px 24px; border-radius: 999px;
+  background: var(--chip-active-bg); color: #fff; border: none;
+  font-weight: 900; font-size: 0.95rem;
+  box-shadow: 0 12px 32px rgba(123,97,255,0.35);
+  gap: 10px; align-items: center;
+}
+
+/* ============================================================
+   RESTAURANT DETAIL BANNER
+   ============================================================ */
+.restaurant-banner {
+  min-height: 200px; border-radius: var(--radius-xl);
+  padding: 28px; display: flex; flex-direction: column;
+  justify-content: flex-end; gap: 14px; position: relative;
+  margin-bottom: 24px;
+}
+.restaurant-banner::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+  border-radius: var(--radius-xl);
+}
+.restaurant-banner > * { position: relative; z-index: 1; }
+.restaurant-banner-metas { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ============================================================
+   CHECKOUT
+   ============================================================ */
+.checkout-section {
+  background: var(--surface-strong); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px;
+}
+.checkout-section-title { font-weight: 800; font-size: 1rem; margin-bottom: 14px; letter-spacing: -0.02em; }
+.coupon-row { display: flex; gap: 8px; }
+.coupon-input { flex: 1; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+  z-index: 999; padding: 14px 22px; border-radius: 18px;
+  font-weight: 700; font-size: 0.88rem;
+  backdrop-filter: blur(14px); transition: transform 0.3s ease;
+  display: flex; align-items: center; gap: 8px;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast-success { background: rgba(47,211,135,0.18); color: var(--success); border: 1px solid rgba(47,211,135,0.3); }
+.toast-error { background: rgba(255,107,129,0.18); color: var(--danger); border: 1px solid rgba(255,107,129,0.3); }
+
+/* Utility */
+.mt-sm { margin-top: 10px; }
+.mt-md { margin-top: 14px; }
+.mt-lg { margin-top: 18px; }
+.mb-sm { margin-bottom: 10px; }
+.mb-md { margin-bottom: 14px; }
+.mb-lg { margin-bottom: 18px; }
+.gap-sm { gap: 10px; }
+.gap-md { gap: 14px; }
+.text-center { text-align: center; }
+.text-muted { color: var(--muted); }
+.text-brand { color: var(--brand); }
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.text-accent { color: var(--accent); }
+.w-full { width: 100%; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOAST NOTIFICATION
+     ============================================================ -->
+<div id="toast" class="toast toast-success">
+  <span id="toast-icon">&#10003;</span>
+  <span id="toast-msg">Ação realizada</span>
+</div>
+
+<!-- ============================================================
+     SCREEN 1: LOGIN
+     ============================================================ -->
+<div id="screen-login" class="screen active">
+  <div class="shell" style="display:grid;place-items:center;min-height:100vh;padding-bottom:0;">
+    <div class="glass-card card-pad" style="max-width:420px;width:100%;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div class="brand-icon" style="margin:0 auto 14px;width:56px;height:56px;border-radius:18px;font-size:28px;">🍜</div>
+        <div class="h2" style="font-size:1.5rem;">Entrar no ECP Food</div>
+        <p class="meta mt-sm">Pedir comida pode ser lindo, rápido e viciante.</p>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="input-field" placeholder="seu@email.com" value="joao@email.com">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" class="input-field" placeholder="Sua senha" value="123456">
+      </div>
+      <button class="btn-checkout w-full" onclick="navigateTo('home')">Entrar</button>
+      <p class="text-center mt-lg" style="font-size:0.88rem;">
+        Não tem conta? <a href="#" onclick="navigateTo('cadastro');return false;" style="font-weight:700;">Criar conta</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 2: CADASTRO
+     ============================================================ -->
+<div id="screen-cadastro" class="screen">
+  <div class="shell" style="display:grid;place-items:center;min-height:100vh;padding-bottom:0;">
+    <div class="glass-card card-pad" style="max-width:420px;width:100%;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div class="brand-icon" style="margin:0 auto 14px;width:56px;height:56px;border-radius:18px;font-size:28px;">🍜</div>
+        <div class="h2" style="font-size:1.5rem;">Criar conta</div>
+        <p class="meta mt-sm">Junte-se ao ECP Food e descubra restaurantes incríveis</p>
+      </div>
+      <div class="form-group">
+        <label>Nome completo</label>
+        <input type="text" class="input-field" placeholder="João da Silva">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="input-field" placeholder="seu@email.com">
+      </div>
+      <div class="form-group">
+        <label>Telefone</label>
+        <input type="tel" class="input-field" placeholder="(11) 99999-9999">
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" class="input-field" placeholder="Mínimo 6 caracteres">
+      </div>
+      <button class="btn-checkout w-full" onclick="navigateTo('home')">Criar conta</button>
+      <p class="text-center mt-lg" style="font-size:0.88rem;">
+        Já tem conta? <a href="#" onclick="navigateTo('login');return false;" style="font-weight:700;">Entrar</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 3: HOME
+     ============================================================ -->
+<div id="screen-home" class="screen">
+  <div class="shell">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="brand-mark">
+        <div class="brand-icon">🍜</div>
+        <span class="brand-name">ECP Food</span>
+      </div>
+      <div class="top-bar-pills">
+        <div class="status-pill">📍 Rua Augusta, 1234</div>
+        <div class="status-pill">⚡ 24 online</div>
+      </div>
+    </div>
+
+    <!-- Hero Banner -->
+    <div class="hero">
+      <div class="hero-left">
+        <div><span class="badge-hero">🔥 Promo do dia</span></div>
+        <div class="h1" style="color:var(--hero-text);font-size:clamp(1.3rem,3.2vw,2rem);line-height:1.05;">Descubra sabores que surpreendem</div>
+        <p style="color:rgba(255,255,255,0.82);font-size:0.88rem;font-weight:500;line-height:1.4;margin:0;">Use <strong>MVP10</strong> para 10% off no primeiro pedido</p>
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="Buscar restaurante, prato ou categoria...">
+          <button class="search-btn search-btn-primary">Buscar</button>
+          <button class="search-btn search-btn-ghost">📍 Perto</button>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="promo-card" style="padding:14px;">
+          <div style="font-weight:800;font-size:0.85rem;color:#fff;">🎟️ MVP10 — 10% off</div>
+          <div class="promo-progress" style="margin-top:6px;"><div class="promo-progress-fill"></div></div>
+          <div class="promo-stats" style="margin-top:6px;">
+            <div class="promo-stat"><div class="promo-stat-value">847</div><div class="promo-stat-label">Usos</div></div>
+            <div class="promo-stat"><div class="promo-stat-value">R$ 12</div><div class="promo-stat-label">Economia</div></div>
+            <div class="promo-stat"><div class="promo-stat-value">4h</div><div class="promo-stat-label">Restam</div></div>
+          </div>
+        </div>
+        <div class="map-card" style="padding:14px;">
+          <div style="font-weight:800;font-size:0.82rem;color:#fff;margin-bottom:6px;">📡 Ao vivo</div>
+          <div class="map-dots" style="gap:6px;">
+            <div class="map-dot">🍔</div><div class="map-dot">🍣</div><div class="map-dot">🥗</div>
+            <div class="map-dot">🍕</div><div class="map-dot">🍝</div><div class="map-dot">🥩</div>
+          </div>
+          <div class="map-metrics" style="margin-top:8px;">
+            <div class="map-metric"><div class="map-metric-value">24</div><div class="map-metric-label">Online</div></div>
+            <div class="map-metric"><div class="map-metric-value">8</div><div class="map-metric-label">Cupons</div></div>
+            <div class="map-metric"><div class="map-metric-value">R$ 4,90</div><div class="map-metric-label">Frete</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Chips -->
+    <div class="chips-row">
+      <button class="chip active" onclick="filterCategory(this)">Todos</button>
+      <button class="chip" onclick="filterCategory(this)">🍔 Hambúrguer</button>
+      <button class="chip" onclick="filterCategory(this)">🍣 Japonês</button>
+      <button class="chip" onclick="filterCategory(this)">🍕 Pizza</button>
+      <button class="chip" onclick="filterCategory(this)">🥗 Saudável</button>
+      <button class="chip" onclick="filterCategory(this)">🍝 Massas</button>
+      <button class="chip" onclick="filterCategory(this)">🥩 Brasileira</button>
+    </div>
+
+    <!-- Section Header -->
+    <div class="section-header">
+      <div class="h2">Restaurantes</div>
+      <div class="section-count">6 restaurantes encontrados</div>
+    </div>
+
+    <!-- Main Grid: Restaurants + Cart Sidebar -->
+    <div class="main-grid">
+      <div>
+        <!-- Restaurant Grid -->
+        <div class="restaurant-grid">
+          <!-- Pasta & Fogo -->
+          <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+            <div class="restaurant-cover" style="background:linear-gradient(135deg,#f14b3d,#ffb067);">
+              <div class="restaurant-logo">
+                <div class="restaurant-logo-icon">🍝</div>
+                <div class="restaurant-logo-text">
+                  <div class="restaurant-logo-name">Pasta & Fogo</div>
+                  <div class="restaurant-logo-sub">Massas Artesanais</div>
+                </div>
+              </div>
+              <div class="restaurant-cover-tags">
+                <span class="cover-tag">⭐ 4.8</span>
+                <span class="cover-tag">🔥 Promo</span>
+              </div>
+            </div>
+            <div class="restaurant-body">
+              <div class="restaurant-name">Pasta & Fogo</div>
+              <div class="restaurant-cuisine">🍝 Massas &bull; Italiana</div>
+              <div class="restaurant-metas">
+                <span class="meta-pill">⏱️ 25-35 min</span>
+                <span class="meta-pill">🚚 R$ 5,90</span>
+                <span class="meta-pill">Min R$ 20</span>
+              </div>
+              <div class="restaurant-promo">🎟️ 10% off com MVP10</div>
+            </div>
+          </div>
+
+          <!-- Sushi Wave -->
+          <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+            <div class="restaurant-cover" style="background:linear-gradient(135deg,#1f2937,#1d4ed8);">
+              <div class="restaurant-logo">
+                <div class="restaurant-logo-icon">🍣</div>
+                <div class="restaurant-logo-text">
+                  <div class="restaurant-logo-name">Sushi Wave</div>
+                  <div class="restaurant-logo-sub">Culinária Japonesa</div>
+                </div>
+              </div>
+              <div class="restaurant-cover-tags">
+                <span class="cover-tag">⭐ 4.9</span>
+                <span class="cover-tag">Best seller</span>
+              </div>
+            </div>
+            <div class="restaurant-body">
+              <div class="restaurant-name">Sushi Wave</div>
+              <div class="restaurant-cuisine">🍣 Japonês &bull; Sushi</div>
+              <div class="restaurant-metas">
+                <span class="meta-pill">⏱️ 30-40 min</span>
+                <span class="meta-pill">🚚 R$ 7,90</span>
+                <span class="meta-pill">Min R$ 35</span>
+              </div>
+              <div class="restaurant-promo">🎟️ Frete grátis acima R$ 120</div>
+            </div>
+          </div>
+
+          <!-- Burger Lab -->
+          <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+            <div class="restaurant-cover" style="background:linear-gradient(135deg,#171717,#f97316);">
+              <div class="restaurant-logo">
+                <div class="restaurant-logo-icon">🍔</div>
+                <div class="restaurant-logo-text">
+                  <div class="restaurant-logo-name">Burger Lab</div>
+                  <div class="restaurant-logo-sub">Smash Burgers</div>
+                </div>
+              </div>
+              <div class="restaurant-cover-tags">
+                <span class="cover-tag">⭐ 4.7</span>
+              </div>
+            </div>
+            <div class="restaurant-body">
+              <div class="restaurant-name">Burger Lab</div>
+              <div class="restaurant-cuisine">🍔 Hambúrguer &bull; Artesanal</div>
+              <div class="restaurant-metas">
+                <span class="meta-pill">⏱️ 20-30 min</span>
+                <span class="meta-pill">🚚 R$ 4,90</span>
+                <span class="meta-pill">Min R$ 25</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Green Bowl Co. -->
+          <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+            <div class="restaurant-cover" style="background:linear-gradient(135deg,#059669,#84cc16);">
+              <div class="restaurant-logo">
+                <div class="restaurant-logo-icon">🥗</div>
+                <div class="restaurant-logo-text">
+                  <div class="restaurant-logo-name">Green Bowl Co.</div>
+                  <div class="restaurant-logo-sub">Saudável & Vegano</div>
+                </div>
+              </div>
+              <div class="restaurant-cover-tags">
+                <span class="cover-tag">⭐ 4.6</span>
+                <span class="cover-tag">🥗 Vegano</span>
+              </div>
+            </div>
+            <div class="restaurant-body">
+              <div class="restaurant-name">Green Bowl Co.</div>
+              <div class="restaurant-cuisine">🥗 Saudável &bull; Vegano</div>
+              <div class="restaurant-metas">
+                <span class="meta-pill">⏱️ 24-34 min</span>
+                <span class="meta-pill">🚚 R$ 3,90</span>
+                <span class="meta-pill">Min R$ 18</span>
+              </div>
+              <div class="restaurant-promo">🎟️ 10% off com MVP10</div>
+            </div>
+          </div>
+
+          <!-- Pizza Club 24h -->
+          <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+            <div class="restaurant-cover" style="background:linear-gradient(135deg,#7f1d1d,#f59e0b);">
+              <div class="restaurant-logo">
+                <div class="restaurant-logo-icon">🍕</div>
+                <div class="restaurant-logo-text">
+                  <div class="restaurant-logo-name">Pizza Club 24h</div>
+                  <div class="restaurant-logo-sub">Pizza Artesanal</div>
+                </div>
+              </div>
+              <div class="restaurant-cover-tags">
+                <span class="cover-tag">⭐ 4.5</span>
+                <span class="cover-tag">🕐 24h</span>
+              </div>
+            </div>
+            <div class="restaurant-body">
+              <div class="restaurant-name">Pizza Club 24h</div>
+              <div class="restaurant-cuisine">🍕 Pizza &bull; 24 horas</div>
+              <div class="restaurant-metas">
+                <span class="meta-pill">⏱️ 30-45 min</span>
+                <span class="meta-pill">🚚 R$ 6,90</span>
+                <span class="meta-pill">Min R$ 30</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Brasa & Lenha -->
+          <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')">
+            <div class="restaurant-cover" style="background:linear-gradient(135deg,#44403c,#f97316);">
+              <div class="restaurant-logo">
+                <div class="restaurant-logo-icon">🥩</div>
+                <div class="restaurant-logo-text">
+                  <div class="restaurant-logo-name">Brasa & Lenha</div>
+                  <div class="restaurant-logo-sub">Churrasco Premium</div>
+                </div>
+              </div>
+              <div class="restaurant-cover-tags">
+                <span class="cover-tag">⭐ 4.8</span>
+                <span class="cover-tag">🔥 Popular</span>
+              </div>
+            </div>
+            <div class="restaurant-body">
+              <div class="restaurant-name">Brasa & Lenha</div>
+              <div class="restaurant-cuisine">🥩 Brasileira &bull; Churrasco</div>
+              <div class="restaurant-metas">
+                <span class="meta-pill">⏱️ 35-50 min</span>
+                <span class="meta-pill">🚚 R$ 8,90</span>
+                <span class="meta-pill">Min R$ 40</span>
+              </div>
+              <div class="restaurant-promo">🎟️ Frete grátis acima R$ 120</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Sidebar (desktop) -->
+      <div class="cart-sidebar-wrapper">
+        <div class="cart-sidebar">
+          <div class="h3 mb-md">🛒 Carrinho</div>
+          <div id="home-cart-content">
+            <div class="cart-empty">
+              <div class="cart-empty-icon">🛍️</div>
+              <div class="h4 mb-sm">Carrinho vazio</div>
+              <p class="meta">Adicione itens de um restaurante para começar seu pedido</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile cart floating button -->
+    <button class="mobile-cart-btn" onclick="navigateTo('carrinho')" id="mobile-cart-btn">
+      🛒 <span>Ver carrinho</span> <span class="tag" id="mobile-cart-count">3 itens &bull; R$ 107,70</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 4: RESTAURANTE DETALHE
+     ============================================================ -->
+<div id="screen-restaurante-detalhe" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+      <div class="h2" style="flex:1;">Restaurante</div>
+      <button class="btn-icon" onclick="toggleFavorite(this)">&#9825;</button>
+    </div>
+
+    <!-- Restaurant Banner -->
+    <div class="restaurant-banner" style="background:linear-gradient(135deg,#f14b3d,#ffb067);">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px;">
+        <div class="restaurant-logo-icon" style="width:56px;height:56px;font-size:1.8rem;border-radius:16px;">🍝</div>
+        <div>
+          <div class="h1" style="color:#fff;font-size:clamp(1.5rem,4vw,2.4rem);margin:0;">Pasta & Fogo</div>
+          <p style="color:rgba(255,255,255,0.85);font-weight:600;margin:0;">Massas artesanais com ingredientes selecionados</p>
+        </div>
+      </div>
+      <div class="restaurant-banner-metas">
+        <span class="cover-tag">⭐ 4.8 &bull; 2.410 avaliações</span>
+        <span class="cover-tag">⏱️ 25-35 min</span>
+        <span class="cover-tag">🚚 R$ 5,90</span>
+        <span class="cover-tag">🎟️ 10% off MVP10</span>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div>
+        <div class="section-header">
+          <div class="h2">Cardápio</div>
+          <div class="section-count">8 itens</div>
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="menu-grid">
+          <!-- Item 1 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="menu-item-badge"><span class="tag">🔥 Best seller</span></div>
+                <div class="h4">Fettuccine Alfredo</div>
+                <p class="menu-item-desc">Massa fresca com molho cremoso de parmesão e noz-moscada</p>
+              </div>
+              <div class="emoji-box">🍝</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 42,90</div>
+              <button class="btn-mini" onclick="addToCart('Fettuccine Alfredo',42.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="h4">Lasanha Bolonhesa</div>
+                <p class="menu-item-desc">Camadas de massa com ragù de carne e bechamel gratinado</p>
+              </div>
+              <div class="emoji-box">🧀</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 38,90</div>
+              <button class="btn-mini" onclick="addToCart('Lasanha Bolonhesa',38.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="menu-item-badge"><span class="tag">🥬 Vegetariano</span></div>
+                <div class="h4">Penne ao Pomodoro</div>
+                <p class="menu-item-desc">Penne al dente com molho de tomates San Marzano e manjericão fresco</p>
+              </div>
+              <div class="emoji-box">🍅</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 32,90</div>
+              <button class="btn-mini" onclick="addToCart('Penne ao Pomodoro',32.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="h4">Ravioli de Ricota</div>
+                <p class="menu-item-desc">Ravioli recheado com ricota e espinafre ao molho de sálvia</p>
+              </div>
+              <div class="emoji-box">🥟</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 44,90</div>
+              <button class="btn-mini" onclick="addToCart('Ravioli de Ricota',44.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="menu-item-badge"><span class="tag">🌶️ Picante</span></div>
+                <div class="h4">Spaghetti all'Arrabbiata</div>
+                <p class="menu-item-desc">Spaghetti com molho de tomate apimentado, alho e peperoncino</p>
+              </div>
+              <div class="emoji-box">🌶️</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 34,90</div>
+              <button class="btn-mini" onclick="addToCart('Spaghetti Arrabbiata',34.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Item 6 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="h4">Risoto de Funghi</div>
+                <p class="menu-item-desc">Arroz arbório com mix de cogumelos frescos e parmesão</p>
+              </div>
+              <div class="emoji-box">🍄</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 46,90</div>
+              <button class="btn-mini" onclick="addToCart('Risoto de Funghi',46.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Item 7 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="h4">Tiramisù</div>
+                <p class="menu-item-desc">Sobremesa clássica com mascarpone, café espresso e cacau</p>
+              </div>
+              <div class="emoji-box">🍮</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 24,90</div>
+              <button class="btn-mini" onclick="addToCart('Tiramisù',24.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Item 8 -->
+          <div class="menu-item">
+            <div class="menu-item-top">
+              <div class="menu-item-info">
+                <div class="h4">Bruschetta Clássica</div>
+                <p class="menu-item-desc">Pão italiano tostado com tomate, alho, azeite e manjericão</p>
+              </div>
+              <div class="emoji-box">🍞</div>
+            </div>
+            <div class="menu-item-bottom">
+              <div class="price">R$ 18,90</div>
+              <button class="btn-mini" onclick="addToCart('Bruschetta Clássica',18.90,'Pasta & Fogo')">Adicionar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart Sidebar -->
+      <div class="cart-sidebar-wrapper">
+        <div class="cart-sidebar" id="detail-cart-sidebar">
+          <div class="h3 mb-md">🛒 Carrinho</div>
+          <div id="detail-cart-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="mobile-cart-btn" onclick="navigateTo('carrinho')" id="mobile-cart-btn-detail" style="display:none!important;">
+      🛒 <span>Ver carrinho</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 5: CARRINHO
+     ============================================================ -->
+<div id="screen-carrinho" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+      <div class="h2" style="flex:1;">Carrinho</div>
+    </div>
+
+    <div class="glass-card card-pad" style="max-width:600px;">
+      <div id="cart-page-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 6: CHECKOUT
+     ============================================================ -->
+<div id="screen-checkout" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('carrinho')">&#8592;</button>
+      <div class="h2" style="flex:1;">Checkout</div>
+    </div>
+
+    <div style="max-width:600px;">
+      <!-- Resumo -->
+      <div class="checkout-section">
+        <div class="checkout-section-title">📋 Resumo do pedido</div>
+        <div id="checkout-items-summary"></div>
+      </div>
+
+      <!-- Endereço -->
+      <div class="checkout-section">
+        <div class="checkout-section-title">📍 Endereço de entrega</div>
+        <div class="form-group" style="margin-bottom:0;">
+          <input type="text" class="input-field" value="Rua Augusta, 1234 — São Paulo, SP" readonly>
+        </div>
+      </div>
+
+      <!-- Cupom -->
+      <div class="checkout-section">
+        <div class="checkout-section-title">🎟️ Cupom de desconto</div>
+        <div class="coupon-row">
+          <input type="text" class="input-field coupon-input" id="coupon-input" placeholder="Digite o cupom" value="MVP10">
+          <button class="btn-theme" onclick="applyCoupon()">Aplicar</button>
+        </div>
+        <div id="coupon-msg" class="mt-sm" style="font-size:0.84rem;color:var(--success);font-weight:700;">
+          &#10003; Cupom MVP10 aplicado — 10% off
+        </div>
+      </div>
+
+      <!-- Método de pagamento -->
+      <div class="checkout-section">
+        <div class="checkout-section-title">💳 Forma de pagamento</div>
+        <div class="payment-methods">
+          <div class="payment-method-card selected" onclick="selectPayment(this,'cartao')">
+            <div class="payment-method-icon">💳</div>
+            <div class="payment-method-title">Cartão ECP Digital Bank</div>
+            <div class="payment-method-desc">Débito direto na sua conta</div>
+          </div>
+          <div class="payment-method-card" onclick="selectPayment(this,'pix')">
+            <div class="payment-method-icon">📱</div>
+            <div class="payment-method-title">PIX QR Code</div>
+            <div class="payment-method-desc">Escaneie e pague com qualquer banco</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="checkout-section">
+        <div id="checkout-summary"></div>
+      </div>
+
+      <button class="btn-checkout w-full mt-md" id="checkout-pay-btn" onclick="goToPayment()">Pagar agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 7: PAGAMENTO CARTÃO ECP
+     ============================================================ -->
+<div id="screen-pagamento-cartao" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('checkout')">&#8592;</button>
+      <div class="h2" style="flex:1;">Pagamento — Cartão ECP</div>
+    </div>
+
+    <!-- Step 1: Bank Login -->
+    <div id="card-step-login" class="glass-card card-pad bank-login">
+      <div class="bank-login-header">
+        <div class="bank-login-icon">🏦</div>
+        <div>
+          <div class="h3">Entrar no ECP Digital Bank</div>
+        </div>
+      </div>
+      <p class="meta mb-lg">Insira suas credenciais do banco digital para pagar com cartão virtual</p>
+
+      <div class="form-group">
+        <label>Email do banco</label>
+        <input type="email" class="input-field" placeholder="seu@banco.com" value="joao@ecpbank.com">
+      </div>
+      <div class="form-group">
+        <label>Senha do banco</label>
+        <input type="password" class="input-field" placeholder="Sua senha do banco" value="123456">
+      </div>
+
+      <button class="btn-checkout w-full" onclick="bankLogin()">Autenticar</button>
+
+      <div class="security-note">
+        <span>🛡️</span>
+        <span>Suas credenciais são usadas apenas para esta transação e não são armazenadas</span>
+      </div>
+    </div>
+
+    <!-- Step 2: Card Selector -->
+    <div id="card-step-select" style="display:none;">
+      <div class="glass-card card-pad" style="max-width:480px;margin:0 auto;">
+        <div class="h3 mb-md">Selecione o cartão</div>
+        <div class="card-selector">
+          <div class="bank-card-item selected" onclick="selectBankCard(this)">
+            <div class="bank-card-icon">💳</div>
+            <div class="bank-card-info">
+              <div class="bank-card-name">Cartão Virtual</div>
+              <div class="bank-card-number">&bull;&bull;&bull;&bull; 4532</div>
+            </div>
+            <div class="bank-card-balance">R$ 1.250,00</div>
+          </div>
+          <div class="bank-card-item" onclick="selectBankCard(this)">
+            <div class="bank-card-icon">💳</div>
+            <div class="bank-card-info">
+              <div class="bank-card-name">Cartão Premium</div>
+              <div class="bank-card-number">&bull;&bull;&bull;&bull; 7891</div>
+            </div>
+            <div class="bank-card-balance">R$ 3.480,00</div>
+          </div>
+          <div class="bank-card-item blocked">
+            <div class="bank-card-icon">💳</div>
+            <div class="bank-card-info">
+              <div class="bank-card-name">Cartão Empresa</div>
+              <div class="bank-card-number">&bull;&bull;&bull;&bull; 2200</div>
+              <span class="tag" style="background:rgba(255,107,129,0.14);color:var(--danger);font-size:0.72rem;padding:4px 8px;margin-top:4px;">Bloqueado</span>
+            </div>
+            <div class="bank-card-balance" style="color:var(--danger);">—</div>
+          </div>
+        </div>
+
+        <!-- Balance summary -->
+        <div style="margin-top:18px;padding:14px;background:var(--bg-soft);border-radius:var(--radius-md);border:1px solid var(--line);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span class="meta">Saldo disponível</span>
+            <span style="font-weight:800;color:var(--success);">R$ 1.250,00</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span class="meta">Total do pedido</span>
+            <span style="font-weight:800;" id="card-order-total">R$ 102,51</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:8px;">
+            <span class="meta">Saldo após pagamento</span>
+            <span style="font-weight:800;color:var(--success);">R$ 1.147,49</span>
+          </div>
+        </div>
+
+        <button class="btn-checkout w-full mt-lg" onclick="confirmCardPayment()">Confirmar pagamento</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Processing -->
+    <div id="card-step-processing" style="display:none;">
+      <div class="glass-card card-pad" style="max-width:480px;margin:0 auto;">
+        <div class="payment-status">
+          <div class="payment-status-icon status-processing">⏳</div>
+          <div class="h3">Processando pagamento...</div>
+          <p class="meta mt-sm">Aguarde enquanto confirmamos com o ECP Digital Bank</p>
+          <div class="dots-pulse mt-md">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 8: PAGAMENTO PIX
+     ============================================================ -->
+<div id="screen-pagamento-pix" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('checkout')">&#8592;</button>
+      <div class="h2" style="flex:1;">Pagamento — PIX</div>
+    </div>
+
+    <div id="pix-step-qr">
+      <div class="glass-card card-pad pix-display">
+        <div class="h3 mb-sm">Escaneie o QR Code</div>
+        <p class="meta mb-md">Abra o app do seu banco, escaneie o QR Code ou copie o código abaixo</p>
+
+        <!-- Timer -->
+        <div class="timer-circle">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="36" fill="none" stroke="var(--line)" stroke-width="4"/>
+            <circle id="pix-timer-circle" cx="40" cy="40" r="36" fill="none" stroke="var(--accent)" stroke-width="4"
+              stroke-dasharray="226.2" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <div class="timer-text" id="pix-timer-text" style="color:var(--accent);">09:42</div>
+        </div>
+
+        <!-- QR Code -->
+        <div class="qr-container">
+          <div class="qr-code">
+            <div class="qr-pattern"></div>
+            <span style="position:relative;z-index:1;">📱</span>
+          </div>
+        </div>
+
+        <!-- Copy -->
+        <div class="copy-field">
+          <input type="text" class="copy-input" value="00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6..." readonly>
+          <button class="copy-btn" onclick="copyPixCode()">📋 Copiar</button>
+        </div>
+
+        <!-- SSE Status -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 0;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--success);"></span>
+          <span class="meta">Conectado — Aguardando pagamento</span>
+          <div class="dots-pulse" style="margin-left:4px;">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="security-note" style="text-align:left;margin-top:18px;">
+          <span>🔒</span>
+          <span>Você será notificado automaticamente quando o pagamento for confirmado</span>
+        </div>
+
+        <button class="btn-checkout w-full mt-lg" onclick="simulatePixPayment()">Simular pagamento recebido</button>
+      </div>
+    </div>
+
+    <!-- PIX Confirmed -->
+    <div id="pix-step-confirmed" style="display:none;">
+      <div class="glass-card card-pad" style="max-width:480px;margin:0 auto;">
+        <div class="payment-status">
+          <div class="payment-status-icon status-success">&#10003;</div>
+          <div class="h3" style="color:var(--success);">Pagamento confirmado!</div>
+          <p class="meta mt-sm">PIX recebido com sucesso via ECP Digital Bank</p>
+          <p class="meta mt-md">Redirecionando em <span id="pix-redirect-countdown">2</span>s...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 9: PEDIDO CONFIRMADO
+     ============================================================ -->
+<div id="screen-pedido-confirmado" class="screen">
+  <div class="shell">
+    <div style="max-width:600px;margin:0 auto;">
+      <div class="glass-card card-pad" style="text-align:center;">
+        <div class="payment-status-icon status-success" style="margin:0 auto 18px;">&#10003;</div>
+        <div class="h2">Pedido confirmado!</div>
+        <p class="meta mt-sm mb-lg">Seu pedido #FLW-2847 foi recebido e está sendo preparado</p>
+
+        <!-- Timeline -->
+        <div class="timeline" style="text-align:left;max-width:400px;margin:0 auto;">
+          <div class="timeline-step done">
+            <div class="timeline-dot done">&#10003;</div>
+            <div class="timeline-info">
+              <div class="timeline-title">Pedido confirmado</div>
+              <div class="timeline-desc">Pagamento aprovado</div>
+              <div class="timeline-time">14:32</div>
+            </div>
+          </div>
+          <div class="timeline-step done">
+            <div class="timeline-dot done">&#10003;</div>
+            <div class="timeline-info">
+              <div class="timeline-title">Preparando</div>
+              <div class="timeline-desc">O restaurante está preparando seu pedido</div>
+              <div class="timeline-time">14:35</div>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-dot active">🚚</div>
+            <div class="timeline-info">
+              <div class="timeline-title">Saiu para entrega</div>
+              <div class="timeline-desc">Previsão: 25-35 min</div>
+            </div>
+          </div>
+          <div class="timeline-step">
+            <div class="timeline-dot">📦</div>
+            <div class="timeline-info">
+              <div class="timeline-title">Entregue</div>
+              <div class="timeline-desc">Aguardando</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order details -->
+        <div style="text-align:left;margin-top:24px;padding-top:18px;border-top:1px solid var(--line);">
+          <div class="flex-between mb-sm">
+            <span class="meta">Restaurante</span>
+            <span style="font-weight:700;">Pasta & Fogo</span>
+          </div>
+          <div class="flex-between mb-sm">
+            <span class="meta">Endereço</span>
+            <span style="font-weight:700;font-size:0.88rem;">Rua Augusta, 1234</span>
+          </div>
+          <div class="flex-between mb-sm">
+            <span class="meta">Total pago</span>
+            <span style="font-weight:900;color:var(--brand);" id="confirmed-total">R$ 102,51</span>
+          </div>
+        </div>
+
+        <button class="btn-checkout w-full mt-lg" onclick="navigateTo('home')">Voltar ao início</button>
+        <button class="btn-ghost w-full mt-sm" onclick="navigateTo('historico')">Ver meus pedidos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 10: HISTORICO
+     ============================================================ -->
+<div id="screen-historico" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+      <div class="h2" style="flex:1;">Meus pedidos</div>
+    </div>
+
+    <div style="max-width:600px;">
+      <!-- Order 1 -->
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="h4">#FLW-2847</div>
+            <div class="meta">Pasta & Fogo &bull; 17/03/2026</div>
+          </div>
+          <span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);">Entregue</span>
+        </div>
+        <div class="order-items-list">1x Fettuccine Alfredo &bull; 1x Lasanha Bolonhesa &bull; 1x Tiramisù</div>
+        <div class="order-footer">
+          <span style="font-weight:900;">R$ 102,51</span>
+          <button class="btn-mini" onclick="repeatOrder()">Repetir pedido</button>
+        </div>
+      </div>
+
+      <!-- Order 2 -->
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="h4">#FLW-2801</div>
+            <div class="meta">Sushi Wave &bull; 15/03/2026</div>
+          </div>
+          <span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);">Entregue</span>
+        </div>
+        <div class="order-items-list">2x Combo Sashimi &bull; 1x Temaki Salmão &bull; 1x Gyoza</div>
+        <div class="order-footer">
+          <span style="font-weight:900;">R$ 138,70</span>
+          <button class="btn-mini" onclick="repeatOrder()">Repetir pedido</button>
+        </div>
+      </div>
+
+      <!-- Order 3 -->
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="h4">#FLW-2756</div>
+            <div class="meta">Burger Lab &bull; 12/03/2026</div>
+          </div>
+          <span class="tag" style="background:rgba(89,216,255,0.14);color:var(--accent);">Em entrega</span>
+        </div>
+        <div class="order-items-list">1x Smash Burger Duplo &bull; 1x Batata Rústica &bull; 1x Milkshake</div>
+        <div class="order-footer">
+          <span style="font-weight:900;">R$ 67,70</span>
+          <button class="btn-theme" onclick="navigateTo('pedido-confirmado')">Acompanhar</button>
+        </div>
+      </div>
+
+      <!-- Order 4 -->
+      <div class="order-card">
+        <div class="order-header">
+          <div>
+            <div class="h4">#FLW-2690</div>
+            <div class="meta">Green Bowl Co. &bull; 08/03/2026</div>
+          </div>
+          <span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);">Entregue</span>
+        </div>
+        <div class="order-items-list">1x Bowl Proteico &bull; 1x Suco Detox</div>
+        <div class="order-footer">
+          <span style="font-weight:900;">R$ 44,80</span>
+          <button class="btn-mini" onclick="repeatOrder()">Repetir pedido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 11: FAVORITOS
+     ============================================================ -->
+<div id="screen-favoritos" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+      <div class="h2" style="flex:1;">Favoritos</div>
+    </div>
+
+    <div class="restaurant-grid">
+      <!-- Pasta & Fogo -->
+      <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')" style="position:relative;">
+        <button class="fav-heart active" onclick="event.stopPropagation();toggleFavorite(this);">&#10084;</button>
+        <div class="restaurant-cover" style="background:linear-gradient(135deg,#f14b3d,#ffb067);">
+          <div class="restaurant-logo">
+            <div class="restaurant-logo-icon">🍝</div>
+            <div class="restaurant-logo-text">
+              <div class="restaurant-logo-name">Pasta & Fogo</div>
+              <div class="restaurant-logo-sub">Massas Artesanais</div>
+            </div>
+          </div>
+          <div class="restaurant-cover-tags">
+            <span class="cover-tag">⭐ 4.8</span>
+          </div>
+        </div>
+        <div class="restaurant-body">
+          <div class="restaurant-name">Pasta & Fogo</div>
+          <div class="restaurant-cuisine">🍝 Massas &bull; Italiana</div>
+          <div class="restaurant-metas">
+            <span class="meta-pill">⏱️ 25-35 min</span>
+            <span class="meta-pill">🚚 R$ 5,90</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sushi Wave -->
+      <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')" style="position:relative;">
+        <button class="fav-heart active" onclick="event.stopPropagation();toggleFavorite(this);">&#10084;</button>
+        <div class="restaurant-cover" style="background:linear-gradient(135deg,#1f2937,#1d4ed8);">
+          <div class="restaurant-logo">
+            <div class="restaurant-logo-icon">🍣</div>
+            <div class="restaurant-logo-text">
+              <div class="restaurant-logo-name">Sushi Wave</div>
+              <div class="restaurant-logo-sub">Culinária Japonesa</div>
+            </div>
+          </div>
+          <div class="restaurant-cover-tags">
+            <span class="cover-tag">⭐ 4.9</span>
+          </div>
+        </div>
+        <div class="restaurant-body">
+          <div class="restaurant-name">Sushi Wave</div>
+          <div class="restaurant-cuisine">🍣 Japonês &bull; Sushi</div>
+          <div class="restaurant-metas">
+            <span class="meta-pill">⏱️ 30-40 min</span>
+            <span class="meta-pill">🚚 R$ 7,90</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brasa & Lenha -->
+      <div class="restaurant-card" onclick="navigateTo('restaurante-detalhe')" style="position:relative;">
+        <button class="fav-heart active" onclick="event.stopPropagation();toggleFavorite(this);">&#10084;</button>
+        <div class="restaurant-cover" style="background:linear-gradient(135deg,#44403c,#f97316);">
+          <div class="restaurant-logo">
+            <div class="restaurant-logo-icon">🥩</div>
+            <div class="restaurant-logo-text">
+              <div class="restaurant-logo-name">Brasa & Lenha</div>
+              <div class="restaurant-logo-sub">Churrasco Premium</div>
+            </div>
+          </div>
+          <div class="restaurant-cover-tags">
+            <span class="cover-tag">⭐ 4.8</span>
+          </div>
+        </div>
+        <div class="restaurant-body">
+          <div class="restaurant-name">Brasa & Lenha</div>
+          <div class="restaurant-cuisine">🥩 Brasileira &bull; Churrasco</div>
+          <div class="restaurant-metas">
+            <span class="meta-pill">⏱️ 35-50 min</span>
+            <span class="meta-pill">🚚 R$ 8,90</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 12: PERFIL
+     ============================================================ -->
+<div id="screen-perfil" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('home')">&#8592;</button>
+      <div class="h2" style="flex:1;">Minha conta</div>
+    </div>
+
+    <div style="max-width:500px;">
+      <div class="glass-card card-pad text-center mb-lg">
+        <div class="profile-avatar">👤</div>
+        <div class="h3">João da Silva</div>
+        <p class="meta">joao@email.com</p>
+      </div>
+
+      <!-- Dados -->
+      <div class="glass-card card-pad mb-md">
+        <div class="checkout-section-title">👤 Dados pessoais</div>
+        <div class="profile-item"><span class="profile-item-label">Nome</span><span class="profile-item-value">João da Silva</span></div>
+        <div class="profile-item"><span class="profile-item-label">Email</span><span class="profile-item-value">joao@email.com</span></div>
+        <div class="profile-item"><span class="profile-item-label">Telefone</span><span class="profile-item-value">(11) 99999-9999</span></div>
+      </div>
+
+      <!-- Endereços -->
+      <div class="glass-card card-pad mb-md">
+        <div class="checkout-section-title">📍 Endereços salvos</div>
+        <div class="profile-item">
+          <div><span class="profile-item-value">Casa</span><br><span class="meta" style="font-size:0.82rem;">Rua Augusta, 1234 — São Paulo, SP</span></div>
+          <span class="tag">Padrão</span>
+        </div>
+        <div class="profile-item">
+          <div><span class="profile-item-value">Trabalho</span><br><span class="meta" style="font-size:0.82rem;">Av. Paulista, 900 — São Paulo, SP</span></div>
+        </div>
+      </div>
+
+      <!-- Cupons -->
+      <div class="glass-card card-pad mb-md">
+        <div class="checkout-section-title">🎟️ Meus cupons</div>
+        <div class="profile-item">
+          <div><span class="profile-item-value" style="color:var(--brand);">MVP10</span><br><span class="meta" style="font-size:0.82rem;">10% off — Pedidos acima de R$ 30</span></div>
+          <span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);">Ativo</span>
+        </div>
+        <div class="profile-item">
+          <div><span class="profile-item-value" style="color:var(--brand);">FRETEGRATIS</span><br><span class="meta" style="font-size:0.82rem;">Frete grátis — Pedidos acima de R$ 80</span></div>
+          <span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);">Ativo</span>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="glass-card card-pad mb-md">
+        <div class="checkout-section-title">&#9881; Painel</div>
+        <div class="profile-item" style="cursor:pointer;" onclick="navigateTo('painel-cardapio')">
+          <span class="profile-item-value">🍽️ Painel do restaurante</span>
+          <span class="meta">&#8594;</span>
+        </div>
+        <div class="profile-item" style="cursor:pointer;" onclick="navigateTo('admin-dashboard')">
+          <span class="profile-item-value">&#128202; Painel admin</span>
+          <span class="meta">&#8594;</span>
+        </div>
+      </div>
+
+      <button class="btn-danger w-full" onclick="navigateTo('login')">Sair da conta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 13: PAINEL CARDAPIO (Restaurante)
+     ============================================================ -->
+<div id="screen-painel-cardapio" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('perfil')">&#8592;</button>
+      <div class="h2" style="flex:1;">Gestão de Cardápio</div>
+      <button class="btn-theme" onclick="navigateTo('painel-pedidos')">📋 Pedidos</button>
+    </div>
+
+    <div class="glass-card" style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Preço</th>
+            <th>Badge</th>
+            <th>Ativo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🍝</span><div><div style="font-weight:700;">Fettuccine Alfredo</div><div class="meta" style="font-size:0.78rem;">Massa fresca com molho cremoso</div></div></div></td>
+            <td style="font-weight:800;">R$ 42,90</td>
+            <td><span class="tag" style="font-size:0.72rem;">🔥 Best seller</span></td>
+            <td><button class="toggle on" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🧀</span><div><div style="font-weight:700;">Lasanha Bolonhesa</div><div class="meta" style="font-size:0.78rem;">Ragù de carne e bechamel</div></div></div></td>
+            <td style="font-weight:800;">R$ 38,90</td>
+            <td>—</td>
+            <td><button class="toggle on" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🍅</span><div><div style="font-weight:700;">Penne ao Pomodoro</div><div class="meta" style="font-size:0.78rem;">Molho San Marzano e manjericão</div></div></div></td>
+            <td style="font-weight:800;">R$ 32,90</td>
+            <td><span class="tag" style="font-size:0.72rem;">🥬 Vegetariano</span></td>
+            <td><button class="toggle on" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🥟</span><div><div style="font-weight:700;">Ravioli de Ricota</div><div class="meta" style="font-size:0.78rem;">Ricota e espinafre ao molho de sálvia</div></div></div></td>
+            <td style="font-weight:800;">R$ 44,90</td>
+            <td>—</td>
+            <td><button class="toggle on" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🌶️</span><div><div style="font-weight:700;">Spaghetti all'Arrabbiata</div><div class="meta" style="font-size:0.78rem;">Molho apimentado com peperoncino</div></div></div></td>
+            <td style="font-weight:800;">R$ 34,90</td>
+            <td><span class="tag" style="font-size:0.72rem;">🌶️ Picante</span></td>
+            <td><button class="toggle on" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🍄</span><div><div style="font-weight:700;">Risoto de Funghi</div><div class="meta" style="font-size:0.78rem;">Arbório com cogumelos frescos</div></div></div></td>
+            <td style="font-weight:800;">R$ 46,90</td>
+            <td>—</td>
+            <td><button class="toggle on" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🍮</span><div><div style="font-weight:700;">Tiramisù</div><div class="meta" style="font-size:0.78rem;">Mascarpone, café e cacau</div></div></div></td>
+            <td style="font-weight:800;">R$ 24,90</td>
+            <td>—</td>
+            <td><button class="toggle on" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span class="emoji-box" style="width:36px;height:36px;font-size:1rem;">🍞</span><div><div style="font-weight:700;">Bruschetta Clássica</div><div class="meta" style="font-size:0.78rem;">Pão tostado com tomate e alho</div></div></div></td>
+            <td style="font-weight:800;">R$ 18,90</td>
+            <td>—</td>
+            <td><button class="toggle" onclick="this.classList.toggle('on')"></button></td>
+            <td><button class="btn-icon" style="width:32px;height:32px;font-size:0.8rem;">&#9998;</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button class="btn-checkout mt-lg" style="max-width:300px;" onclick="showToast('Item adicionado ao cardápio','success')">+ Adicionar item</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 14: PAINEL PEDIDOS (Restaurante)
+     ============================================================ -->
+<div id="screen-painel-pedidos" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('painel-cardapio')">&#8592;</button>
+      <div class="h2" style="flex:1;">Pedidos recebidos</div>
+      <button class="btn-theme" onclick="navigateTo('painel-config')">&#9881; Config</button>
+    </div>
+
+    <div style="max-width:700px;">
+      <!-- Pedido 1 - Novo -->
+      <div class="order-card" style="border-left:3px solid var(--brand);">
+        <div class="order-header">
+          <div>
+            <div class="h4">#FLW-2851 <span class="tag" style="background:var(--tag-bg);margin-left:6px;">Novo</span></div>
+            <div class="meta">João da Silva &bull; Agora</div>
+          </div>
+          <span style="font-weight:900;font-size:1.1rem;">R$ 107,70</span>
+        </div>
+        <div class="order-items-list">
+          1x Fettuccine Alfredo (R$ 42,90)<br>
+          1x Lasanha Bolonhesa (R$ 38,90)<br>
+          1x Tiramisù (R$ 24,90)
+        </div>
+        <div class="meta mb-md">📍 Rua Augusta, 1234 — São Paulo, SP</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-checkout" style="flex:1;" onclick="showToast('Pedido aceito — Preparando','success')">&#10003; Aceitar</button>
+          <button class="btn-danger" onclick="showToast('Pedido recusado','error')">&#10007; Recusar</button>
+        </div>
+      </div>
+
+      <!-- Pedido 2 - Preparando -->
+      <div class="order-card" style="border-left:3px solid var(--accent);">
+        <div class="order-header">
+          <div>
+            <div class="h4">#FLW-2848 <span class="tag" style="background:rgba(89,216,255,0.14);color:var(--accent);margin-left:6px;">Preparando</span></div>
+            <div class="meta">Maria Oliveira &bull; 10 min atrás</div>
+          </div>
+          <span style="font-weight:900;font-size:1.1rem;">R$ 77,80</span>
+        </div>
+        <div class="order-items-list">
+          2x Penne ao Pomodoro (R$ 65,80)<br>
+          1x Bruschetta Clássica (R$ 18,90)
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-success" style="flex:1;" onclick="showToast('Pedido pronto para retirada','success')">Pronto para retirada</button>
+        </div>
+      </div>
+
+      <!-- Pedido 3 - Pronto -->
+      <div class="order-card" style="border-left:3px solid var(--success);">
+        <div class="order-header">
+          <div>
+            <div class="h4">#FLW-2845 <span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);margin-left:6px;">Pronto</span></div>
+            <div class="meta">Carlos Santos &bull; 25 min atrás</div>
+          </div>
+          <span style="font-weight:900;font-size:1.1rem;">R$ 91,80</span>
+        </div>
+        <div class="order-items-list">
+          1x Risoto de Funghi (R$ 46,90)<br>
+          1x Ravioli de Ricota (R$ 44,90)
+        </div>
+        <div class="meta">🚚 Aguardando entregador</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 15: PAINEL CONFIG (Restaurante)
+     ============================================================ -->
+<div id="screen-painel-config" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('painel-pedidos')">&#8592;</button>
+      <div class="h2" style="flex:1;">Configurações</div>
+    </div>
+
+    <div style="max-width:500px;">
+      <div class="glass-card card-pad mb-md">
+        <div class="checkout-section-title">🍝 Dados do restaurante</div>
+        <div class="form-group">
+          <label>Nome do restaurante</label>
+          <input type="text" class="input-field" value="Pasta & Fogo">
+        </div>
+        <div class="form-group">
+          <label>Subtítulo</label>
+          <input type="text" class="input-field" value="Massas artesanais com ingredientes selecionados">
+        </div>
+        <div class="form-group">
+          <label>Culinária</label>
+          <input type="text" class="input-field" value="Massas, Italiana">
+        </div>
+        <div class="form-group">
+          <label>ETA estimado</label>
+          <input type="text" class="input-field" value="25-35 min">
+        </div>
+      </div>
+
+      <div class="glass-card card-pad mb-md">
+        <div class="checkout-section-title">🚚 Entrega</div>
+        <div class="form-group">
+          <label>Taxa de entrega (R$)</label>
+          <input type="number" class="input-field" value="5.90" step="0.10">
+        </div>
+        <div class="form-group">
+          <label>Pedido mínimo (R$)</label>
+          <input type="number" class="input-field" value="20.00" step="1.00">
+        </div>
+      </div>
+
+      <div class="glass-card card-pad mb-md">
+        <div class="checkout-section-title">🎟️ Promoção ativa</div>
+        <div class="form-group">
+          <label>Texto da promoção</label>
+          <input type="text" class="input-field" value="10% off com MVP10">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label>Status</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+            <span class="small">Ativa</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-checkout w-full" onclick="showToast('Configurações salvas','success')">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 16: ADMIN DASHBOARD
+     ============================================================ -->
+<div id="screen-admin-dashboard" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('perfil')">&#8592;</button>
+      <div class="h2" style="flex:1;">Admin Dashboard</div>
+      <button class="btn-theme" onclick="navigateTo('admin-restaurantes')">Restaurantes</button>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid-4 mb-lg" style="gap:14px;">
+      <div class="stat-card">
+        <div class="stat-card-value" style="color:var(--brand);">24</div>
+        <div class="stat-card-label">Restaurantes ativos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-value" style="color:var(--success);">1.847</div>
+        <div class="stat-card-label">Pedidos (mês)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-value" style="color:var(--accent);">R$ 68,40</div>
+        <div class="stat-card-label">Ticket médio</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-value" style="color:var(--brand-2);">32%</div>
+        <div class="stat-card-label">Taxa recompra</div>
+      </div>
+    </div>
+
+    <!-- Chart placeholder -->
+    <div class="glass-card card-pad mb-lg">
+      <div class="checkout-section-title">📈 Pedidos por dia (últimos 7 dias)</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:160px;padding-top:18px;">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:100%;background:var(--chip-active-bg);border-radius:8px 8px 0 0;height:65%;"></div>
+          <span class="meta" style="font-size:0.72rem;">Seg</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:100%;background:var(--chip-active-bg);border-radius:8px 8px 0 0;height:82%;"></div>
+          <span class="meta" style="font-size:0.72rem;">Ter</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:100%;background:var(--chip-active-bg);border-radius:8px 8px 0 0;height:58%;"></div>
+          <span class="meta" style="font-size:0.72rem;">Qua</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:100%;background:var(--chip-active-bg);border-radius:8px 8px 0 0;height:90%;"></div>
+          <span class="meta" style="font-size:0.72rem;">Qui</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:100%;background:var(--chip-active-bg);border-radius:8px 8px 0 0;height:100%;"></div>
+          <span class="meta" style="font-size:0.72rem;">Sex</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:100%;background:var(--chip-active-bg);border-radius:8px 8px 0 0;height:76%;"></div>
+          <span class="meta" style="font-size:0.72rem;">Sab</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="width:100%;background:rgba(123,97,255,0.4);border-radius:8px 8px 0 0;height:45%;"></div>
+          <span class="meta" style="font-size:0.72rem;">Dom</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top restaurants -->
+    <div class="glass-card card-pad">
+      <div class="checkout-section-title">&#127942; Top restaurantes</div>
+      <div style="display:grid;gap:10px;">
+        <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--line);">
+          <div style="display:flex;align-items:center;gap:10px;"><span>🥇</span><span style="font-weight:700;">Pasta & Fogo</span></div>
+          <div><span class="meta">342 pedidos</span> <span style="font-weight:800;margin-left:8px;">⭐ 4.8</span></div>
+        </div>
+        <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--line);">
+          <div style="display:flex;align-items:center;gap:10px;"><span>🥈</span><span style="font-weight:700;">Sushi Wave</span></div>
+          <div><span class="meta">298 pedidos</span> <span style="font-weight:800;margin-left:8px;">⭐ 4.9</span></div>
+        </div>
+        <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--line);">
+          <div style="display:flex;align-items:center;gap:10px;"><span>🥉</span><span style="font-weight:700;">Burger Lab</span></div>
+          <div><span class="meta">267 pedidos</span> <span style="font-weight:800;margin-left:8px;">⭐ 4.7</span></div>
+        </div>
+        <div class="flex-between" style="padding:10px 0;">
+          <div style="display:flex;align-items:center;gap:10px;"><span>4.</span><span style="font-weight:700;">Brasa & Lenha</span></div>
+          <div><span class="meta">245 pedidos</span> <span style="font-weight:800;margin-left:8px;">⭐ 4.8</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 17: ADMIN RESTAURANTES
+     ============================================================ -->
+<div id="screen-admin-restaurantes" class="screen">
+  <div class="shell">
+    <div class="screen-top">
+      <button class="btn-back" onclick="navigateTo('admin-dashboard')">&#8592;</button>
+      <div class="h2" style="flex:1;">Gestão de Restaurantes</div>
+    </div>
+
+    <div class="glass-card" style="overflow-x:auto;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Restaurante</th>
+            <th>Culinária</th>
+            <th>Rating</th>
+            <th>Pedidos</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#f14b3d,#ffb067);display:inline-block;"></span><span style="font-weight:700;">Pasta & Fogo</span></div></td>
+            <td class="meta">Massas</td>
+            <td>⭐ 4.8</td>
+            <td style="font-weight:700;">342</td>
+            <td><span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);font-size:0.72rem;">Ativo</span></td>
+            <td><button class="btn-danger" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante suspenso','error')">Suspender</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#1f2937,#1d4ed8);display:inline-block;"></span><span style="font-weight:700;">Sushi Wave</span></div></td>
+            <td class="meta">Japonês</td>
+            <td>⭐ 4.9</td>
+            <td style="font-weight:700;">298</td>
+            <td><span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);font-size:0.72rem;">Ativo</span></td>
+            <td><button class="btn-danger" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante suspenso','error')">Suspender</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#171717,#f97316);display:inline-block;"></span><span style="font-weight:700;">Burger Lab</span></div></td>
+            <td class="meta">Hambúrguer</td>
+            <td>⭐ 4.7</td>
+            <td style="font-weight:700;">267</td>
+            <td><span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);font-size:0.72rem;">Ativo</span></td>
+            <td><button class="btn-danger" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante suspenso','error')">Suspender</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#059669,#84cc16);display:inline-block;"></span><span style="font-weight:700;">Green Bowl Co.</span></div></td>
+            <td class="meta">Saudável</td>
+            <td>⭐ 4.6</td>
+            <td style="font-weight:700;">189</td>
+            <td><span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);font-size:0.72rem;">Ativo</span></td>
+            <td><button class="btn-danger" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante suspenso','error')">Suspender</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#7f1d1d,#f59e0b);display:inline-block;"></span><span style="font-weight:700;">Pizza Club 24h</span></div></td>
+            <td class="meta">Pizza</td>
+            <td>⭐ 4.5</td>
+            <td style="font-weight:700;">210</td>
+            <td><span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);font-size:0.72rem;">Ativo</span></td>
+            <td><button class="btn-danger" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante suspenso','error')">Suspender</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#44403c,#f97316);display:inline-block;"></span><span style="font-weight:700;">Brasa & Lenha</span></div></td>
+            <td class="meta">Brasileira</td>
+            <td>⭐ 4.8</td>
+            <td style="font-weight:700;">245</td>
+            <td><span class="tag" style="background:rgba(47,211,135,0.14);color:var(--success);font-size:0.72rem;">Ativo</span></td>
+            <td><button class="btn-danger" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante suspenso','error')">Suspender</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:10px;"><span style="width:32px;height:32px;border-radius:10px;background:var(--line);display:inline-block;"></span><span style="font-weight:700;">Café Orgânico SP</span></div></td>
+            <td class="meta">Cafeteria</td>
+            <td>—</td>
+            <td style="font-weight:700;">0</td>
+            <td><span class="tag" style="background:rgba(255,199,0,0.14);color:#ffc700;font-size:0.72rem;">Pendente</span></td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-success" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante aprovado','success')">Aprovar</button>
+                <button class="btn-danger" style="padding:8px 12px;font-size:0.78rem;" onclick="showToast('Restaurante rejeitado','error')">Rejeitar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     BOTTOM NAVIGATION
+     ============================================================ -->
+<div class="bottom-nav" id="bottom-nav">
+  <button class="nav-item active" onclick="navTo('home',this)" id="nav-home">
+    <span class="nav-item-icon">🏠</span>
+    <span class="nav-item-label">Início</span>
+  </button>
+  <button class="nav-item" onclick="navTo('favoritos',this)" id="nav-favoritos">
+    <span class="nav-item-icon">🔎</span>
+    <span class="nav-item-label">Buscar</span>
+  </button>
+  <button class="nav-item" onclick="navTo('historico',this)" id="nav-historico">
+    <span class="nav-item-icon">🍽️</span>
+    <span class="nav-item-label">Pedidos</span>
+  </button>
+  <button class="nav-item" onclick="navTo('carrinho',this)" id="nav-carrinho">
+    <span class="nav-item-icon">🛒</span>
+    <span class="nav-item-label">Carrinho</span>
+    <span class="nav-badge" id="nav-cart-badge">0</span>
+  </button>
+  <button class="nav-item" onclick="navTo('perfil',this)" id="nav-perfil">
+    <span class="nav-item-icon">👤</span>
+    <span class="nav-item-label">Conta</span>
+  </button>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let cart = [];
+let selectedPayment = 'cartao';
+let currentScreen = 'login';
+const DELIVERY_FEE = 5.90;
+const FREE_DELIVERY_THRESHOLD = 120;
+const COUPON_DISCOUNT = 0.10;
+
+// Hide bottom nav on auth screens
+const authScreens = ['login','cadastro'];
+const noNavScreens = ['login','cadastro','pagamento-cartao','pagamento-pix','pedido-confirmado'];
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navigateTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen-' + screenId);
+  if (target) {
+    target.classList.add('active');
+    currentScreen = screenId;
+  }
+
+  // Bottom nav visibility
+  const nav = document.getElementById('bottom-nav');
+  nav.style.display = noNavScreens.includes(screenId) ? 'none' : 'flex';
+
+  // Update active nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navMap = { home:'nav-home', favoritos:'nav-favoritos', historico:'nav-historico', carrinho:'nav-carrinho', perfil:'nav-perfil' };
+  if (navMap[screenId]) document.getElementById(navMap[screenId])?.classList.add('active');
+
+  // Render cart when needed
+  if (['carrinho','checkout','restaurante-detalhe','home'].includes(screenId)) renderCart();
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function navTo(screenId, btn) {
+  navigateTo(screenId);
+}
+
+// ============================================================
+// CART
+// ============================================================
+function addToCart(name, price, restaurant) {
+  const existing = cart.find(i => i.name === name);
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ name, price, restaurant, qty: 1 });
+  }
+  renderCart();
+  updateCartBadge();
+  showToast(name + ' adicionado ao carrinho', 'success');
+}
+
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  renderCart();
+  updateCartBadge();
+}
+
+function changeQty(index, delta) {
+  cart[index].qty += delta;
+  if (cart[index].qty <= 0) cart.splice(index, 1);
+  renderCart();
+  updateCartBadge();
+}
+
+function getSubtotal() {
+  return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+function getTotal() {
+  const sub = getSubtotal();
+  const fee = sub >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+  const discount = sub * COUPON_DISCOUNT;
+  return sub + fee - discount;
+}
+
+function getTotalItems() {
+  return cart.reduce((sum, item) => sum + item.qty, 0);
+}
+
+function formatBRL(v) {
+  return 'R$ ' + v.toFixed(2).replace('.', ',');
+}
+
+function updateCartBadge() {
+  const count = getTotalItems();
+  const badge = document.getElementById('nav-cart-badge');
+  if (badge) {
+    badge.textContent = count;
+    badge.classList.toggle('hidden', count === 0);
+  }
+  // Mobile cart buttons
+  const mobileBtn = document.getElementById('mobile-cart-btn');
+  const mobileBtnDetail = document.getElementById('mobile-cart-btn-detail');
+  if (count > 0) {
+    const text = count + ' ' + (count === 1 ? 'item' : 'itens') + ' \u2022 ' + formatBRL(getTotal());
+    if (mobileBtn) { mobileBtn.style.display = 'flex !important'; mobileBtn.querySelector('.tag').textContent = text; }
+    if (mobileBtnDetail) mobileBtnDetail.style.display = '';
+  }
+}
+
+function renderCart() {
+  const targets = ['home-cart-content','detail-cart-content','cart-page-content'];
+  const sub = getSubtotal();
+  const fee = sub >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+  const discount = sub * COUPON_DISCOUNT;
+  const total = sub + fee - discount;
+  const freteProgress = Math.min((sub / FREE_DELIVERY_THRESHOLD) * 100, 100);
+  const freteMsg = sub >= FREE_DELIVERY_THRESHOLD
+    ? '<span style="color:var(--success);font-weight:700;">&#10003; Frete grátis desbloqueado!</span>'
+    : '<span class="meta">Faltam <strong style="color:var(--text);">' + formatBRL(FREE_DELIVERY_THRESHOLD - sub) + '</strong> para frete grátis</span>';
+
+  let html = '';
+  if (cart.length === 0) {
+    html = '<div class="cart-empty"><div class="cart-empty-icon">🛍️</div><div class="h4 mb-sm">Carrinho vazio</div><p class="meta">Adicione itens de um restaurante para começar seu pedido</p></div>';
+  } else {
+    // Frete bar
+    html += '<div class="frete-bar">' + freteMsg + '<div class="frete-bar-progress"><div class="frete-bar-fill" style="width:' + freteProgress + '%;"></div></div></div>';
+    // Items
+    cart.forEach((item, i) => {
+      html += '<div class="cart-item">';
+      html += '<div class="cart-item-row"><div><div class="cart-item-name">' + item.name + '</div><div class="cart-item-restaurant">' + item.restaurant + '</div></div><span style="font-weight:800;">' + formatBRL(item.price * item.qty) + '</span></div>';
+      html += '<div class="cart-item-row"><div class="qty-control"><button class="qty-btn" onclick="changeQty(' + i + ',-1)">&minus;</button><span class="qty-value">' + item.qty + '</span><button class="qty-btn" onclick="changeQty(' + i + ',1)">+</button></div><button class="btn-icon" style="width:30px;height:30px;font-size:0.8rem;color:var(--danger);background:rgba(255,107,129,0.1);" onclick="removeFromCart(' + i + ')">&#10005;</button></div>';
+      html += '</div>';
+    });
+    // Summary
+    html += '<div class="cart-summary">';
+    html += '<div class="cart-summary-row"><span class="meta">Subtotal</span><span>' + formatBRL(sub) + '</span></div>';
+    html += '<div class="cart-summary-row"><span class="meta">Entrega</span><span>' + (fee === 0 ? '<span style="color:var(--success);font-weight:700;">Grátis</span>' : formatBRL(fee)) + '</span></div>';
+    html += '<div class="cart-summary-row"><span class="meta">Desconto (MVP10)</span><span class="discount">-' + formatBRL(discount) + '</span></div>';
+    html += '<div class="cart-summary-row total"><span>Total</span><span>' + formatBRL(total) + '</span></div>';
+    html += '</div>';
+    html += '<button class="btn-checkout w-full mt-md" onclick="navigateTo(\'checkout\')">Ir para checkout</button>';
+  }
+
+  targets.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+
+  // Update checkout summary
+  renderCheckoutSummary();
+}
+
+function renderCheckoutSummary() {
+  const itemsEl = document.getElementById('checkout-items-summary');
+  const summaryEl = document.getElementById('checkout-summary');
+  if (!itemsEl || !summaryEl) return;
+
+  let itemsHtml = '';
+  cart.forEach(item => {
+    itemsHtml += '<div class="flex-between" style="padding:8px 0;border-bottom:1px solid var(--line);"><div><span style="font-weight:700;">' + item.qty + 'x</span> ' + item.name + ' <span class="meta">(' + item.restaurant + ')</span></div><span style="font-weight:700;">' + formatBRL(item.price * item.qty) + '</span></div>';
+  });
+  itemsEl.innerHTML = itemsHtml;
+
+  const sub = getSubtotal();
+  const fee = sub >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
+  const discount = sub * COUPON_DISCOUNT;
+  const total = sub + fee - discount;
+
+  summaryEl.innerHTML = '<div class="cart-summary" style="border-top:none;padding-top:0;">' +
+    '<div class="cart-summary-row"><span class="meta">Subtotal</span><span>' + formatBRL(sub) + '</span></div>' +
+    '<div class="cart-summary-row"><span class="meta">Entrega</span><span>' + (fee === 0 ? '<span style="color:var(--success);font-weight:700;">Grátis</span>' : formatBRL(fee)) + '</span></div>' +
+    '<div class="cart-summary-row"><span class="meta">Desconto (MVP10)</span><span class="discount">-' + formatBRL(discount) + '</span></div>' +
+    '<div class="cart-summary-row total"><span>Total</span><span>' + formatBRL(total) + '</span></div>' +
+    '</div>';
+
+  // Update confirmed total
+  const confTotal = document.getElementById('confirmed-total');
+  if (confTotal) confTotal.textContent = formatBRL(total);
+  const cardTotal = document.getElementById('card-order-total');
+  if (cardTotal) cardTotal.textContent = formatBRL(total);
+}
+
+// ============================================================
+// CATEGORY FILTER
+// ============================================================
+function filterCategory(chip) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+}
+
+// ============================================================
+// PAYMENT
+// ============================================================
+function selectPayment(card, method) {
+  document.querySelectorAll('.payment-method-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedPayment = method;
+}
+
+function goToPayment() {
+  if (cart.length === 0) { showToast('Carrinho vazio','error'); return; }
+  navigateTo(selectedPayment === 'cartao' ? 'pagamento-cartao' : 'pagamento-pix');
+}
+
+function bankLogin() {
+  document.getElementById('card-step-login').style.display = 'none';
+  document.getElementById('card-step-select').style.display = 'block';
+}
+
+function selectBankCard(card) {
+  if (card.classList.contains('blocked')) return;
+  document.querySelectorAll('.bank-card-item').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+function confirmCardPayment() {
+  document.getElementById('card-step-select').style.display = 'none';
+  document.getElementById('card-step-processing').style.display = 'block';
+  setTimeout(() => {
+    navigateTo('pedido-confirmado');
+    // Reset card payment steps
+    document.getElementById('card-step-login').style.display = '';
+    document.getElementById('card-step-select').style.display = 'none';
+    document.getElementById('card-step-processing').style.display = 'none';
+    cart = [];
+    updateCartBadge();
+    renderCart();
+  }, 2000);
+}
+
+function simulatePixPayment() {
+  document.getElementById('pix-step-qr').style.display = 'none';
+  document.getElementById('pix-step-confirmed').style.display = 'block';
+  let countdown = 2;
+  const countdownEl = document.getElementById('pix-redirect-countdown');
+  const timer = setInterval(() => {
+    countdown--;
+    if (countdownEl) countdownEl.textContent = countdown;
+    if (countdown <= 0) {
+      clearInterval(timer);
+      navigateTo('pedido-confirmado');
+      // Reset pix
+      document.getElementById('pix-step-qr').style.display = '';
+      document.getElementById('pix-step-confirmed').style.display = 'none';
+      cart = [];
+      updateCartBadge();
+      renderCart();
+    }
+  }, 1000);
+}
+
+function copyPixCode() {
+  const input = document.querySelector('.copy-input');
+  if (input) {
+    input.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    showToast('Código PIX copiado!', 'success');
+  }
+}
+
+function applyCoupon() {
+  const input = document.getElementById('coupon-input');
+  const msg = document.getElementById('coupon-msg');
+  if (input && input.value.toUpperCase() === 'MVP10') {
+    msg.innerHTML = '&#10003; Cupom MVP10 aplicado — 10% off';
+    msg.style.color = 'var(--success)';
+  } else {
+    msg.innerHTML = '&#10007; Cupom inválido';
+    msg.style.color = 'var(--danger)';
+  }
+}
+
+// ============================================================
+// FAVORITES
+// ============================================================
+function toggleFavorite(btn) {
+  btn.classList.toggle('active');
+  if (btn.classList.contains('active')) {
+    btn.innerHTML = '&#10084;';
+    showToast('Adicionado aos favoritos', 'success');
+  } else {
+    btn.innerHTML = '&#9825;';
+    showToast('Removido dos favoritos', 'error');
+  }
+}
+
+// ============================================================
+// REPEAT ORDER
+// ============================================================
+function repeatOrder() {
+  cart = [
+    { name: 'Fettuccine Alfredo', price: 42.90, restaurant: 'Pasta & Fogo', qty: 1 },
+    { name: 'Lasanha Bolonhesa', price: 38.90, restaurant: 'Pasta & Fogo', qty: 1 },
+    { name: 'Tiramisù', price: 24.90, restaurant: 'Pasta & Fogo', qty: 1 }
+  ];
+  updateCartBadge();
+  renderCart();
+  showToast('Pedido repetido — itens no carrinho', 'success');
+  navigateTo('carrinho');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(message, type) {
+  const toast = document.getElementById('toast');
+  const icon = document.getElementById('toast-icon');
+  const msg = document.getElementById('toast-msg');
+  toast.className = 'toast toast-' + type + ' show';
+  icon.textContent = type === 'success' ? '\u2713' : '\u2717';
+  msg.textContent = message;
+  setTimeout(() => { toast.classList.remove('show'); }, 3000);
+}
+
+// ============================================================
+// PIX TIMER (client-side simulation)
+// ============================================================
+let pixTimerInterval;
+function startPixTimer() {
+  let seconds = 582; // 9:42
+  const circle = document.getElementById('pix-timer-circle');
+  const text = document.getElementById('pix-timer-text');
+  const totalDash = 226.2;
+
+  if (pixTimerInterval) clearInterval(pixTimerInterval);
+  pixTimerInterval = setInterval(() => {
+    seconds--;
+    if (seconds <= 0) { clearInterval(pixTimerInterval); return; }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (text) text.textContent = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+    if (circle) circle.setAttribute('stroke-dashoffset', totalDash * (1 - seconds / 582));
+    // Change color when < 2 min
+    if (seconds < 120) {
+      if (circle) circle.setAttribute('stroke', 'var(--danger)');
+      if (text) text.style.color = 'var(--danger)';
+    }
+  }, 1000);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  updateCartBadge();
+  // Start pix timer when navigating to pix screen
+  const observer = new MutationObserver(() => {
+    if (document.getElementById('screen-pagamento-pix')?.classList.contains('active')) {
+      startPixTimer();
+    }
+  });
+  document.querySelectorAll('.screen').forEach(s => observer.observe(s, { attributes: true, attributeFilter: ['class'] }));
+});
+</script>
+</body>
+</html>

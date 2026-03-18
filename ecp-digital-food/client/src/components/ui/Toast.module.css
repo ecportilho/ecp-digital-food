@@ -1,0 +1,44 @@
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  z-index: 999;
+  padding: 14px 22px;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+.success {
+  background: rgba(47, 211, 135, 0.18);
+  color: var(--success);
+  border: 1px solid rgba(47, 211, 135, 0.3);
+}
+
+.error {
+  background: rgba(255, 107, 129, 0.18);
+  color: var(--danger);
+  border: 1px solid rgba(255, 107, 129, 0.3);
+}
+
+.info {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid rgba(123, 97, 255, 0.3);
+}

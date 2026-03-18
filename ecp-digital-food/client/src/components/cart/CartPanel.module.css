@@ -1,0 +1,143 @@
+.sidebarWrapper {
+  display: block;
+}
+
+.sidebar {
+  position: sticky;
+  top: 18px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.emptyIcon {
+  width: 74px;
+  height: 74px;
+  border-radius: 24px;
+  background: var(--tag-bg);
+  display: inline-grid;
+  place-items: center;
+  font-size: 2rem;
+  margin-bottom: 16px;
+}
+
+.freteBar {
+  background: var(--bg-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.freteProgress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.freteFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--success);
+  transition: width 0.3s ease;
+}
+
+/* Mobile floating cart button */
+.mobileCartBtn {
+  display: none;
+  position: fixed;
+  bottom: calc(82px + max(0px, env(safe-area-inset-bottom)));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 14px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #fff;
+  border: none;
+  font-weight: 900;
+  font-size: 0.95rem;
+  box-shadow: 0 12px 32px rgba(123, 97, 255, 0.35);
+  gap: 10px;
+  align-items: center;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.mobileCartTag {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* Backdrop */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 20, 0.44);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 40;
+  animation: fadeBackdropIn 0.2s ease;
+}
+
+/* Bottom sheet */
+.bottomSheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 41;
+  background: var(--surface-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 14px 22px 22px;
+  max-height: min(86vh, 760px);
+  overflow-y: auto;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+  animation: slideUp 0.25s ease;
+}
+
+.sheetHandle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  margin: 0 auto 14px;
+}
+
+@keyframes fadeBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(102%); }
+  to { transform: translateY(0); }
+}
+
+@media (max-width: 1180px) {
+  .sidebarWrapper {
+    display: none;
+  }
+
+  .mobileCartBtn {
+    display: flex;
+  }
+}

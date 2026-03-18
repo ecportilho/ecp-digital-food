@@ -1,0 +1,1459 @@
+{
+  "agent": "product-owner",
+  "phase": "02-product-discovery",
+  "step": "estruturacao",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "methodology_references": [
+    "SAFe 6.0 — Hierarquia Epico > Feature > Historia de Usuario",
+    "Mike Cohn — User Stories Applied: formato 'Como [persona], quero [acao] para [beneficio]'",
+    "Dan North — BDD/Gherkin: criterios de aceite em Dado/Quando/Entao",
+    "Bill Wake — INVEST: historias Independentes, Negociaveis, Valiosas, Estimaveis, Small, Testaveis",
+    "Marty Cagan — Inspired: backlog orientado a outcomes, nao outputs"
+  ],
+  "personas_legend": {
+    "consumidor": "Consumidor final do FoodFlow (segmentos C1, C2, C3)",
+    "restaurante": "Dono/gestor do restaurante parceiro (segmentos R1, R2)",
+    "admin": "Administrador da plataforma FoodFlow"
+  },
+  "backlog": {
+    "epicos": [
+      {
+        "id": "E01",
+        "title": "Descoberta e Navegacao",
+        "description": "Permitir que consumidores descubram restaurantes e pratos de forma rapida, visual e curada, reduzindo fadiga de decisao e conectando intencao a escolha em menos de 2 minutos.",
+        "linked_krs": ["KR1"],
+        "linked_opportunities": ["OPP-01", "OPP-03", "OPP-04"],
+        "linked_hypotheses": ["H01", "H02", "H03"],
+        "linked_functionalities": ["F02", "F03"],
+        "benefit_hypothesis": "Se oferecermos uma experiencia de descoberta curada com categorias visuais, busca inteligente e cards de confianca, entao a taxa de conversao (visitor-to-order) sera consistente acima de 8% porque consumidores encontrarao o que querem comer com menos esforco cognitivo.",
+        "features": [
+          {
+            "id": "F01.1",
+            "title": "Home Curada com Hero Banner e Metricas ao Vivo",
+            "description": "Tela inicial do FoodFlow com hero banner promocional, barra de busca integrada, mapa de disponibilidade com metricas ao vivo (restaurantes online, cupons ativos, frete medio) e grid de categorias visuais.",
+            "acceptance_criteria": [
+              "Hero banner exibe promocao do dia com imagem e CTA",
+              "Mapa de disponibilidade mostra metricas ao vivo atualizadas",
+              "Grid de 6 categorias com icone e nome visivel sem scroll horizontal",
+              "Barra de busca acessivel no topo do hero"
+            ],
+            "stories": [
+              {
+                "id": "US-001",
+                "title": "Visualizar hero banner com promocao do dia",
+                "user_story": "Como consumidor, quero ver um banner principal com a promocao do dia ao abrir o FoodFlow para que eu tenha um motivo imediato para explorar restaurantes",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Consumidor abre a home do FoodFlow",
+                    "given": "O consumidor esta logado e acessa a home",
+                    "when": "A pagina carrega completamente",
+                    "then": "Um hero banner e exibido com imagem promocional, texto da promocao ativa e botao de acao"
+                  },
+                  {
+                    "scenario": "Nenhuma promocao ativa",
+                    "given": "Nao ha promocoes globais ativas no momento",
+                    "when": "O consumidor acessa a home",
+                    "then": "O hero banner exibe um banner institucional padrao com busca em destaque"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-002",
+                "title": "Visualizar metricas ao vivo na home",
+                "user_story": "Como consumidor, quero ver quantos restaurantes estao online, cupons ativos e frete medio na minha regiao para que eu sinta que a plataforma esta ativa e confiavel",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Metricas ao vivo na home",
+                    "given": "O consumidor esta na home do FoodFlow",
+                    "when": "A secao de mapa de disponibilidade e exibida",
+                    "then": "Sao mostrados 3 indicadores: numero de restaurantes online, quantidade de cupons ativos e frete medio da regiao"
+                  },
+                  {
+                    "scenario": "Nenhum restaurante online",
+                    "given": "Nenhum restaurante esta online no momento",
+                    "when": "O consumidor acessa a home",
+                    "then": "A metrica de restaurantes online mostra '0' e uma mensagem 'Restaurantes abrem em breve' e exibida"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-003",
+                "title": "Filtrar restaurantes por categoria via chips",
+                "user_story": "Como consumidor, quero filtrar restaurantes por categoria (Hamburguer, Japones, Pizza, Saudavel, Massas, Brasileira) para que eu encontre rapidamente o tipo de comida que desejo",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Filtrar por categoria especifica",
+                    "given": "O consumidor esta na home com o catalogo de restaurantes visivel",
+                    "when": "Toca no chip 'Japones'",
+                    "then": "Apenas restaurantes da categoria Japones sao exibidos e o contador de resultados atualiza"
+                  },
+                  {
+                    "scenario": "Remover filtro de categoria",
+                    "given": "O consumidor filtrou por 'Japones'",
+                    "when": "Toca no chip 'Todos'",
+                    "then": "Todos os restaurantes sao exibidos novamente sem filtro"
+                  },
+                  {
+                    "scenario": "Categoria sem resultados",
+                    "given": "O consumidor esta na home",
+                    "when": "Toca em uma categoria sem restaurantes online",
+                    "then": "Uma mensagem 'Nenhum restaurante disponivel nesta categoria' e exibida com sugestao de explorar outras categorias"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-004",
+                "title": "Visualizar catalogo de restaurantes em cards visuais",
+                "user_story": "Como consumidor, quero ver restaurantes em cards com foto, rating, tempo de entrega, taxa de frete e badges para que eu possa avaliar qualidade e custo antes de clicar",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Card de restaurante com informacoes completas",
+                    "given": "O consumidor esta na home com catalogo visivel",
+                    "when": "Visualiza um card de restaurante",
+                    "then": "O card exibe: foto de capa com gradiente, nome, subtitulo, rating com estrelas, ETA estimado, taxa de entrega, pedido minimo, tags de categoria e badge de promo ativa (se houver)"
+                  },
+                  {
+                    "scenario": "Card de restaurante com promocao ativa",
+                    "given": "Um restaurante tem uma promocao ativa",
+                    "when": "O card desse restaurante e exibido no catalogo",
+                    "then": "Um badge de promocao (ex: '20% OFF') aparece em destaque no card"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "L"
+              }
+            ]
+          },
+          {
+            "id": "F01.2",
+            "title": "Busca Multi-Criterio por Restaurante, Prato e Categoria",
+            "description": "Barra de busca integrada na home que aceita nome de restaurante, nome de prato, categoria ou tag, com sugestoes instantaneas agrupadas por tipo.",
+            "acceptance_criteria": [
+              "Busca aceita texto livre e retorna resultados relevantes",
+              "Sugestoes aparecem agrupadas por tipo (Restaurantes, Pratos, Categorias)",
+              "Resultados atualizam conforme o usuario digita (debounce de 300ms)",
+              "Busca sem resultados mostra mensagem amigavel"
+            ],
+            "stories": [
+              {
+                "id": "US-005",
+                "title": "Buscar restaurante por nome",
+                "user_story": "Como consumidor, quero buscar um restaurante pelo nome para que eu encontre rapidamente um lugar especifico que ja conheco",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Busca por nome de restaurante existente",
+                    "given": "O consumidor esta na home e toca na barra de busca",
+                    "when": "Digita 'Kazu'",
+                    "then": "Sugestoes aparecem com 'Kazu Sushi Bar' na secao 'Restaurantes' e o consumidor pode tocar para ir ao detalhe"
+                  },
+                  {
+                    "scenario": "Busca sem resultados",
+                    "given": "O consumidor esta na barra de busca",
+                    "when": "Digita um nome que nao corresponde a nenhum restaurante, prato ou categoria",
+                    "then": "Mensagem 'Nenhum resultado encontrado para [termo]' e exibida com sugestao de explorar categorias"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-006",
+                "title": "Buscar por nome de prato ou categoria",
+                "user_story": "Como consumidor, quero buscar por nome de prato ou tipo de cozinha para que eu encontre opcoes quando nao sei exatamente onde pedir",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Busca por nome de prato",
+                    "given": "O consumidor esta na barra de busca",
+                    "when": "Digita 'hamburguer'",
+                    "then": "Sugestoes aparecem agrupadas: secao 'Categorias' com 'Hamburguer', secao 'Pratos' com itens que contem 'hamburguer' no nome, secao 'Restaurantes' com restaurantes de hamburguer"
+                  },
+                  {
+                    "scenario": "Selecionar sugestao de categoria",
+                    "given": "O consumidor digitou 'pizza' e ve sugestoes",
+                    "when": "Toca na sugestao 'Pizza' na secao 'Categorias'",
+                    "then": "O catalogo filtra para restaurantes da categoria Pizza e a busca fecha"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F01.3",
+            "title": "Detalhe do Restaurante e Cardapio Visual",
+            "description": "Tela de detalhe do restaurante com banner, informacoes completas e grid de itens do cardapio com visual premium que gera desejo e confianca.",
+            "acceptance_criteria": [
+              "Banner do restaurante exibe nome, subtitulo, rating, avaliacoes, ETA, frete e promo",
+              "Grid de itens mostra foto, nome, descricao, preco, badge e emoji",
+              "Botao 'Adicionar' visivel em cada item",
+              "Itens inativos nao aparecem no cardapio"
+            ],
+            "stories": [
+              {
+                "id": "US-007",
+                "title": "Visualizar detalhe do restaurante",
+                "user_story": "Como consumidor, quero ver as informacoes completas de um restaurante (nome, rating, avaliacoes, tempo de entrega, frete, promocao) para que eu decida se quero pedir dali",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Acessar detalhe do restaurante",
+                    "given": "O consumidor esta na home e ve um card de restaurante",
+                    "when": "Toca no card do restaurante",
+                    "then": "A tela de detalhe abre com banner (nome, subtitulo, rating, numero de avaliacoes, ETA, taxa de frete) e promo ativa (se houver)"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-008",
+                "title": "Navegar cardapio do restaurante",
+                "user_story": "Como consumidor, quero ver o cardapio do restaurante com fotos, descricoes e precos claros para que eu escolha os pratos que desejo pedir",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Visualizar itens do cardapio",
+                    "given": "O consumidor esta na tela de detalhe do restaurante",
+                    "when": "Scrolla para a secao de cardapio",
+                    "then": "Um grid de itens e exibido, cada item com: foto/emoji visual, nome, descricao curta, preco, badge (se houver) e botao 'Adicionar'"
+                  },
+                  {
+                    "scenario": "Item com badge de destaque",
+                    "given": "Um item do cardapio tem badge 'Best Seller'",
+                    "when": "O item e exibido no grid",
+                    "then": "O badge 'Best Seller' aparece em destaque visual no card do item"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "L"
+              },
+              {
+                "id": "US-009",
+                "title": "Adicionar item ao carrinho a partir do cardapio",
+                "user_story": "Como consumidor, quero adicionar um item ao carrinho diretamente do cardapio para que eu monte meu pedido sem sair da tela do restaurante",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Adicionar item ao carrinho",
+                    "given": "O consumidor esta no cardapio de um restaurante",
+                    "when": "Toca no botao 'Adicionar' de um item",
+                    "then": "O item e adicionado ao carrinho com quantidade 1, o badge de contagem do carrinho incrementa e um feedback visual confirma a acao"
+                  },
+                  {
+                    "scenario": "Adicionar mesmo item novamente",
+                    "given": "O consumidor ja adicionou 'Hamburguer Artesanal' ao carrinho",
+                    "when": "Toca novamente no botao 'Adicionar' do mesmo item",
+                    "then": "A quantidade do item no carrinho incrementa para 2"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "E02",
+        "title": "Carrinho e Checkout",
+        "description": "Oferecer um carrinho transparente e checkout sem surpresas, onde o consumidor ve o custo real desde o primeiro item adicionado ate a confirmacao final, com incentivo inteligente de frete gratis.",
+        "linked_krs": ["KR1", "KR3"],
+        "linked_opportunities": ["OPP-02", "OPP-12"],
+        "linked_hypotheses": ["H04", "H14"],
+        "linked_functionalities": ["F04", "F05"],
+        "benefit_hypothesis": "Se oferecermos transparencia total de precos desde o card do restaurante ate o checkout, com barra de progresso de frete gratis e resumo financeiro em tempo real, entao reduziremos o abandono de carrinho em pelo menos 20% e elevaremos o ticket medio acima de R$45.",
+        "features": [
+          {
+            "id": "F02.1",
+            "title": "Carrinho Persistente com Resumo Financeiro em Tempo Real",
+            "description": "Carrinho como sidebar (desktop) ou bottom sheet (mobile) com listagem de itens, controle de quantidade, resumo financeiro atualizado em tempo real e barra de progresso de frete gratis.",
+            "acceptance_criteria": [
+              "Carrinho persiste entre navegacao de paginas",
+              "Resumo mostra subtotal, entrega, desconto e total atualizados em tempo real",
+              "Barra de progresso de frete gratis exibida quando subtotal < R$120",
+              "Badge de contagem de itens visivel globalmente"
+            ],
+            "stories": [
+              {
+                "id": "US-010",
+                "title": "Visualizar carrinho com itens adicionados",
+                "user_story": "Como consumidor, quero ver todos os itens que adicionei ao carrinho com nome, restaurante, preco e quantidade para que eu tenha controle do meu pedido",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Carrinho com itens",
+                    "given": "O consumidor adicionou 2 itens ao carrinho",
+                    "when": "Abre o carrinho (sidebar desktop / bottom sheet mobile)",
+                    "then": "Cada item e listado com nome, restaurante de origem, preco unitario e quantidade"
+                  },
+                  {
+                    "scenario": "Carrinho vazio",
+                    "given": "O consumidor nao adicionou nenhum item",
+                    "when": "Abre o carrinho",
+                    "then": "Mensagem 'Seu carrinho esta vazio' e exibida com CTA para explorar restaurantes"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "L"
+              },
+              {
+                "id": "US-011",
+                "title": "Alterar quantidade de item no carrinho",
+                "user_story": "Como consumidor, quero ajustar a quantidade de cada item no carrinho com botoes +/- para que eu controle exatamente o que vou pedir",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Incrementar quantidade",
+                    "given": "O consumidor tem 'Hamburguer Artesanal' com quantidade 1 no carrinho",
+                    "when": "Toca no botao '+'",
+                    "then": "A quantidade muda para 2 e o resumo financeiro atualiza automaticamente"
+                  },
+                  {
+                    "scenario": "Remover item ao zerar quantidade",
+                    "given": "O consumidor tem 'Batata Rustica' com quantidade 1 no carrinho",
+                    "when": "Toca no botao '-'",
+                    "then": "O item e removido do carrinho e o resumo financeiro atualiza"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-012",
+                "title": "Visualizar resumo financeiro detalhado",
+                "user_story": "Como consumidor, quero ver o detalhamento de subtotal, taxa de entrega, desconto e total no carrinho para que eu saiba exatamente quanto vou pagar",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Resumo financeiro com cupom",
+                    "given": "O consumidor tem itens no carrinho e o cupom MVP10 esta aplicado",
+                    "when": "Visualiza o resumo financeiro do carrinho",
+                    "then": "Sao exibidos: Subtotal (soma dos itens), Entrega (taxa), Desconto (valor do cupom com nome MVP10), Total (subtotal + entrega - desconto)"
+                  },
+                  {
+                    "scenario": "Resumo financeiro sem cupom",
+                    "given": "O consumidor tem itens no carrinho sem cupom aplicado",
+                    "when": "Visualiza o resumo financeiro",
+                    "then": "Sao exibidos: Subtotal, Entrega, Total (sem linha de desconto)"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-013",
+                "title": "Visualizar progresso para frete gratis",
+                "user_story": "Como consumidor, quero ver quanto falta para obter frete gratis para que eu decida se vale adicionar mais itens ao pedido",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Subtotal abaixo de R$120",
+                    "given": "O consumidor tem R$88 em itens no carrinho",
+                    "when": "Visualiza o carrinho",
+                    "then": "Uma barra de progresso exibe 'Faltam R$32 para frete gratis!' com barra preenchida proporcionalmente (73%)"
+                  },
+                  {
+                    "scenario": "Subtotal igual ou acima de R$120",
+                    "given": "O consumidor tem R$125 em itens no carrinho",
+                    "when": "Visualiza o carrinho",
+                    "then": "A barra de progresso muda para 'Parabens! Frete gratis!' com barra completa em verde e a taxa de entrega mostra R$0,00"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-014",
+                "title": "Badge de contagem de itens no carrinho",
+                "user_story": "Como consumidor, quero ver quantos itens tenho no carrinho em qualquer tela para que eu saiba que ha itens pendentes",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Badge de contagem visivel",
+                    "given": "O consumidor adicionou 3 itens ao carrinho",
+                    "when": "Navega por qualquer tela do FoodFlow",
+                    "then": "O icone do carrinho exibe badge com numero '3'"
+                  },
+                  {
+                    "scenario": "Badge desaparece com carrinho vazio",
+                    "given": "O consumidor removeu todos os itens do carrinho",
+                    "when": "Navega por qualquer tela",
+                    "then": "O badge de contagem nao e exibido"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              }
+            ]
+          },
+          {
+            "id": "F02.2",
+            "title": "Checkout com Resumo e Aplicacao de Cupom",
+            "description": "Tela de checkout com resumo do pedido, endereco de entrega, campo de cupom de desconto e selecao de forma de pagamento.",
+            "acceptance_criteria": [
+              "Resumo do pedido exibe todos os itens, quantidades e valores",
+              "Endereco de entrega exibido e editavel",
+              "Campo de cupom com validacao em tempo real",
+              "Selecao entre Cartao ECP Digital Bank e PIX"
+            ],
+            "stories": [
+              {
+                "id": "US-015",
+                "title": "Visualizar resumo do pedido no checkout",
+                "user_story": "Como consumidor, quero ver o resumo completo do meu pedido no checkout para que eu confirme tudo antes de pagar",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Resumo do pedido no checkout",
+                    "given": "O consumidor tocou em 'Ir para checkout' no carrinho",
+                    "when": "A tela de checkout carrega",
+                    "then": "O resumo exibe: lista de itens com nome, quantidade e preco, endereco de entrega, subtotal, entrega, desconto (se cupom aplicado) e total"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-016",
+                "title": "Aplicar cupom de desconto",
+                "user_story": "Como consumidor, quero aplicar um cupom de desconto no checkout para que eu obtenha o desconto no meu pedido",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Cupom valido",
+                    "given": "O consumidor esta no checkout e o cupom MVP10 esta disponivel",
+                    "when": "Digita 'MVP10' no campo de cupom e confirma",
+                    "then": "O desconto de 10% e aplicado ao subtotal, o resumo financeiro atualiza e uma mensagem de sucesso 'Cupom MVP10 aplicado!' e exibida"
+                  },
+                  {
+                    "scenario": "Cupom invalido",
+                    "given": "O consumidor esta no checkout",
+                    "when": "Digita um codigo de cupom inexistente e confirma",
+                    "then": "Mensagem de erro 'Cupom invalido ou expirado' e exibida e nenhum desconto e aplicado"
+                  },
+                  {
+                    "scenario": "Remover cupom aplicado",
+                    "given": "O consumidor tem o cupom MVP10 aplicado",
+                    "when": "Toca em 'Remover cupom'",
+                    "then": "O desconto e removido e o resumo financeiro atualiza para o valor sem desconto"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-017",
+                "title": "Confirmar endereco de entrega no checkout",
+                "user_story": "Como consumidor, quero confirmar meu endereco de entrega no checkout para que o pedido seja entregue no local correto",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Endereco salvo exibido no checkout",
+                    "given": "O consumidor tem endereco cadastrado no perfil",
+                    "when": "Acessa o checkout",
+                    "then": "O endereco salvo e exibido como endereco de entrega com opcao de editar"
+                  },
+                  {
+                    "scenario": "Editar endereco no checkout",
+                    "given": "O consumidor esta no checkout com endereco exibido",
+                    "when": "Toca em 'Editar endereco'",
+                    "then": "Um campo editavel permite alterar o endereco de entrega"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              }
+            ]
+          },
+          {
+            "id": "F02.3",
+            "title": "Acompanhamento do Status do Pedido",
+            "description": "Tela de acompanhamento do pedido com numero de protocolo e linha do tempo de status (Confirmado, Preparando, Saiu para entrega, Entregue).",
+            "acceptance_criteria": [
+              "Numero de protocolo do pedido exibido apos confirmacao",
+              "Linha do tempo mostra status atual com destaque visual",
+              "Status atualiza conforme restaurante avanca etapas"
+            ],
+            "stories": [
+              {
+                "id": "US-018",
+                "title": "Visualizar confirmacao do pedido com protocolo",
+                "user_story": "Como consumidor, quero ver a confirmacao do meu pedido com numero de protocolo para que eu tenha registro do pedido realizado",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Pedido confirmado apos pagamento",
+                    "given": "O pagamento do consumidor foi confirmado com sucesso",
+                    "when": "A tela de confirmacao e exibida",
+                    "then": "Sao mostrados: animacao de confirmacao, numero de protocolo do pedido, resumo dos itens e botao 'Acompanhar pedido'"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-019",
+                "title": "Acompanhar status do pedido em tempo real",
+                "user_story": "Como consumidor, quero acompanhar o status do meu pedido (Confirmado, Preparando, Saiu para entrega, Entregue) para que eu saiba quando minha comida vai chegar",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Pedido em preparacao",
+                    "given": "O restaurante atualizou o status do pedido para 'Preparando'",
+                    "when": "O consumidor visualiza a tela de acompanhamento",
+                    "then": "A linha do tempo destaca 'Preparando' como etapa atual e as etapas anteriores aparecem como concluidas"
+                  },
+                  {
+                    "scenario": "Pedido entregue",
+                    "given": "O status do pedido foi atualizado para 'Entregue'",
+                    "when": "O consumidor visualiza a tela de acompanhamento",
+                    "then": "Todas as etapas da linha do tempo estao marcadas como concluidas e uma mensagem 'Bom apetite!' e exibida"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "E03",
+        "title": "Pagamento Integrado ECP Digital Bank",
+        "description": "Integrar pagamento com ecp-digital-bank via cartao virtual e PIX QR Code, minimizando friccao no fluxo de pagamento e garantindo feedback em tempo real para o consumidor.",
+        "linked_krs": ["KR1"],
+        "linked_opportunities": ["OPP-02", "OPP-05"],
+        "linked_hypotheses": ["H05", "H06"],
+        "linked_functionalities": ["F05"],
+        "benefit_hypothesis": "Se integrarmos pagamento via cartao virtual ECP (autenticacao inline, selecao de cartao em 2 toques) e PIX com QR Code contextual e feedback em tempo real via SSE, entao 85% dos consumidores completarao o pagamento sem ajuda e a taxa de abandono no checkout sera inferior a 15%.",
+        "features": [
+          {
+            "id": "F03.1",
+            "title": "Pagamento com Cartao Virtual ECP Digital Bank",
+            "description": "Fluxo de pagamento via cartao virtual: autenticacao inline no ecp-digital-bank, listagem de cartoes com saldo, selecao e confirmacao de debito.",
+            "acceptance_criteria": [
+              "Autenticacao inline com email/senha do ecp-digital-bank (sem redirect)",
+              "Listagem de cartoes virtuais com ultimos 4 digitos e saldo",
+              "Confirmacao de debito com valor exato e feedback imediato",
+              "Sessao do banco persistente durante a sessao do FoodFlow"
+            ],
+            "stories": [
+              {
+                "id": "US-020",
+                "title": "Autenticar no ECP Digital Bank para pagamento",
+                "user_story": "Como consumidor, quero autenticar minha conta do ECP Digital Bank dentro do FoodFlow para que eu pague com meu cartao virtual sem sair do app",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Primeira autenticacao no banco",
+                    "given": "O consumidor selecionou 'Pagar com Cartao ECP Digital Bank' no checkout",
+                    "when": "E a primeira vez que autentica nesta sessao",
+                    "then": "Campos inline de email e senha do banco digital aparecem com label 'Conecte sua conta ECP Digital Bank'"
+                  },
+                  {
+                    "scenario": "Autenticacao bem-sucedida",
+                    "given": "O consumidor preencheu email e senha do banco digital",
+                    "when": "Toca em 'Conectar'",
+                    "then": "Um loading sutil e exibido, seguido da lista de cartoes virtuais do usuario"
+                  },
+                  {
+                    "scenario": "Credenciais invalidas",
+                    "given": "O consumidor preencheu email ou senha incorretos",
+                    "when": "Toca em 'Conectar'",
+                    "then": "Mensagem de erro 'Email ou senha invalidos' e exibida e os campos permanecem editaveis"
+                  },
+                  {
+                    "scenario": "Sessao ja autenticada",
+                    "given": "O consumidor ja autenticou no banco digital nesta sessao do FoodFlow",
+                    "when": "Seleciona 'Pagar com Cartao ECP' em um novo pedido",
+                    "then": "Os cartoes virtuais aparecem imediatamente sem solicitar re-autenticacao"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "L"
+              },
+              {
+                "id": "US-021",
+                "title": "Selecionar cartao virtual e confirmar pagamento",
+                "user_story": "Como consumidor, quero selecionar meu cartao virtual e confirmar o pagamento para que o valor seja debitado e meu pedido confirmado",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Selecionar cartao e confirmar",
+                    "given": "O consumidor esta autenticado e ve a lista de cartoes virtuais",
+                    "when": "Seleciona 'Cartao Virtual ****4521 | Saldo: R$320.00'",
+                    "then": "Um resumo final e exibido: 'Debitar R$64.70 do cartao ****4521?' com botao 'Confirmar Pagamento'"
+                  },
+                  {
+                    "scenario": "Pagamento confirmado com sucesso",
+                    "given": "O consumidor tocou em 'Confirmar Pagamento'",
+                    "when": "A transacao e processada com sucesso no ecp-digital-bank",
+                    "then": "Animacao de check verde e exibida com 'Pedido confirmado!' e transicao automatica para tela de acompanhamento"
+                  },
+                  {
+                    "scenario": "Saldo insuficiente",
+                    "given": "O consumidor selecionou um cartao com saldo inferior ao total do pedido",
+                    "when": "Toca em 'Confirmar Pagamento'",
+                    "then": "Mensagem 'Saldo insuficiente neste cartao. Selecione outro cartao ou escolha PIX.' e exibida"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "L"
+              }
+            ]
+          },
+          {
+            "id": "F03.2",
+            "title": "Pagamento via PIX com QR Code e Feedback em Tempo Real",
+            "description": "Fluxo de pagamento via PIX: geracao de QR Code pelo ecp-digital-bank, instrucoes contextuais, timer de validade e confirmacao automatica via webhook + SSE.",
+            "acceptance_criteria": [
+              "QR Code gerado e exibido com valor exato em destaque",
+              "Instrucoes passo a passo visiveis ao redor do QR Code",
+              "Timer de validade do QR Code visivel",
+              "Confirmacao automatica via SSE sem refresh manual"
+            ],
+            "stories": [
+              {
+                "id": "US-022",
+                "title": "Gerar QR Code PIX para pagamento",
+                "user_story": "Como consumidor, quero gerar um QR Code PIX no checkout para que eu pague com qualquer app bancario",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "QR Code gerado com sucesso",
+                    "given": "O consumidor selecionou 'Pagar com PIX' no checkout",
+                    "when": "O QR Code e gerado pelo ecp-digital-bank",
+                    "then": "A tela exibe: QR Code centralizado, valor 'R$64.70' em destaque acima, instrucoes '1. Abra seu app bancario 2. Escaneie este QR Code 3. Confirme o pagamento' e timer de validade"
+                  },
+                  {
+                    "scenario": "Erro na geracao do QR Code",
+                    "given": "O consumidor selecionou 'Pagar com PIX'",
+                    "when": "Ocorre erro na comunicacao com o ecp-digital-bank",
+                    "then": "Mensagem 'Nao foi possivel gerar o QR Code. Tente novamente.' com botao 'Tentar novamente'"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "L"
+              },
+              {
+                "id": "US-023",
+                "title": "Receber confirmacao de pagamento PIX em tempo real",
+                "user_story": "Como consumidor, quero que a tela atualize automaticamente quando meu pagamento PIX for confirmado para que eu saiba que o pedido foi aprovado sem precisar atualizar a pagina",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Pagamento PIX confirmado via SSE",
+                    "given": "O consumidor esta na tela de QR Code aguardando pagamento",
+                    "when": "O ecp-digital-bank confirma o pagamento via webhook e o FoodFlow notifica via SSE",
+                    "then": "A tela atualiza automaticamente: QR Code desaparece, animacao de check verde aparece, texto muda para 'Pagamento confirmado! Seu pedido esta sendo preparado' e botao 'Acompanhar pedido' aparece"
+                  },
+                  {
+                    "scenario": "QR Code expirado",
+                    "given": "O consumidor esta na tela de QR Code e o timer chegou a zero",
+                    "when": "O tempo de validade expira",
+                    "then": "Mensagem 'QR Code expirado' e exibida com botao 'Gerar novo QR Code'"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "XL"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "E04",
+        "title": "Retencao e Recorrencia",
+        "description": "Criar mecanismos que transformam o primeiro pedido em habito, com recompra rapida, favoritos como curadoria pessoal e incentivos de retorno contextuais.",
+        "linked_krs": ["KR2"],
+        "linked_opportunities": ["OPP-06", "OPP-07"],
+        "linked_hypotheses": ["H07", "H08", "H09"],
+        "linked_functionalities": ["F06", "F07"],
+        "benefit_hypothesis": "Se oferecermos 'Repetir Pedido' em 1 toque, favoritos com status em tempo real e incentivos de retorno contextuais (cupom de boas-vindas, frete gratis, promos no pos-pedido), entao a taxa de recompra em 30 dias sera superior a 25%.",
+        "features": [
+          {
+            "id": "F04.1",
+            "title": "Historico de Pedidos com Repeticao Rapida",
+            "description": "Lista de pedidos anteriores com dados completos e botao 'Repetir' que pre-popula o carrinho em 1 toque, com tratamento inteligente de itens indisponiveis.",
+            "acceptance_criteria": [
+              "Lista ordenada por data com restaurante, itens, valor e status",
+              "Botao 'Repetir' proeminente em cada pedido",
+              "Carrinho pre-populado ao repetir com feedback de itens indisponiveis",
+              "Itens indisponiveis removidos de forma nao-bloqueante"
+            ],
+            "stories": [
+              {
+                "id": "US-024",
+                "title": "Visualizar historico de pedidos",
+                "user_story": "Como consumidor, quero ver meus pedidos anteriores com data, restaurante, itens e valor para que eu tenha registro do que ja pedi",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Historico com pedidos",
+                    "given": "O consumidor logado ja realizou pedidos anteriores",
+                    "when": "Acessa a tela de historico",
+                    "then": "Uma lista ordenada por data (mais recente primeiro) exibe cards com: nome do restaurante, data, lista de itens, valor total e status final (Entregue/Cancelado)"
+                  },
+                  {
+                    "scenario": "Historico vazio",
+                    "given": "O consumidor logado nunca fez um pedido",
+                    "when": "Acessa a tela de historico",
+                    "then": "Mensagem 'Voce ainda nao fez nenhum pedido' com CTA 'Explorar restaurantes'"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-025",
+                "title": "Repetir pedido anterior em 1 toque",
+                "user_story": "Como consumidor recorrente, quero repetir um pedido anterior com 1 toque para que eu va do app ao checkout em menos de 60 segundos",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Repetir pedido com todos os itens disponiveis",
+                    "given": "O consumidor esta no historico e todos os itens do pedido anterior estao disponiveis",
+                    "when": "Toca no botao 'Repetir' de um pedido",
+                    "then": "O carrinho e pre-populado com todos os itens (mesmo restaurante, mesmos itens, mesmas quantidades) e o consumidor e direcionado ao carrinho com mensagem 'Carrinho preenchido com seu pedido de [data]!'"
+                  },
+                  {
+                    "scenario": "Repetir pedido com item indisponivel",
+                    "given": "O consumidor toca em 'Repetir' e 1 dos 3 itens esta desativado no cardapio",
+                    "when": "O sistema tenta recriar o carrinho",
+                    "then": "Os 2 itens disponiveis sao adicionados ao carrinho e um toast informa 'Sashimi Especial indisponivel hoje — removido do carrinho'"
+                  },
+                  {
+                    "scenario": "Restaurante offline",
+                    "given": "O consumidor toca em 'Repetir' de um pedido cujo restaurante esta offline",
+                    "when": "O sistema verifica disponibilidade",
+                    "then": "Mensagem 'Restaurante [nome] esta fechado no momento. Tente novamente mais tarde.' e o carrinho nao e alterado"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F04.2",
+            "title": "Sistema de Favoritos com Status em Tempo Real",
+            "description": "Funcionalidade de favoritar restaurantes com coracao, tela de favoritos com status dinamico (online/offline, promo ativa, ETA) e acesso rapido para pedido.",
+            "acceptance_criteria": [
+              "Icone de coracao em cards de restaurante para favoritar/desfavoritar",
+              "Tela de favoritos com status em tempo real (online, promo, ETA)",
+              "Animacao de feedback ao favoritar"
+            ],
+            "stories": [
+              {
+                "id": "US-026",
+                "title": "Favoritar e desfavoritar restaurante",
+                "user_story": "Como consumidor, quero marcar restaurantes como favoritos para que eu tenha acesso rapido aos que mais gosto",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Favoritar restaurante",
+                    "given": "O consumidor esta visualizando um card de restaurante que nao e favorito",
+                    "when": "Toca no icone de coracao",
+                    "then": "O coracao preenche com animacao, toast 'Restaurante salvo nos favoritos!' aparece e o restaurante e adicionado a lista de favoritos"
+                  },
+                  {
+                    "scenario": "Desfavoritar restaurante",
+                    "given": "O consumidor esta visualizando um restaurante que ja e favorito",
+                    "when": "Toca no icone de coracao preenchido",
+                    "then": "O coracao esvazia com animacao e o restaurante e removido da lista de favoritos"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-027",
+                "title": "Visualizar tela de favoritos com status dinamico",
+                "user_story": "Como consumidor, quero ver meus restaurantes favoritos com status em tempo real para que eu saiba quais estao disponiveis e com promocao agora",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Favoritos com status dinamico",
+                    "given": "O consumidor tem 3 restaurantes favoritados",
+                    "when": "Acessa a tela de favoritos",
+                    "then": "Cada restaurante mostra: nome, foto, status (Online/Offline), ETA atual, taxa de entrega e badge de promo ativa (se houver)"
+                  },
+                  {
+                    "scenario": "Sem favoritos",
+                    "given": "O consumidor nao favoritou nenhum restaurante",
+                    "when": "Acessa a tela de favoritos",
+                    "then": "Mensagem 'Voce ainda nao tem favoritos' com CTA 'Explorar restaurantes'"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F04.3",
+            "title": "Incentivos de Retorno e Cupom de Boas-Vindas",
+            "description": "Sistema de cupons com cupom de boas-vindas MVP10 apresentado no primeiro acesso, promocoes visiveis na home e incentivo de proximo pedido na confirmacao.",
+            "acceptance_criteria": [
+              "Cupom MVP10 apresentado de forma celebratoria no primeiro acesso",
+              "Cupom salvo automaticamente no perfil do consumidor",
+              "Incentivo de proximo pedido exibido na tela de confirmacao",
+              "Cupons disponiveis visiveis no perfil"
+            ],
+            "stories": [
+              {
+                "id": "US-028",
+                "title": "Receber cupom de boas-vindas no primeiro acesso",
+                "user_story": "Como novo consumidor, quero receber um cupom de desconto no meu primeiro acesso para que eu tenha incentivo para fazer meu primeiro pedido",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Cupom de boas-vindas no primeiro login",
+                    "given": "O consumidor acabou de criar sua conta e faz login pela primeira vez",
+                    "when": "A home carrega",
+                    "then": "Um modal celebratorio exibe 'Bem-vindo ao FoodFlow! 10% OFF no primeiro pedido. Cupom MVP10 ja salvo!' com botao 'Explorar Restaurantes'"
+                  },
+                  {
+                    "scenario": "Cupom salvo no perfil",
+                    "given": "O consumidor recebeu o cupom MVP10",
+                    "when": "Acessa a secao de cupons no perfil",
+                    "then": "O cupom MVP10 aparece como disponivel com regra '10% de desconto no primeiro pedido'"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-029",
+                "title": "Ver incentivo de proximo pedido na confirmacao",
+                "user_story": "Como consumidor, quero ver um incentivo para o proximo pedido apos confirmar meu pedido atual para que eu tenha razao para voltar ao FoodFlow",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Incentivo na tela de confirmacao",
+                    "given": "O pagamento do consumidor foi confirmado",
+                    "when": "A tela de confirmacao e exibida",
+                    "then": "Alem do numero de protocolo, um destaque mostra 'Sabia que pedidos acima de R$120 tem frete gratis? Aproveite no proximo pedido!'"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "S"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "E05",
+        "title": "Onboarding e Autenticacao",
+        "description": "Permitir que consumidores criem conta, facao login e definam endereco de entrega de forma rapida, com sessao persistente para minimizar friccao de re-autenticacao.",
+        "linked_krs": ["KR1", "KR2"],
+        "linked_opportunities": ["OPP-02", "OPP-05"],
+        "linked_hypotheses": ["H01", "H08"],
+        "linked_functionalities": ["F01"],
+        "benefit_hypothesis": "Se oferecermos cadastro simples (email/senha), login rapido com sessao persistente via JWT e definicao de endereco sem fricção, entao o tempo ate o primeiro pedido sera inferior a 5 minutos e a taxa de abandono no onboarding sera inferior a 30%.",
+        "features": [
+          {
+            "id": "F05.1",
+            "title": "Cadastro e Login do Consumidor",
+            "description": "Fluxo de cadastro com email/senha e login com sessao persistente via JWT.",
+            "acceptance_criteria": [
+              "Cadastro com nome, email, senha e confirmacao de senha",
+              "Login com email/senha",
+              "Sessao persistente via JWT com expiracao configuravel",
+              "Validacao de campos e feedback de erros claros"
+            ],
+            "stories": [
+              {
+                "id": "US-030",
+                "title": "Cadastrar conta de consumidor",
+                "user_story": "Como visitante, quero criar uma conta no FoodFlow com email e senha para que eu possa fazer pedidos e salvar meus dados",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Cadastro bem-sucedido",
+                    "given": "O visitante esta na tela de cadastro",
+                    "when": "Preenche nome, email, senha e confirmacao de senha validos e toca em 'Criar conta'",
+                    "then": "A conta e criada, o usuario e logado automaticamente e redirecionado para a home"
+                  },
+                  {
+                    "scenario": "Email ja cadastrado",
+                    "given": "O visitante esta na tela de cadastro",
+                    "when": "Preenche um email que ja existe no sistema",
+                    "then": "Mensagem de erro 'Este email ja esta cadastrado. Faca login.' e exibida com link para login"
+                  },
+                  {
+                    "scenario": "Senha fraca",
+                    "given": "O visitante esta na tela de cadastro",
+                    "when": "Digita uma senha com menos de 6 caracteres",
+                    "then": "Mensagem de validacao 'A senha deve ter pelo menos 6 caracteres' e exibida"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-031",
+                "title": "Fazer login com email e senha",
+                "user_story": "Como consumidor cadastrado, quero fazer login com meu email e senha para que eu acesse minha conta e pedidos",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Login bem-sucedido",
+                    "given": "O consumidor esta na tela de login",
+                    "when": "Preenche email e senha corretos e toca em 'Entrar'",
+                    "then": "O usuario e autenticado, JWT e armazenado e e redirecionado para a home"
+                  },
+                  {
+                    "scenario": "Credenciais invalidas",
+                    "given": "O consumidor esta na tela de login",
+                    "when": "Preenche email ou senha incorretos",
+                    "then": "Mensagem de erro 'Email ou senha incorretos' e exibida"
+                  },
+                  {
+                    "scenario": "Sessao persistente",
+                    "given": "O consumidor fez login anteriormente e o JWT nao expirou",
+                    "when": "Abre o FoodFlow novamente",
+                    "then": "O consumidor e automaticamente logado sem precisar digitar credenciais"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F05.2",
+            "title": "Gestao de Endereco de Entrega",
+            "description": "Definicao e gerenciamento de enderecos de entrega com texto livre e CEP.",
+            "acceptance_criteria": [
+              "Cadastro de endereco com texto livre e CEP",
+              "Multiplos enderecos salvos por usuario",
+              "Selecao de endereco padrao"
+            ],
+            "stories": [
+              {
+                "id": "US-032",
+                "title": "Definir endereco de entrega",
+                "user_story": "Como consumidor, quero cadastrar meu endereco de entrega para que meus pedidos sejam entregues no local correto",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Cadastrar primeiro endereco",
+                    "given": "O consumidor esta logado e nao tem endereco cadastrado",
+                    "when": "Acessa a tela de adicionar endereco e preenche rua, numero, complemento, bairro, cidade e CEP",
+                    "then": "O endereco e salvo como endereco padrao e exibido no perfil"
+                  },
+                  {
+                    "scenario": "Adicionar segundo endereco",
+                    "given": "O consumidor ja tem 1 endereco cadastrado",
+                    "when": "Adiciona um novo endereco",
+                    "then": "O novo endereco e salvo e o consumidor pode escolher qual e o padrao"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-033",
+                "title": "Gerenciar enderecos salvos",
+                "user_story": "Como consumidor, quero editar e excluir meus enderecos salvos para que eu mantenha apenas enderecos validos",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Editar endereco existente",
+                    "given": "O consumidor esta na lista de enderecos salvos",
+                    "when": "Toca em 'Editar' de um endereco",
+                    "then": "Os campos do endereco ficam editaveis e o consumidor pode salvar as alteracoes"
+                  },
+                  {
+                    "scenario": "Excluir endereco",
+                    "given": "O consumidor tem 2 enderecos salvos",
+                    "when": "Toca em 'Excluir' do endereco nao-padrao",
+                    "then": "O endereco e removido da lista"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "S"
+              }
+            ]
+          },
+          {
+            "id": "F05.3",
+            "title": "Perfil do Consumidor",
+            "description": "Tela de perfil para visualizar e editar dados pessoais, ver cupons disponiveis e fazer logout.",
+            "acceptance_criteria": [
+              "Exibicao e edicao de nome, email e telefone",
+              "Lista de cupons disponiveis",
+              "Botao de logout funcional"
+            ],
+            "stories": [
+              {
+                "id": "US-034",
+                "title": "Visualizar e editar dados pessoais",
+                "user_story": "Como consumidor, quero ver e editar meus dados pessoais (nome, email, telefone) para que meu perfil esteja sempre atualizado",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Visualizar perfil",
+                    "given": "O consumidor esta logado",
+                    "when": "Acessa a tela de perfil",
+                    "then": "Nome, email e telefone sao exibidos com opcao de edicao"
+                  },
+                  {
+                    "scenario": "Editar nome",
+                    "given": "O consumidor esta na tela de perfil",
+                    "when": "Altera o nome e toca em 'Salvar'",
+                    "then": "O nome e atualizado e mensagem de confirmacao 'Dados atualizados com sucesso' e exibida"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-035",
+                "title": "Visualizar cupons disponiveis",
+                "user_story": "Como consumidor, quero ver meus cupons disponiveis para que eu saiba quais descontos posso usar no proximo pedido",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Cupons disponiveis",
+                    "given": "O consumidor tem cupons ativos no perfil",
+                    "when": "Acessa a secao de cupons",
+                    "then": "Lista de cupons com codigo, descricao, percentual de desconto e validade e exibida"
+                  },
+                  {
+                    "scenario": "Sem cupons disponiveis",
+                    "given": "O consumidor nao tem cupons ativos",
+                    "when": "Acessa a secao de cupons",
+                    "then": "Mensagem 'Nenhum cupom disponivel no momento' e exibida"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-036",
+                "title": "Fazer logout",
+                "user_story": "Como consumidor, quero sair da minha conta para que meus dados fiquem protegidos em dispositivos compartilhados",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Logout bem-sucedido",
+                    "given": "O consumidor esta logado e na tela de perfil",
+                    "when": "Toca em 'Sair'",
+                    "then": "O JWT e removido, a sessao e encerrada e o consumidor e redirecionado para a tela de login"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "E06",
+        "title": "Gestao do Restaurante",
+        "description": "Empoderar restaurantes artesanais com ferramentas para gerenciar cardapio, pedidos e perfil de forma autonoma, com onboarding guiado que leva do cadastro ao primeiro item em 30 minutos.",
+        "linked_krs": ["KR4"],
+        "linked_opportunities": ["OPP-13", "OPP-14", "OPP-15", "OPP-18"],
+        "linked_hypotheses": ["H10", "H11", "H12"],
+        "linked_functionalities": ["F08", "F09", "F10"],
+        "benefit_hypothesis": "Se oferecermos onboarding guiado em 4 passos, painel admin com 3 areas claras (Cardapio, Pedidos, Perfil) e ranking por qualidade, entao 80% dos restaurantes completarao o onboarding em menos de 30 minutos e atingiremos 50+ restaurantes ativos nos primeiros 3 meses.",
+        "features": [
+          {
+            "id": "F06.1",
+            "title": "Gestao de Cardapio (CRUD de Itens)",
+            "description": "Painel para adicionar, editar, ativar/desativar e ordenar itens do cardapio com preview visual em tempo real.",
+            "acceptance_criteria": [
+              "CRUD completo de itens (nome, descricao, preco, badge, categoria interna, emoji)",
+              "Toggle de ativar/desativar item sem exclusao",
+              "Ordenacao de itens via drag-and-drop ou setas",
+              "Preview visual do item conforme sera exibido ao consumidor"
+            ],
+            "stories": [
+              {
+                "id": "US-037",
+                "title": "Adicionar item ao cardapio",
+                "user_story": "Como restaurante, quero adicionar um novo item ao meu cardapio com nome, descricao, preco, badge e emoji para que consumidores possam ve-lo e pedi-lo",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Adicionar item com dados completos",
+                    "given": "O restaurante esta no painel de cardapio",
+                    "when": "Toca em 'Adicionar Item' e preenche nome 'Hamburguer Artesanal', descricao, preco R$42.90, badge 'Best Seller' e emoji",
+                    "then": "O item e criado, aparece na lista do cardapio e um preview mostra como sera exibido ao consumidor"
+                  },
+                  {
+                    "scenario": "Validacao de campos obrigatorios",
+                    "given": "O restaurante esta adicionando um item",
+                    "when": "Tenta salvar sem preencher nome ou preco",
+                    "then": "Mensagens de validacao 'Nome e obrigatorio' e/ou 'Preco e obrigatorio' sao exibidas"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-038",
+                "title": "Editar item do cardapio",
+                "user_story": "Como restaurante, quero editar as informacoes de um item existente para que eu mantenha o cardapio atualizado",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Editar preco de item",
+                    "given": "O restaurante esta na lista de itens do cardapio",
+                    "when": "Toca em 'Editar' no item 'Hamburguer Artesanal' e altera o preco de R$42.90 para R$44.90",
+                    "then": "O preco e atualizado e o preview reflete o novo valor"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-039",
+                "title": "Ativar e desativar item do cardapio",
+                "user_story": "Como restaurante, quero ativar ou desativar itens do cardapio para que eu controle o que esta disponivel sem excluir permanentemente",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Desativar item",
+                    "given": "O restaurante tem um item ativo no cardapio",
+                    "when": "Toca no toggle de ativar/desativar do item",
+                    "then": "O item e marcado como inativo, nao aparece no cardapio para consumidores e uma indicacao visual mostra que esta desativado no painel"
+                  },
+                  {
+                    "scenario": "Reativar item",
+                    "given": "O restaurante tem um item desativado",
+                    "when": "Toca no toggle novamente",
+                    "then": "O item volta a aparecer no cardapio para consumidores"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-040",
+                "title": "Ordenar itens no cardapio",
+                "user_story": "Como restaurante, quero ordenar os itens do meu cardapio para que os pratos mais importantes aparecam primeiro para os consumidores",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Reordenar itens",
+                    "given": "O restaurante esta na lista de itens do cardapio",
+                    "when": "Arrasta um item para cima na lista (ou usa setas de ordenacao)",
+                    "then": "A ordem e salva e refletida na visualizacao do consumidor"
+                  }
+                ],
+                "priority": "could",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F06.2",
+            "title": "Gestao de Pedidos em Tempo Real",
+            "description": "Painel de pedidos com lista em tempo real, detalhes do pedido e botoes de acao para atualizar status (Confirmado, Preparando, Pronto para retirada).",
+            "acceptance_criteria": [
+              "Lista de pedidos atualizada em tempo real",
+              "Badge 'Novo' pulsante em pedidos recebidos",
+              "Detalhes do pedido: itens, quantidades, valor, endereco",
+              "Botoes de acao sequenciais para atualizar status"
+            ],
+            "stories": [
+              {
+                "id": "US-041",
+                "title": "Receber e visualizar pedidos em tempo real",
+                "user_story": "Como restaurante, quero ver novos pedidos chegando em tempo real para que eu possa comecar a preparar rapidamente",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Novo pedido recebido",
+                    "given": "O restaurante esta com o painel de pedidos aberto",
+                    "when": "Um consumidor faz um pedido neste restaurante",
+                    "then": "O pedido aparece na lista com badge 'Novo' pulsante, mostrando: numero do pedido, horario, quantidade de itens e valor total"
+                  },
+                  {
+                    "scenario": "Visualizar detalhes do pedido",
+                    "given": "O restaurante ve um pedido novo na lista",
+                    "when": "Toca no pedido",
+                    "then": "Os detalhes completos sao exibidos: lista de itens com nome e quantidade, valor total, endereco de entrega"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "L"
+              },
+              {
+                "id": "US-042",
+                "title": "Atualizar status do pedido",
+                "user_story": "Como restaurante, quero atualizar o status de cada pedido (Confirmar, Preparando, Pronto) para que o consumidor acompanhe o progresso",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Confirmar pedido",
+                    "given": "O restaurante esta vendo um pedido com status 'Novo'",
+                    "when": "Toca no botao 'Confirmar Pedido'",
+                    "then": "O status muda para 'Confirmado' e o botao muda para 'Marcar como Preparando'"
+                  },
+                  {
+                    "scenario": "Marcar como preparando",
+                    "given": "O pedido esta com status 'Confirmado'",
+                    "when": "Toca em 'Marcar como Preparando'",
+                    "then": "O status muda para 'Preparando' e o botao muda para 'Marcar como Pronto'"
+                  },
+                  {
+                    "scenario": "Marcar como pronto para retirada",
+                    "given": "O pedido esta com status 'Preparando'",
+                    "when": "Toca em 'Marcar como Pronto para Retirada'",
+                    "then": "O status muda para 'Pronto para Retirada' e o pedido sai da fila ativa para o historico"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F06.3",
+            "title": "Dados e Perfil do Restaurante",
+            "description": "Edicao de informacoes publicas do restaurante (nome, subtitulo, culinaria, cover, ETA), configuracao de taxa de entrega, pedido minimo e gerenciamento de promocoes.",
+            "acceptance_criteria": [
+              "Edicao de dados visiveis: nome, subtitulo, tipo de culinaria, foto de capa, ETA",
+              "Configuracao de taxa de entrega e pedido minimo",
+              "CRUD de promocoes ativas (texto, regras)"
+            ],
+            "stories": [
+              {
+                "id": "US-043",
+                "title": "Editar informacoes do restaurante",
+                "user_story": "Como restaurante, quero editar minhas informacoes publicas (nome, subtitulo, tipo de culinaria, foto de capa, ETA estimado) para que meu perfil esteja sempre atrativo e atualizado",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Editar dados basicos",
+                    "given": "O restaurante esta na aba 'Perfil' do painel",
+                    "when": "Altera o subtitulo para 'Sushi artesanal feito na hora' e salva",
+                    "then": "O subtitulo e atualizado e refletido no card do restaurante visivel para consumidores"
+                  },
+                  {
+                    "scenario": "Atualizar foto de capa",
+                    "given": "O restaurante esta editando seu perfil",
+                    "when": "Faz upload de uma nova foto de capa",
+                    "then": "A foto e atualizada no card e na pagina de detalhe do restaurante"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-044",
+                "title": "Configurar taxa de entrega e pedido minimo",
+                "user_story": "Como restaurante, quero definir minha taxa de entrega e pedido minimo para que eu controle a viabilidade de cada entrega",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Definir taxa de entrega",
+                    "given": "O restaurante esta na aba 'Perfil'",
+                    "when": "Define taxa de entrega como R$6.90 e pedido minimo como R$25.00",
+                    "then": "Os valores sao salvos e exibidos no card do restaurante na home do consumidor"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-045",
+                "title": "Gerenciar promocoes ativas",
+                "user_story": "Como restaurante, quero criar e gerenciar promocoes para que eu atraia mais consumidores com ofertas atrativas",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Criar nova promocao",
+                    "given": "O restaurante esta na secao de promocoes do perfil",
+                    "when": "Cria uma promocao com texto '20% OFF em combinados' e define regras",
+                    "then": "A promocao fica ativa e um badge de promo aparece no card do restaurante para consumidores"
+                  },
+                  {
+                    "scenario": "Desativar promocao",
+                    "given": "O restaurante tem uma promocao ativa",
+                    "when": "Desativa a promocao",
+                    "then": "O badge de promo e removido do card do restaurante"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "M"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "E07",
+        "title": "Administracao da Plataforma",
+        "description": "Ferramentas de administracao global para gestao de restaurantes (aprovacao, suspensao), categorias e promocoes da plataforma, com metricas gerais de saude do marketplace.",
+        "linked_krs": ["KR4"],
+        "linked_opportunities": ["OPP-14", "OPP-18"],
+        "linked_hypotheses": ["H12"],
+        "linked_functionalities": ["F11", "F12"],
+        "benefit_hypothesis": "Se oferecermos um painel admin com aprovacao rapida de restaurantes, gestao de categorias e promocoes globais, e metricas de saude do marketplace, entao o tempo de onboarding de restaurantes sera inferior a 24h de aprovacao e a plataforma tera curadoria ativa de qualidade.",
+        "features": [
+          {
+            "id": "F07.1",
+            "title": "Gestao de Restaurantes pela Plataforma",
+            "description": "Painel admin para aprovar/rejeitar cadastros, suspender/reativar restaurantes e visualizar metricas gerais.",
+            "acceptance_criteria": [
+              "Lista de restaurantes pendentes de aprovacao",
+              "Botoes Aprovar/Rejeitar com motivo obrigatorio na rejeicao",
+              "Suspensao e reativacao de restaurantes ativos",
+              "Dashboard com metricas: total de restaurantes, pedidos e ticket medio"
+            ],
+            "stories": [
+              {
+                "id": "US-046",
+                "title": "Aprovar ou rejeitar cadastro de restaurante",
+                "user_story": "Como admin da plataforma, quero aprovar ou rejeitar cadastros de restaurantes para que apenas estabelecimentos que atendem ao padrao de qualidade estejam no FoodFlow",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Aprovar restaurante",
+                    "given": "O admin esta na lista de restaurantes pendentes",
+                    "when": "Visualiza os dados do restaurante e toca em 'Aprovar'",
+                    "then": "O restaurante e ativado na plataforma e seus itens ficam visiveis para consumidores"
+                  },
+                  {
+                    "scenario": "Rejeitar restaurante",
+                    "given": "O admin esta na lista de restaurantes pendentes",
+                    "when": "Toca em 'Rejeitar' e informa o motivo",
+                    "then": "O restaurante nao e ativado e o motivo da rejeicao e registrado"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-047",
+                "title": "Suspender e reativar restaurante",
+                "user_story": "Como admin da plataforma, quero suspender restaurantes que violem regras e reativa-los quando adequado para que a qualidade da plataforma seja mantida",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Suspender restaurante ativo",
+                    "given": "O admin esta visualizando um restaurante ativo",
+                    "when": "Toca em 'Suspender' e informa o motivo",
+                    "then": "O restaurante deixa de aparecer para consumidores e nao recebe novos pedidos"
+                  },
+                  {
+                    "scenario": "Reativar restaurante suspenso",
+                    "given": "O admin esta visualizando um restaurante suspenso",
+                    "when": "Toca em 'Reativar'",
+                    "then": "O restaurante volta a aparecer para consumidores e pode receber pedidos"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "S"
+              },
+              {
+                "id": "US-048",
+                "title": "Visualizar metricas gerais da plataforma",
+                "user_story": "Como admin da plataforma, quero ver metricas gerais (total de restaurantes, total de pedidos, ticket medio) para que eu acompanhe a saude do marketplace",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Dashboard de metricas",
+                    "given": "O admin esta logado no painel de administracao",
+                    "when": "Acessa a tela principal do admin",
+                    "then": "Sao exibidos: total de restaurantes ativos, total de restaurantes pendentes, total de pedidos (hoje/semana/mes), ticket medio e numero de consumidores cadastrados"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F07.2",
+            "title": "Gestao de Categorias do Marketplace",
+            "description": "CRUD de categorias de culinaria que organizam o catalogo de restaurantes na home.",
+            "acceptance_criteria": [
+              "Criar, editar e remover categorias com nome e icone",
+              "Ordenar categorias exibidas na home",
+              "Associar restaurantes a categorias"
+            ],
+            "stories": [
+              {
+                "id": "US-049",
+                "title": "Gerenciar categorias do marketplace",
+                "user_story": "Como admin da plataforma, quero criar, editar e remover categorias de culinaria para que o catalogo esteja organizado conforme a oferta de restaurantes",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Criar nova categoria",
+                    "given": "O admin esta na gestao de categorias",
+                    "when": "Adiciona uma nova categoria 'Mexicana' com icone",
+                    "then": "A categoria aparece como opcao de filtro na home para consumidores"
+                  },
+                  {
+                    "scenario": "Editar categoria existente",
+                    "given": "O admin esta na lista de categorias",
+                    "when": "Edita o nome da categoria 'Saudavel' para 'Saudavel e Fit'",
+                    "then": "O nome atualizado e refletido nos chips de filtro da home"
+                  },
+                  {
+                    "scenario": "Remover categoria sem restaurantes",
+                    "given": "Uma categoria nao tem restaurantes associados",
+                    "when": "O admin remove a categoria",
+                    "then": "A categoria e removida dos filtros da home"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              }
+            ]
+          },
+          {
+            "id": "F07.3",
+            "title": "Gestao de Promocoes Globais da Plataforma",
+            "description": "CRUD de promocoes globais incluindo cupons de desconto, regras de frete gratis e destaques na home.",
+            "acceptance_criteria": [
+              "Criar, editar e desativar cupons com codigo, percentual e regras",
+              "Configurar regras de frete gratis (threshold de valor)",
+              "Definir promocoes para exibicao no hero banner da home"
+            ],
+            "stories": [
+              {
+                "id": "US-050",
+                "title": "Gerenciar cupons de desconto da plataforma",
+                "user_story": "Como admin da plataforma, quero criar e gerenciar cupons de desconto para que eu controle as promocoes de aquisicao e retencao",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Criar cupom de desconto",
+                    "given": "O admin esta na gestao de promocoes",
+                    "when": "Cria um cupom com codigo 'MVP10', desconto de 10%, valido para primeiro pedido",
+                    "then": "O cupom fica disponivel para consumidores que atendem a regra"
+                  },
+                  {
+                    "scenario": "Desativar cupom expirado",
+                    "given": "Um cupom atingiu sua data de validade",
+                    "when": "O admin visualiza a lista de cupons",
+                    "then": "O cupom aparece como 'Expirado' e nao pode mais ser aplicado por consumidores"
+                  }
+                ],
+                "priority": "must",
+                "story_points_estimate": "M"
+              },
+              {
+                "id": "US-051",
+                "title": "Configurar promocao para hero banner",
+                "user_story": "Como admin da plataforma, quero definir qual promocao aparece no hero banner da home para que eu destaque ofertas estrategicas",
+                "acceptance_criteria_gherkin": [
+                  {
+                    "scenario": "Definir promocao do hero banner",
+                    "given": "O admin esta na gestao de promocoes",
+                    "when": "Seleciona uma promocao e marca como 'Destaque na Home'",
+                    "then": "A promocao e exibida no hero banner da home para todos os consumidores"
+                  }
+                ],
+                "priority": "should",
+                "story_points_estimate": "S"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "total_epics": 7,
+    "total_features": 19,
+    "total_stories": 51,
+    "priority_summary": {
+      "must": 38,
+      "should": 10,
+      "could": 3
+    },
+    "story_points_distribution": {
+      "S": 15,
+      "M": 24,
+      "L": 8,
+      "XL": 1
+    },
+    "traceability_matrix": {
+      "F01_onboarding": ["E05"],
+      "F02_home_descoberta": ["E01"],
+      "F03_detalhe_restaurante": ["E01"],
+      "F04_carrinho": ["E02"],
+      "F05_checkout_pagamento": ["E02", "E03"],
+      "F06_historico_favoritos": ["E04"],
+      "F07_perfil_consumidor": ["E05"],
+      "F08_gestao_cardapio": ["E06"],
+      "F09_gestao_pedidos": ["E06"],
+      "F10_dados_restaurante": ["E06"],
+      "F11_gestao_restaurantes": ["E07"],
+      "F12_categorias_promocoes": ["E07"]
+    }
+  }
+}

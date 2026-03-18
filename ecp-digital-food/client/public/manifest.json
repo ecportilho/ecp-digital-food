@@ -1,0 +1,16 @@
+{
+  "name": "ECP Food",
+  "short_name": "ECP Food",
+  "description": "Marketplace de delivery de comida premium",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1020",
+  "theme_color": "#7b61ff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

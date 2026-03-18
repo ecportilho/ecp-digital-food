@@ -1,0 +1,518 @@
+{
+  "agent": "product-designer",
+  "phase": "02-product-discovery",
+  "step": "ideacao",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "methodology_references": [
+    "Teresa Torres — Opportunity Solution Tree: hipoteses de solucao mapeadas a oportunidades priorizadas",
+    "Don Norman — The Design of Everyday Things: affordances claras, feedback imediato, modelo mental do usuario",
+    "IDEO — Design Thinking: ideacao divergente antes de convergir, foco em necessidades humanas",
+    "Marty Cagan — Inspired: suposicoes de valor, usabilidade, viabilidade e negocio devem ser testadas antes de construir",
+    "Nir Eyal — Hooked: modelo de gatilho-acao-recompensa-investimento para formacao de habito"
+  ],
+  "segments_legend": {
+    "C1": "Explorador Gastronomico — jovem adulto curioso, ticket R$50-80, motivado por descoberta e experiencia visual",
+    "C2": "Pratico Recorrente — profissional que pede 4-5x/semana, ticket R$40-60, valoriza velocidade e previsibilidade",
+    "C3": "Cacador de Ofertas — sensivel a preco, ticket R$25-40, motivado por cupons e promocoes reais",
+    "R1": "Restaurante Artesanal — chef/dono, cardapio curado, investe em apresentacao, quer visibilidade por qualidade",
+    "R2": "Dark Kitchen — operacao enxuta, decisoes por dados, aceita comissao se volume justificar"
+  },
+  "themes": [
+    {
+      "theme_id": "T1",
+      "name": "Descoberta Curada e Sem Friccao",
+      "opportunities_addressed": ["OPP-01", "OPP-03", "OPP-04"],
+      "linked_krs": ["KR1", "KR3"],
+      "hypotheses": [
+        {
+          "id": "H01",
+          "title": "Home Curada por Contexto de Momento",
+          "description": "Ao abrir o FoodFlow, o consumidor ve uma home organizada por contexto do momento — nao uma lista infinita de restaurantes. A tela apresenta um hero visual com a promocao do dia que ocupa atencao imediata, seguido de um mapa vivo mostrando quantos restaurantes estao online, cupons ativos e frete medio na regiao. Abaixo, um grid de categorias visuais (Hamburguer, Japones, Pizza, Saudavel, Massas, Brasileira) permite filtrar com um toque. Os cards de restaurante comunicam qualidade em 2 segundos: foto de capa com gradiente premium, rating com estrelas, tempo estimado de entrega, taxa de frete, e badges de promocao ativa. O consumidor nao precisa pensar 'o que eu quero comer?' — a curadoria visual guia a decisao.",
+          "opportunities_addressed": ["OPP-01", "OPP-03"],
+          "segments_benefited": ["C1", "C2", "C3"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que organizar a home por contexto visual (hero + categorias + cards ricos) reduz o tempo de decisao para menos de 2 minutos, comparado a listas genericas.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo low-fi, medir quantos toques e quanto tempo o participante leva desde a abertura ate selecionar um restaurante. Comparar com uma versao alternativa de lista simples. Alvo: < 3 toques e < 90 segundos."
+            },
+            {
+              "assumption": "Acreditamos que mostrar metricas ao vivo (restaurantes online, cupons ativos) na home cria senso de urgencia e confianca na plataforma.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, apresentar duas versoes da home (com e sem metricas ao vivo) e perguntar ao participante qual transmite mais confianca. Medir preferencia declarada e percepção de 'plataforma ativa'."
+            },
+            {
+              "assumption": "Acreditamos que o grid de categorias visuais com icones e chips e mais intuitivo que filtros textuais em dropdown para consumidores mobile.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, pedir ao participante para encontrar restaurantes japoneses. Observar se usa os chips de categoria ou tenta buscar por texto. Medir taxa de acerto e hesitacao."
+            }
+          ],
+          "success_criteria": "80% dos participantes do teste de usabilidade conseguem selecionar um restaurante relevante em menos de 3 toques e 90 segundos a partir da home, sem instrucao previa.",
+          "user_flow_sketch": "1. Usuario abre o FoodFlow → 2. Ve hero banner com promocao do dia e barra de busca integrada → 3. Abaixo do hero, ve mapa de disponibilidade com metricas ao vivo → 4. Scrolla para grid de categorias visuais (6 chips com icone e nome) → 5. Toca em 'Japones' → 6. Catalogo filtra instantaneamente, mostrando contador de resultados → 7. Ve cards de restaurantes com foto, rating 4.8, ETA 35min, frete R$6.90, badge 'Promo 20% off' → 8. Toca no card do restaurante que mais atrai visualmente → 9. Entra na tela de detalhe do restaurante"
+        },
+        {
+          "id": "H02",
+          "title": "Cards de Confianca Visual com Prova Social",
+          "description": "Cada card de restaurante no catalogo funciona como uma 'vitrine de confianca' que comunica qualidade antes do clique. O card exibe: foto de capa de alta qualidade com gradiente escuro na base (Midnight Express), nome do restaurante em tipografia premium, subtitulo descritivo (ex: 'Sushi artesanal feito na hora'), rating com numero de avaliacoes, tempo estimado de entrega (ETA), taxa de frete, e badges visuais de qualidade (Best Seller, Vegetariano, Novo na Plataforma). As badges usam cores contrastantes com o dark mode para chamar atencao. A hipotese e que essas evidencias visuais reduzem a barreira de experimentar restaurantes novos — especialmente para C1 que nao confia em restaurantes com poucas avaliacoes.",
+          "opportunities_addressed": ["OPP-04", "OPP-01"],
+          "segments_benefited": ["C1", "C3", "R1", "R2"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que cards com foto de qualidade, rating e badges aumentam a taxa de clique em restaurantes desconhecidos em pelo menos 30% comparado a cards somente com nome e preco.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, mostrar dois conjuntos de cards: um com visual completo (foto + badges + rating) e outro minimalista (nome + preco + ETA). Pedir ao participante para escolher onde pediria. Medir se restaurantes menos conhecidos recebem mais cliques na versao rica."
+            },
+            {
+              "assumption": "Acreditamos que badges como 'Best Seller' e 'Novo na Plataforma' funcionam como atalhos cognitivos que reduzem o esforco de avaliacao para consumidores indecisos.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, pedir ao participante que explique por que escolheu determinado restaurante. Observar se menciona badges espontaneamente como fator de decisao. Gravar verbalizacoes."
+            },
+            {
+              "assumption": "Acreditamos que o estilo visual Midnight Express (dark mode premium com gradientes) transmite sensacao de exclusividade que justifica ticket mais alto.",
+              "risk_type": "value",
+              "test_in_prototype": "Mostrar o mesmo cardapio em duas versoes visuais: dark mode premium e light mode generico. Perguntar ao participante em qual esperaria pagar mais e em qual esperaria maior qualidade. Medir percepcao de premium."
+            }
+          ],
+          "success_criteria": "70% dos participantes escolhem pelo menos 1 restaurante que nunca experimentariam sem as evidencias visuais (foto, badges, rating), validado por pergunta pos-teste.",
+          "user_flow_sketch": "1. Usuario esta na home com catalogo de restaurantes visivel → 2. Escaneia visualmente os cards — foto de capa chama atencao primeiro → 3. Le o nome e subtitulo do restaurante → 4. Olha o rating (4.7 com 128 avaliacoes) e se sente mais seguro → 5. Ve badge 'Best Seller' em destaque e interpreta como sinal de qualidade validada → 6. Nota ETA de 30min e frete R$5.90 — informacao pratica acessivel sem clique → 7. Decide experimentar esse restaurante novo porque a combinacao de evidencias visuais reduziu a incerteza → 8. Toca no card para ver o cardapio"
+        },
+        {
+          "id": "H03",
+          "title": "Busca Preditiva Multi-Criterio",
+          "description": "A barra de busca no hero da home nao e apenas um campo de texto — e um atalho inteligente que aceita multiplos tipos de entrada: nome de restaurante, nome de prato, categoria ou tag. Ao digitar, sugestoes aparecem instantaneamente agrupadas por tipo (Restaurantes, Pratos, Categorias). O consumidor que sabe o que quer (C2: 'quero o hamburguer do Madero') encontra em 1 toque. O que nao sabe (C1: 'japones') ve opcoes curadas. O C3 que digita 'promo' ou 'cupom' encontra restaurantes com promocao ativa. A busca funciona como conversa — o usuario expressa intencao e a plataforma responde com opcoes relevantes agrupadas.",
+          "opportunities_addressed": ["OPP-03", "OPP-01"],
+          "segments_benefited": ["C1", "C2", "C3"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que uma busca que retorna resultados agrupados por tipo (restaurante, prato, categoria) e mais util que uma lista flat de resultados, porque atende intencoes diferentes.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, dar 3 tarefas com intencoes diferentes: (a) encontrar um restaurante especifico, (b) encontrar qualquer prato de sushi, (c) encontrar promocoes. Observar se o participante usa a busca e se os agrupamentos ajudam na tarefa."
+            },
+            {
+              "assumption": "Acreditamos que 40% dos usuarios usarao a busca como primeiro ponto de interacao quando sabem o que querem, reduzindo tempo para selecao.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, dar a tarefa 'voce quer pedir pizza margherita, encontre onde pedir'. Observar se o participante vai direto para busca ou navega por categorias. Medir a distribuicao de comportamento."
+            }
+          ],
+          "success_criteria": "90% dos participantes completam com sucesso a tarefa de encontrar um restaurante/prato especifico via busca em menos de 15 segundos.",
+          "user_flow_sketch": "1. Usuario toca na barra de busca no hero → 2. Teclado abre, campo fica em foco com placeholder 'Busque por restaurante, prato ou categoria...' → 3. Digita 'sush' → 4. Sugestoes aparecem instantaneamente: secao 'Categorias' mostra 'Japones', secao 'Restaurantes' mostra 'Sushi Express', 'Kazu Sushi Bar', secao 'Pratos' mostra 'Sushi Combo 20 pecas', 'Sashimi Premium' → 5. Toca em 'Kazu Sushi Bar' → 6. Vai direto para tela de detalhe do restaurante"
+        }
+      ]
+    },
+    {
+      "theme_id": "T2",
+      "name": "Checkout Transparente e Pagamento Fluido",
+      "opportunities_addressed": ["OPP-02", "OPP-05", "OPP-12"],
+      "linked_krs": ["KR1", "KR3"],
+      "hypotheses": [
+        {
+          "id": "H04",
+          "title": "Preco Transparente desde o Primeiro Card",
+          "description": "Nenhuma informacao de custo e escondida ate o checkout. Desde o card do restaurante no catalogo, o consumidor ve a taxa de entrega e o pedido minimo. No cardapio, cada item mostra preco claro. No carrinho, um resumo financeiro detalhado mostra subtotal, entrega, desconto aplicado e total — atualizado em tempo real a cada item adicionado ou removido. Se o consumidor tem cupom ativo (MVP10), o desconto aparece automaticamente no resumo. A regra de frete gratis acima de R$120 e comunicada com uma barra de progresso motivacional: 'Faltam R$32 para frete gratis!'. O principio e: o preco final no checkout nunca pode ser diferente do que o consumidor ja viu no carrinho. Zero surpresas.",
+          "opportunities_addressed": ["OPP-02", "OPP-12"],
+          "segments_benefited": ["C1", "C2", "C3", "R1"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que mostrar o custo total estimado (incluindo frete) desde o card do restaurante reduz abandono de carrinho em pelo menos 20%, porque elimina a surpresa de preco no checkout.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, guiar o participante por todo o fluxo de adicionar itens ate o checkout. Perguntar no final: 'o preco total te surpreendeu?'. Medir taxa de surpresa negativa. Comparar com fluxo onde frete so aparece no checkout."
+            },
+            {
+              "assumption": "Acreditamos que a barra de progresso 'Faltam R$X para frete gratis' incentiva o consumidor a adicionar mais itens, elevando o ticket medio.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, apresentar carrinho com R$88 em itens e barra mostrando 'Faltam R$32 para frete gratis!'. Perguntar ao participante se adicionaria mais itens. Medir intencao declarada e observar se volta ao cardapio."
+            },
+            {
+              "assumption": "Acreditamos que o consumidor C3 (Cacador de Ofertas) e o segmento mais sensivel a surpresas de preco, e que transparencia desde o inicio aumenta a confianca dele na plataforma.",
+              "risk_type": "value",
+              "test_in_prototype": "Recrutar participantes com perfil C3 (sensivel a preco). Pedir que facam um pedido completo. Ao final, perguntar: 'voce confiou nos precos mostrados?', 'teve alguma surpresa?'. Medir NPS declarado do fluxo."
+            }
+          ],
+          "success_criteria": "95% dos participantes declaram que o preco final no checkout correspondeu ao esperado, e 60% dos participantes expostos a barra de progresso de frete gratis declaram intencao de adicionar mais itens.",
+          "user_flow_sketch": "1. Usuario ve card do restaurante na home com 'Frete R$6.90 | Pedido min R$25' visivel → 2. Entra no cardapio, ve precos claros por item → 3. Adiciona 'Hamburguer Artesanal R$38.90' ao carrinho → 4. Carrinho lateral (desktop) ou bottom sheet (mobile) mostra resumo: Subtotal R$38.90, Entrega R$6.90, Total R$45.80 → 5. Adiciona 'Batata Rustica R$18.90' → 6. Resumo atualiza instantaneamente: Subtotal R$57.80, Entrega R$6.90, Total R$64.70 → 7. Barra de progresso aparece: 'Faltam R$62.20 para frete gratis!' com barra visual preenchida em 48% → 8. Adiciona mais itens → 9. Ao atingir R$120, barra muda para 'Parabens! Frete gratis!' com animacao sutil → 10. Checkout confirma exatamente o mesmo total — sem surpresas"
+        },
+        {
+          "id": "H05",
+          "title": "Pagamento em 2 Toques com Cartao Virtual",
+          "description": "O fluxo de pagamento com cartao virtual ECP Digital Bank e desenhado para minimizar friccao: apos confirmar o pedido no checkout, o consumidor escolhe 'Pagar com Cartao ECP'. Se ja autenticou anteriormente na sessao, os cartoes aparecem imediatamente (sem re-login). Se e a primeira vez, um formulario inline (nao um redirect externo) pede email e senha do banco digital. Uma vez autenticado, o consumidor ve seus cartoes virtuais listados com os ultimos 4 digitos e saldo disponivel. Seleciona o cartao, ve o valor a ser debitado, e confirma com um unico toque. O feedback e imediato: animacao de confirmacao com numero do pedido. Principio de Norman: visibilidade do estado do sistema — o consumidor sabe exatamente o que aconteceu a cada momento.",
+          "opportunities_addressed": ["OPP-05", "OPP-02"],
+          "segments_benefited": ["C1", "C2", "C3"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que autenticacao inline (dentro do FoodFlow, sem redirect para outro site) reduz abandono de pagamento em pelo menos 30% comparado a um redirect externo, porque nao quebra o modelo mental do usuario.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, testar dois fluxos: (a) autenticacao inline com campos dentro da tela de checkout, (b) simulacao de redirect para outra pagina. Medir taxa de hesitacao, expressoes de confusao, e pergunta 'voce completaria esse pagamento?' em cada versao."
+            },
+            {
+              "assumption": "Acreditamos que mostrar saldo disponivel no momento da selecao do cartao aumenta a confianca do consumidor de que o pagamento sera bem-sucedido.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, mostrar a tela de selecao de cartao com e sem saldo visivel. Perguntar ao participante: 'voce se sentiria seguro confirmando o pagamento?'. Medir diferenca de confianca declarada."
+            },
+            {
+              "assumption": "Acreditamos que consumidores recorrentes (C2) esperam que a sessao do banco persista entre pedidos, evitando re-autenticacao a cada compra.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, simular segundo pedido do mesmo usuario. Apresentar versao com re-autenticacao e versao com cartao ja salvo. Perguntar qual experiencia prefere e por que."
+            }
+          ],
+          "success_criteria": "85% dos participantes completam o fluxo de pagamento com cartao virtual sem pedir ajuda, em menos de 30 segundos desde o botao 'Pagar' ate a confirmacao.",
+          "user_flow_sketch": "1. Usuario esta no checkout com resumo do pedido confirmado → 2. Ve duas opcoes de pagamento: 'Cartao ECP Digital Bank' e 'PIX' → 3. Toca em 'Cartao ECP Digital Bank' → 4. Se primeira vez: campos inline 'Email' e 'Senha' do banco digital aparecem com label 'Conecte sua conta ECP Digital Bank' → 5. Digita credenciais → toque em 'Conectar' → 6. Loading sutil (1-2s) → 7. Lista de cartoes virtuais aparece: 'Cartao Virtual ****4521 | Saldo: R$320.00' → 8. Toca no cartao → 9. Resumo final: 'Debitar R$64.70 do cartao ****4521?' com botao 'Confirmar Pagamento' → 10. Toca em 'Confirmar' → 11. Animacao de check verde + 'Pedido #12847 confirmado!' → 12. Transicao automatica para tela de acompanhamento do pedido"
+        },
+        {
+          "id": "H06",
+          "title": "PIX com QR Code Contextual e Feedback em Tempo Real",
+          "description": "Para consumidores que preferem PIX (ou nao tem conta no ECP Digital Bank), o fluxo gera um QR Code diretamente na tela de checkout do FoodFlow. O diferencial e o contexto ao redor do QR Code: instrucoes claras passo a passo ('1. Abra seu app bancario, 2. Escaneie o QR Code, 3. Confirme o pagamento'), valor exato a ser pago em destaque, e um timer visual mostrando validade do QR Code. Apos o pagamento, a tela atualiza automaticamente em tempo real — sem necessidade de refresh manual. Uma animacao celebratoria confirma que o pagamento foi recebido e o pedido esta sendo preparado. O consumidor nunca fica em duvida se o pagamento 'foi' ou 'nao foi'.",
+          "opportunities_addressed": ["OPP-05", "OPP-02"],
+          "segments_benefited": ["C1", "C2", "C3"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que instrucoes contextuais ao redor do QR Code (passo a passo visual) reduzem duvidas e chamadas de suporte, especialmente para consumidores menos familiarizados com PIX via QR Code.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, apresentar tela de QR Code com e sem instrucoes passo a passo. Perguntar: 'voce saberia o que fazer agora?'. Medir taxa de confianca e hesitacao em cada versao."
+            },
+            {
+              "assumption": "Acreditamos que feedback em tempo real (tela atualiza sozinha quando o pagamento e confirmado) e essencial para confianca — sem ele, consumidores ficam ansiosos e podem abandonar a tela.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, simular duas experiencias: (a) tela que atualiza automaticamente com animacao de confirmacao, (b) tela estatica com mensagem 'aguardando pagamento' que nao muda. Perguntar ao participante como se sentiu em cada cenario."
+            }
+          ],
+          "success_criteria": "90% dos participantes declaram que saberiam completar o pagamento PIX sem ajuda ao ver a tela do prototipo, e 95% preferem a versao com feedback em tempo real.",
+          "user_flow_sketch": "1. Usuario no checkout toca em 'Pagar com PIX' → 2. Tela de PIX aparece com QR Code grande e centralizado → 3. Acima do QR Code: valor 'R$64.70' em destaque → 4. Abaixo: instrucoes '1. Abra seu app bancario 2. Escaneie este QR Code 3. Confirme o pagamento' → 5. Timer: 'QR Code valido por 14:32 minutos' → 6. Texto de status: 'Aguardando pagamento...' com animacao de pulso sutil → 7. Participante simula pagamento no banco → 8. Tela atualiza automaticamente: QR Code desaparece, animacao de check verde aparece, texto muda para 'Pagamento confirmado! Seu pedido #12847 esta sendo preparado' → 9. Botao 'Acompanhar pedido' aparece → 10. Transicao para tela de status do pedido"
+        }
+      ]
+    },
+    {
+      "theme_id": "T3",
+      "name": "Retencao e Formacao de Habito",
+      "opportunities_addressed": ["OPP-06", "OPP-07"],
+      "linked_krs": ["KR2"],
+      "hypotheses": [
+        {
+          "id": "H07",
+          "title": "Repetir Pedido em 1 Toque — Atalho de Habito",
+          "description": "A funcao 'Repetir Pedido' e o atalho mais poderoso de retencao do FoodFlow. No historico de pedidos, cada pedido anterior mostra um botao proeminente 'Repetir' que, ao ser tocado, pre-popula o carrinho com todos os itens do pedido original (mesmo restaurante, mesmos itens, mesmas quantidades). Se algum item nao estiver mais disponivel, o usuario e informado de forma nao-bloqueante ('Sashimi Especial nao esta disponivel hoje — removemos do carrinho'). O carrinho ja vem pronto para checkout — o consumidor recorrente vai de 'abrir o app' a 'confirmar pedido' em menos de 60 segundos. Para C2 (Pratico Recorrente), isso e o motivo para nao voltar ao iFood. Referencia: Nir Eyal — o 'investimento' do usuario (historico) cria valor armazenado que torna a saida custosa.",
+          "opportunities_addressed": ["OPP-06"],
+          "segments_benefited": ["C2", "C1", "R1"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que um botao 'Repetir Pedido' que pre-popula o carrinho em 1 toque sera usado em pelo menos 15% dos pedidos apos o primeiro mes, tornando-se o principal mecanismo de recompra.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, dar ao participante a tarefa: 'voce quer pedir a mesma coisa que pediu semana passada'. Observar se encontra e usa o botao 'Repetir' no historico. Medir tempo da tarefa e satisfacao."
+            },
+            {
+              "assumption": "Acreditamos que comunicar indisponibilidade de itens de forma nao-bloqueante (remover e avisar, em vez de bloquear a acao) evita frustracao e abandono.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, simular cenario onde 1 dos 3 itens do pedido anterior esta indisponivel. Testar duas abordagens: (a) mensagem nao-bloqueante que remove o item e informa, (b) erro que impede a repeticao. Medir satisfacao e continuidade do fluxo."
+            },
+            {
+              "assumption": "Acreditamos que o segmento C2 (Pratico Recorrente) valoriza tanto a recompra rapida que listaria 'Repetir Pedido' como feature top-3 do app em pesquisa de satisfacao.",
+              "risk_type": "value",
+              "test_in_prototype": "Apos o teste de usabilidade, perguntar ao participante com perfil C2: 'das funcionalidades que voce viu, quais sao as 3 mais importantes para voce?'. Verificar se 'Repetir Pedido' aparece espontaneamente."
+            }
+          ],
+          "success_criteria": "100% dos participantes conseguem repetir um pedido anterior em menos de 3 toques e 30 segundos, e 80% dos participantes com perfil C2 declaram que essa funcionalidade e 'muito importante' para continuar usando a plataforma.",
+          "user_flow_sketch": "1. Usuario logado abre o FoodFlow → 2. Toca no icone 'Historico' na barra de navegacao → 3. Ve lista de pedidos anteriores ordenados por data: card com 'Kazu Sushi Bar | 14 mar 2026 | R$67.80 | 3 itens | Entregue' → 4. Botao 'Repetir' em destaque no card → 5. Toca em 'Repetir' → 6. Carrinho e pre-populado instantaneamente com os 3 itens do pedido original → 7. Notificacao sutil: 'Carrinho preenchido com seu pedido de 14 mar!' → 8. Se item indisponivel: toast 'Sashimi Especial indisponivel hoje — removido do carrinho' com os 2 itens restantes mantidos → 9. Usuario ve carrinho com resumo financeiro atualizado → 10. Toca em 'Ir para checkout' → 11. Checkout com dados salvos → 12. Confirma pagamento → pedido em menos de 60 segundos"
+        },
+        {
+          "id": "H08",
+          "title": "Incentivos de Retorno Visiveis e Contextuais",
+          "description": "O FoodFlow cria multiplos 'ganchos de retorno' ao longo da experiencia para combater o esquecimento da plataforma. No primeiro acesso, o cupom de boas-vindas MVP10 (10% de desconto) e apresentado de forma celebratoria e salvo automaticamente no perfil. Na home, a secao de promocoes e hero banner mostram ofertas ativas que criam razao para voltar. Apos concluir um pedido, a tela de confirmacao mostra um incentivo para o proximo pedido: 'Seu proximo pedido acima de R$120 tem frete gratis!'. No historico, restaurantes favoritos que tem promocao ativa mostram badge 'Promo' para criar urgencia. O principio e: toda interacao deve plantar a semente do proximo retorno. Referencia: modelo Hook de Nir Eyal — gatilho externo (promocao visivel) + acao (pedir) + recompensa variavel (comida boa + economia) + investimento (historico + favoritos).",
+          "opportunities_addressed": ["OPP-07"],
+          "segments_benefited": ["C1", "C2", "C3", "R1", "R2"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que o cupom de boas-vindas MVP10 apresentado de forma celebratoria na primeira visita aumenta a taxa de primeiro pedido em pelo menos 15%, porque cria urgencia e recompensa imediata.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, simular a primeira abertura do app com modal de boas-vindas mostrando cupom MVP10. Perguntar: 'isso te motivaria a fazer um pedido agora?'. Medir intencao declarada. Comparar com versao sem modal de cupom."
+            },
+            {
+              "assumption": "Acreditamos que mostrar um incentivo para o proximo pedido na tela de confirmacao (pos-checkout) cria uma expectativa de retorno que aumenta recompra em 7 dias.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, mostrar a tela de confirmacao com e sem incentivo de proximo pedido. Perguntar: 'quando voce acha que pediria novamente?'. Medir se a versao com incentivo reduz o tempo declarado de re-pedido."
+            },
+            {
+              "assumption": "Acreditamos que badges de 'Promo' em restaurantes favoritos no historico criam gatilhos visuais de retorno que o consumidor nota ao abrir o app casualmente.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, pedir ao participante que 'de uma olhada no app sem objetivo especifico'. Observar se nota os badges de promocao nos favoritos e se demonstra intencao de clicar."
+            }
+          ],
+          "success_criteria": "70% dos participantes declaram intencao de usar o cupom de boas-vindas no primeiro pedido, e 60% declaram que voltariam ao app em menos de 7 dias ao ver o incentivo de proximo pedido na confirmacao.",
+          "user_flow_sketch": "1. Primeiro acesso: usuario cria conta → modal celebratorio aparece: 'Bem-vindo ao FoodFlow! Aqui esta seu presente: 10% OFF no primeiro pedido. Cupom MVP10 ja salvo!' com botao 'Explorar Restaurantes' → 2. Na home, hero banner mostra 'Promo do Dia: 20% OFF em sushi ate meia-noite' → 3. Usuario faz primeiro pedido com cupom MVP10 aplicado automaticamente → 4. Tela de confirmacao: 'Pedido #12847 confirmado!' + destaque: 'Sabia que pedidos acima de R$120 tem frete gratis? No seu proximo pedido, experimente!' → 5. Dois dias depois, usuario abre o app → 6. Na home, ve hero com nova promocao → 7. Vai ao historico, ve restaurante favorito 'Kazu Sushi Bar' com badge 'Promo 15% OFF' → 8. Toca, explora cardapio, faz segundo pedido motivado pela promocao"
+        },
+        {
+          "id": "H09",
+          "title": "Favoritos como Atalho Emocional de Fidelidade",
+          "description": "O sistema de favoritos funciona como um vinculo emocional entre o consumidor e seus restaurantes preferidos. Ao tocar no icone de coracao em qualquer card de restaurante, o restaurante e salvo na lista de favoritos do perfil. A tela de favoritos nao e apenas uma lista — e uma 'curadoria pessoal' que mostra os restaurantes favoritos com status em tempo real (online/offline, promo ativa, ETA atual). Isso cria valor armazenado: quanto mais favoritos o usuario salva, mais personalizada se torna sua experiencia, e mais 'caro' se torna abandonar a plataforma. Para C1 (Explorador), favoritos sao a colecao de descobertas. Para C2 (Pratico), sao os atalhos do dia a dia. A lista de favoritos funciona como uma home pessoal e curada.",
+          "opportunities_addressed": ["OPP-06", "OPP-07"],
+          "segments_benefited": ["C1", "C2"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que favoritos com status em tempo real (online, promo ativa) criam mais engajamento que uma lista estatica, porque dao razoes contextuais para pedir agora.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, mostrar tela de favoritos com status dinamico (online, 'Promo 20% OFF hoje') e sem status (apenas nome e foto). Medir qual versao gera mais intencao declarada de fazer um pedido."
+            },
+            {
+              "assumption": "Acreditamos que consumidores que salvam 3+ favoritos tem probabilidade significativamente maior de fazer um segundo pedido na plataforma.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, apos explorar o app, perguntar ao participante: 'quantos restaurantes voce salvaria como favoritos?'. Correlacionar com intencao declarada de retorno. Medir se existe relacao entre favoritos e intencao de recompra."
+            }
+          ],
+          "success_criteria": "70% dos participantes salvam pelo menos 2 restaurantes como favoritos espontaneamente durante o teste, e 80% declaram que usariam a tela de favoritos como ponto de partida para pedidos futuros.",
+          "user_flow_sketch": "1. Usuario navega pelo catalogo de restaurantes → 2. Ve restaurante que gostou, nota icone de coracao no card → 3. Toca no coracao — icone preenche com animacao sutil (feedback imediato, principio de Norman) → 4. Toast: 'Kazu Sushi Bar salvo nos favoritos!' → 5. Continua explorando, favorita mais 2 restaurantes → 6. Toca no icone 'Favoritos' na barra de navegacao → 7. Ve seus 3 restaurantes favoritos com status: 'Kazu Sushi Bar | Online | 35min | Promo 15% OFF', 'Madero Burguer | Online | 25min', 'Salad & Co | Offline — abre 11h' → 8. Nota que Kazu tem promo ativa → 9. Toca no card e faz pedido direto dos favoritos"
+        }
+      ]
+    },
+    {
+      "theme_id": "T4",
+      "name": "Empoderamento do Restaurante Artesanal",
+      "opportunities_addressed": ["OPP-13", "OPP-14", "OPP-15", "OPP-18"],
+      "linked_krs": ["KR3", "KR4"],
+      "hypotheses": [
+        {
+          "id": "H10",
+          "title": "Onboarding Guiado em 4 Passos — Do Cadastro ao Primeiro Item em 30 Minutos",
+          "description": "O processo de onboarding do restaurante e desenhado como uma jornada guiada em 4 passos claros, com progresso visivel e feedback a cada etapa. Passo 1: Dados do restaurante (nome, tipo de cozinha, descricao, foto de capa). Passo 2: Configuracao de entrega (area, taxa, ETA estimado, pedido minimo). Passo 3: Cardapio inicial (adicionar pelo menos 3 itens com nome, descricao, preco e foto). Passo 4: Revisao e publicacao. Cada passo tem exemplos visuais do resultado final ('assim seu restaurante vai aparecer para os consumidores'), reduzindo incerteza. O progresso e salvo automaticamente — se o dono fechar e voltar depois, continua de onde parou. O objetivo e que um dono de restaurante artesanal consiga cadastrar seu restaurante e publicar o primeiro item em 30 minutos, sem precisar de suporte.",
+          "opportunities_addressed": ["OPP-18", "OPP-15"],
+          "segments_benefited": ["R1", "R2"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que um onboarding em 4 passos com progresso visivel e completado por 80% dos restaurantes que iniciam, comparado a formularios longos de pagina unica que tem taxa de conclusao menor.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, recrutar participantes com perfil de dono de restaurante. Pedir que completem o onboarding. Medir: taxa de conclusao, tempo total, momentos de hesitacao, e perguntas de duvida. Alvo: 80% completam em menos de 30 minutos."
+            },
+            {
+              "assumption": "Acreditamos que mostrar exemplos visuais do resultado final ('preview' de como o restaurante aparecera) motiva o dono a investir tempo na qualidade das informacoes.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, apresentar onboarding com e sem preview visual. Medir: qualidade das descricoes inseridas (comprimento, riqueza), e satisfacao declarada com o processo."
+            },
+            {
+              "assumption": "Acreditamos que salvar progresso automaticamente e essencial para restaurantes artesanais, cujos donos sao interrompidos frequentemente durante o dia operacional.",
+              "risk_type": "usability",
+              "test_in_prototype": "Perguntar ao participante: 'se voce fosse interrompido agora e voltasse amanha, o que esperaria encontrar?'. Validar se a expectativa e progresso salvo. Medir como se sentiria se tivesse que recomec ar."
+            }
+          ],
+          "success_criteria": "80% dos participantes com perfil de restaurante completam o onboarding em menos de 30 minutos, e 90% declaram que o processo e 'facil' ou 'muito facil'.",
+          "user_flow_sketch": "1. Dono do restaurante acessa FoodFlow e clica em 'Cadastrar meu Restaurante' → 2. Tela de boas-vindas: 'Em 4 passos, seu restaurante estara online. Leva menos de 30 minutos!' com barra de progresso mostrando 4 etapas → 3. Passo 1/4 — Dados do Restaurante: campos para nome, subtitulo, tipo de cozinha (dropdown com categorias), descricao curta, upload de foto de capa. Ao lado, preview em tempo real de como o card aparecera no catalogo → 4. Preenche dados, ve o preview atualizar ao vivo → 5. Toca 'Proximo' → 6. Passo 2/4 — Entrega: taxa de entrega, ETA estimado, pedido minimo, area de cobertura → 7. Passo 3/4 — Cardapio: 'Adicione pelo menos 3 itens para publicar'. Botao 'Adicionar Item' → formulario: nome, descricao, preco, badge (opcional), emoji. Preview do card do item ao lado → 8. Adiciona 3 itens → 9. Passo 4/4 — Revisao: ve tudo que preencheu com preview final → 10. Toca 'Publicar Restaurante' → 11. Mensagem: 'Parabens! Seu restaurante esta em analise e sera aprovado em ate 24 horas.'"
+        },
+        {
+          "id": "H11",
+          "title": "Painel do Restaurante — Controle Total sem Complexidade",
+          "description": "Apos o onboarding, o dono do restaurante acessa um painel administrativo simples e poderoso. O painel tem 3 areas principais: Cardapio (adicionar, editar, ativar/desativar itens), Pedidos (lista em tempo real com botoes de acao para cada status), e Perfil (editar dados do restaurante, foto, entrega, promocoes). O design segue o principio de 'progressive disclosure' de Norman: o essencial esta visivel, o avancado esta a 1 toque de distancia. Restaurantes artesanais (R1) valorizam controle sobre marca e cardapio — aqui podem ajustar descricoes, precos e badges sem intermediarios. Dark kitchens (R2) valorizam eficiencia — o painel de pedidos mostra o que importa: itens, valor, hora, e botoes de acao claros (Confirmar, Preparando, Pronto). Nenhuma funcionalidade exige suporte tecnico ou manual de instrucoes.",
+          "opportunities_addressed": ["OPP-15", "OPP-13", "OPP-14"],
+          "segments_benefited": ["R1", "R2"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que um painel com 3 areas claras (Cardapio, Pedidos, Perfil) e suficiente para a operacao diaria de um restaurante no MVP, sem necessidade de funcionalidades adicionais.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, pedir ao participante dono de restaurante que realize 5 tarefas do dia a dia: (a) adicionar um item, (b) desativar um item, (c) confirmar um pedido, (d) editar a taxa de entrega, (e) criar uma promocao. Medir se todas as tarefas sao completaveis no painel."
+            },
+            {
+              "assumption": "Acreditamos que gestao de pedidos em tempo real com botoes de acao claros (Confirmar → Preparando → Pronto) e intuitiva o suficiente para funcionar sem treinamento.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, simular chegada de 3 pedidos novos. Pedir ao participante que os gerencie. Observar se encontra os botoes de acao, entende a sequencia de status, e completa o fluxo sem hesitacao."
+            },
+            {
+              "assumption": "Acreditamos que restaurantes artesanais (R1) valorizam mais o controle sobre descricoes e fotos dos pratos do que funcionalidades analiticas no MVP.",
+              "risk_type": "value",
+              "test_in_prototype": "Apos o teste, perguntar ao participante R1: 'o que esta faltando neste painel?'. Se analytics nao for mencionado espontaneamente, valida que controle de cardapio e suficiente no MVP."
+            }
+          ],
+          "success_criteria": "90% dos participantes com perfil de restaurante completam todas as 5 tarefas operacionais sem ajuda, e 85% declaram que o painel 'tem tudo que preciso para operar no dia a dia'.",
+          "user_flow_sketch": "1. Dono do restaurante faz login → 2. Ve painel com 3 abas: Cardapio | Pedidos | Perfil → 3. Na aba Cardapio: lista de itens com toggle ativar/desativar, botao editar, e botao 'Adicionar Item' → 4. Toca em 'Adicionar Item' → formulario simples com preview ao lado → 5. Preenche e salva → item aparece na lista imediatamente → 6. Vai para aba Pedidos → 7. Ve 2 pedidos novos com badge 'Novo' pulsando → 8. Toca no pedido → ve detalhes: itens, quantidade, valor, endereco → 9. Botao 'Confirmar Pedido' → status muda para 'Confirmado' → 10. Botao 'Marcar como Preparando' aparece → toca → status muda → 11. Quando pronto: 'Marcar como Pronto para Retirada' → 12. Pedido sai da fila ativa para historico"
+        },
+        {
+          "id": "H12",
+          "title": "Visibilidade por Qualidade — Ranking Justo sem Pay-to-Play",
+          "description": "No FoodFlow, a posicao do restaurante no catalogo e determinada por sinais de qualidade — nao por pagamento de midia. Os criterios de destaque sao: rating dos consumidores, frequencia de pedidos, qualidade do cardapio (fotos, descricoes completas), e tempo de resposta a pedidos. Restaurantes novos recebem um 'boost de visibilidade' inicial (badge 'Novo na Plataforma') que garante exposicao durante as primeiras semanas, independente de volume de pedidos. Esse modelo e a razao pela qual restaurantes artesanais (R1) escolheriam FoodFlow — porque sua qualidade e visivel sem necessidade de investir em midia paga. O compromisso estrategico do produto e: qualidade determina visibilidade.",
+          "opportunities_addressed": ["OPP-14", "OPP-13"],
+          "segments_benefited": ["R1", "R2", "C1"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que restaurantes artesanais consideram 'visibilidade por qualidade, nao por pagamento' como o principal motivo para adotar uma nova plataforma de delivery.",
+              "risk_type": "value",
+              "test_in_prototype": "Apresentar ao participante R1 duas propostas de plataforma: (a) FoodFlow com ranking por qualidade, (b) plataforma com ranking pago. Perguntar em qual investiria tempo de onboarding. Medir preferencia e intensidade."
+            },
+            {
+              "assumption": "Acreditamos que o badge 'Novo na Plataforma' com boost de visibilidade inicial resolve o cold start problem para restaurantes novos que ainda nao tem avaliacoes.",
+              "risk_type": "value",
+              "test_in_prototype": "Do lado do consumidor (C1): mostrar catalogo com restaurantes incluindo um com badge 'Novo na Plataforma'. Perguntar se consideraria pedir desse restaurante. Medir se o badge gera curiosidade ou desconfianca."
+            },
+            {
+              "assumption": "Acreditamos que restaurantes que investem em cardapio visual completo (fotos + descricoes ricas) tem melhor performance de pedidos do que os com cardapio minimalista.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, mostrar dois restaurantes lado a lado: um com fotos e descricoes ricas, outro com apenas nome e preco. Pedir ao consumidor que escolha de qual pediria. Medir taxa de preferencia pelo cardapio visual."
+            }
+          ],
+          "success_criteria": "90% dos participantes com perfil R1 declaram que 'visibilidade por qualidade' e o principal diferencial do FoodFlow, e 75% dos consumidores (C1) declaram curiosidade em experimentar restaurantes com badge 'Novo na Plataforma'.",
+          "user_flow_sketch": "Perspectiva do restaurante: 1. Dono do restaurante artesanal pesquisa 'como ter mais visibilidade no FoodFlow' → 2. Ve explicacao na plataforma: 'No FoodFlow, seu restaurante ganha destaque pela qualidade do cardapio, avaliacoes e tempo de resposta — nao por investimento em midia.' → 3. Investe tempo em fotos de qualidade e descricoes detalhadas → 4. Recebe badge 'Novo na Plataforma' nas primeiras 4 semanas. Perspectiva do consumidor: 5. C1 navega catalogo e ve restaurante com badge 'Novo na Plataforma' ao lado de outros com 'Best Seller' → 6. Sente curiosidade, toca no card → 7. Ve cardapio com fotos de qualidade e descricoes ricas → 8. Confianca suficiente para fazer um pedido de teste"
+        }
+      ]
+    },
+    {
+      "theme_id": "T5",
+      "name": "Ticket Premium Sustentavel",
+      "opportunities_addressed": ["OPP-10", "OPP-13"],
+      "linked_krs": ["KR3"],
+      "hypotheses": [
+        {
+          "id": "H13",
+          "title": "Cardapio Visual que Gera Desejo — Fotos que Dao Fome",
+          "description": "O cardapio de cada restaurante no FoodFlow e desenhado para vender com os olhos. Cada item mostra: foto do prato em alta qualidade com fundo escuro (Midnight Express), nome em tipografia que transmite premium, descricao curta que desperta desejo (nao apenas lista de ingredientes, mas narrativa: 'Blend especial de Angus 180g, queijo gruyere derretido, cebola caramelizada no shoyu, no pao brioche artesanal'), preco claro, e badges visuais (Best Seller, Vegetariano, Chef's Choice, Picante). O emoji visual complementa a identidade de cada prato. O efeito desejado e que o consumidor sinta vontade de pedir mais do que planejava — o desejo visual eleva o ticket naturalmente, sem depender de descontos. Referencia: Norman — design emocional (nivel visceral): a primeira reacao a uma foto bonita de comida e 'eu quero isso'.",
+          "opportunities_addressed": ["OPP-10", "OPP-13"],
+          "segments_benefited": ["C1", "C3", "R1", "R2"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que descricoes narrativas dos pratos (em vez de listas de ingredientes) aumentam a percepcao de valor e justificam precos mais altos — consumidores aceitam pagar 15% a mais pelo mesmo prato quando a descricao e aspiracional.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, mostrar o mesmo prato com duas descricoes: (a) 'Hamburguer, queijo, alface, tomate, pao' vs (b) 'Blend especial de Angus 180g, queijo gruyere derretido, cebola caramelizada no shoyu, no pao brioche artesanal'. Perguntar quanto o participante esperaria pagar por cada versao. Medir diferenca de WTP."
+            },
+            {
+              "assumption": "Acreditamos que badges como 'Best Seller' e 'Chef's Choice' funcionam como prova social que justifica ticket mais alto — consumidores pedem itens com badge com frequencia desproporcional ao numero de opcoes.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, mostrar cardapio com 6 itens, 2 com badge 'Best Seller'. Pedir ao participante que escolha o que pediria. Medir se itens com badge sao escolhidos desproporcionalmente (>33% para 2 de 6 opcoes)."
+            },
+            {
+              "assumption": "Acreditamos que o estilo visual Midnight Express (fundo escuro, tipografia premium, fotos com iluminacao dramática) eleva a percepcao de 'restaurante premium' mesmo para pratos de preco medio.",
+              "risk_type": "value",
+              "test_in_prototype": "Mostrar o mesmo cardapio em visual Midnight Express (dark) e em visual generico (light, fonte padrao). Perguntar: 'de qual restaurante voce esperaria maior qualidade?'. Medir percepcao de premium."
+            }
+          ],
+          "success_criteria": "Participantes atribuem WTP (willingness to pay) 15% maior para pratos com descricao narrativa vs lista de ingredientes, e 70% dos participantes escolhem pelo menos 1 item com badge como parte do pedido.",
+          "user_flow_sketch": "1. Usuario entra no cardapio do restaurante 'Madero Burguer' → 2. Tela com fundo escuro, banner premium do restaurante no topo → 3. Grid de itens com fotos em alta qualidade: cada foto mostra o prato com iluminacao que destaca texturas e cores → 4. Primeiro item: foto do hamburguer, 'Madero Classico' em tipografia bold, 'Blend especial de Angus 180g, queijo gruyere derretido, cebola caramelizada no shoyu, no pao brioche artesanal', badge 'Best Seller' em destaque, R$42.90 → 5. Consumidor sente desejo visual → 6. Abaixo: 'Batata Rustica com Ervas', badge 'Chef's Choice', R$18.90 — consumidor pensa 'vou pedir isso tambem' → 7. Adiciona hamburguer + batata + bebida → ticket de R$68.70 (acima da meta de R$45) → 8. Desejo visual elevou o ticket sem necessidade de desconto"
+        },
+        {
+          "id": "H14",
+          "title": "Alavanca de Frete Gratis como Gamificacao de Ticket",
+          "description": "A regra de frete gratis acima de R$120 e transformada em uma experiencia de gamificacao sutil que incentiva o consumidor a aumentar o pedido. No carrinho, uma barra de progresso visual mostra o quanto falta para atingir frete gratis. A linguagem e motivacional e muda conforme o progresso: 'Adicione R$62 para frete gratis' (inicio), 'Quase la! Faltam R$18 para frete gratis!' (perto), 'Parabens! Frete gratis desbloqueado!' (atingiu). A barra usa cores que progridem de neutro para verde conforme se aproxima. Quando o consumidor esta perto do threshold, sugestoes de itens populares do mesmo restaurante com preco compativel com o gap aparecem como nudge: 'Que tal adicionar Batata Rustica (R$18.90) e garantir frete gratis?'. Esse mecanismo transforma o frete de 'custo a mais' em 'economia a conquistar'.",
+          "opportunities_addressed": ["OPP-10"],
+          "segments_benefited": ["C1", "C2", "C3"],
+          "assumptions": [
+            {
+              "assumption": "Acreditamos que a barra de progresso de frete gratis com linguagem motivacional faz pelo menos 40% dos consumidores adicionarem mais itens ao carrinho quando estao abaixo do threshold.",
+              "risk_type": "value",
+              "test_in_prototype": "No prototipo, colocar o participante em cenario com carrinho de R$95 e barra mostrando 'Faltam R$25 para frete gratis!'. Observar se volta ao cardapio para adicionar itens. Perguntar: 'voce adicionaria mais alguma coisa?'. Medir intencao e acao."
+            },
+            {
+              "assumption": "Acreditamos que sugestoes contextuais de itens com preco compativel com o gap de frete gratis ('Que tal adicionar X por R$18.90?') sao percebidas como uteis e nao como venda forcada.",
+              "risk_type": "usability",
+              "test_in_prototype": "No prototipo, mostrar carrinho com sugestao de item contextual. Perguntar ao participante: 'como voce percebe essa sugestao? Util ou invasiva?'. Medir percepcao em escala de 1-5."
+            },
+            {
+              "assumption": "Acreditamos que o segmento C3 (Cacador de Ofertas) e o mais responsivo a alavanca de frete gratis, porque a economia de R$6-12 de frete e muito significativa para seu perfil de gasto.",
+              "risk_type": "value",
+              "test_in_prototype": "Recrutar participantes com perfil C3. Testar o fluxo com barra de frete gratis. Medir: (a) taxa que adiciona itens, (b) valor medio adicionado, (c) satisfacao com a economia. Comparar com C1 e C2."
+            }
+          ],
+          "success_criteria": "50% dos participantes expostos a barra de progresso de frete gratis adicionam pelo menos 1 item ao carrinho, e 80% percebem a sugestao contextual de item como 'util' (score >= 4/5).",
+          "user_flow_sketch": "1. Usuario tem carrinho com R$88 em itens do restaurante 'Kazu Sushi Bar' → 2. No resumo do carrinho, barra de progresso mostra: barra preenchida em 73%, texto 'Faltam R$32 para frete gratis!' em destaque → 3. Abaixo da barra, sugestao: 'Que tal adicionar Gyoza Artesanal (R$24.90) e garantir frete gratis?' com foto do item e botao 'Adicionar' → 4. Consumidor pensa 'faz sentido, economizo o frete' → 5. Toca 'Adicionar' → 6. Carrinho atualiza: R$112.90, barra muda para 'Quase la! Faltam R$7.10 para frete gratis!' → 7. Ve que falta pouco, decide adicionar uma bebida R$9.90 → 8. Carrinho: R$122.80, barra muda para verde com check: 'Parabens! Frete gratis desbloqueado!' com animacao sutil → 9. Consumidor sente satisfacao da conquista → 10. Ticket subiu de R$88 para R$122.80 — 39% acima da meta de R$45"
+        }
+      ]
+    }
+  ],
+  "total_hypotheses": 14,
+  "hypothesis_coverage_matrix": {
+    "OPP-01": ["H01", "H02", "H03"],
+    "OPP-02": ["H04", "H05", "H06"],
+    "OPP-03": ["H01", "H03"],
+    "OPP-04": ["H02"],
+    "OPP-05": ["H05", "H06"],
+    "OPP-06": ["H07", "H09"],
+    "OPP-07": ["H08", "H09"],
+    "OPP-10": ["H13", "H14"],
+    "OPP-12": ["H04", "H14"],
+    "OPP-13": ["H11", "H12", "H13"],
+    "OPP-14": ["H12"],
+    "OPP-15": ["H10", "H11"],
+    "OPP-18": ["H10"]
+  },
+  "recommended_for_prototype": ["H01", "H04", "H05", "H07", "H10", "H13"],
+  "recommended_for_prototype_rationale": {
+    "H01": "Home curada e o primeiro contato do usuario — valida se a proposta central do FoodFlow (curadoria > volume) funciona na pratica. Maior risco de valor.",
+    "H04": "Transparencia de preco e o antidoto para abandono de carrinho — maior RICE score das oportunidades. Testa o principio 'checkout e sagrado'.",
+    "H05": "Pagamento com cartao ECP e a integracao mais critica e com maior risco de usabilidade (suposicao A3 da Fase 01). Validar o fluxo antes de construir e essencial.",
+    "H07": "Repetir Pedido e o mecanismo central de retencao e o leading indicator do KR2. Baixo esforco com impacto transformacional — prioridade maxima para validacao.",
+    "H10": "Onboarding do restaurante e gargalo critico de cold start. Se restaurantes nao completam o onboarding, nao ha marketplace. Testa viabilidade do supply-side.",
+    "H13": "Cardapio visual premium e o que diferencia FoodFlow e sustenta ticket > R$45. Valida se o design Midnight Express realmente eleva percepcao de valor."
+  },
+  "design_principles_applied": [
+    {
+      "principle": "Visibilidade do estado do sistema (Norman)",
+      "applied_in": ["H05", "H06", "H14"],
+      "description": "O usuario sempre sabe o que esta acontecendo: feedback imediato no pagamento, progresso do frete gratis, status do pedido."
+    },
+    {
+      "principle": "Correspondencia entre sistema e mundo real (Norman)",
+      "applied_in": ["H01", "H13"],
+      "description": "Linguagem visual e textual que o usuario entende: fotos de comida, descricoes narrativas, categorias familiares (nao codigos ou jargoes)."
+    },
+    {
+      "principle": "Reconhecimento em vez de memorizacao (Norman)",
+      "applied_in": ["H07", "H09"],
+      "description": "Historico e favoritos mostram o que o usuario ja conhece — nao precisa lembrar nomes de restaurantes ou itens."
+    },
+    {
+      "principle": "Design emocional — nivel visceral (Norman)",
+      "applied_in": ["H02", "H13"],
+      "description": "Fotos premium e visual Midnight Express criam reacao emocional imediata que eleva percepcao de qualidade."
+    },
+    {
+      "principle": "Progressive disclosure (Norman)",
+      "applied_in": ["H10", "H11"],
+      "description": "Painel do restaurante mostra o essencial primeiro, detalhes avancados a um toque de distancia."
+    },
+    {
+      "principle": "Modelo Hook — gatilho-acao-recompensa-investimento (Nir Eyal)",
+      "applied_in": ["H08", "H09"],
+      "description": "Cupons como gatilho, pedido como acao, comida boa como recompensa, favoritos e historico como investimento."
+    },
+    {
+      "principle": "Suposicoes falsificaveis antes de construir (Torres/Cagan)",
+      "applied_in": "Todas as hipoteses",
+      "description": "Cada hipotese tem suposicoes explicitas com risco tipado e metodo de teste no prototipo low-fi."
+    }
+  ],
+  "risks_summary": [
+    {
+      "risk": "A integracao de pagamento com ecp-digital-bank pode adicionar friccao inesperada que os prototipos nao capturam (latencia, erros de API, sessao expirada)",
+      "mitigated_by": "H05 e H06 testam o modelo mental do fluxo no prototipo. Riscos tecnicos serao validados em spike tecnico na Fase 03.",
+      "risk_type": "feasibility"
+    },
+    {
+      "risk": "O MVP com dados seed pode nao transmitir a sensacao de 'plataforma ativa' que H01 depende (metricas ao vivo, restaurantes online)",
+      "mitigated_by": "Dados seed de qualidade alta (fotos, descricoes, ratings) serao criados para simular plataforma ativa no MVP.",
+      "risk_type": "value"
+    },
+    {
+      "risk": "Restaurantes artesanais podem achar que 30 minutos de onboarding ainda e muito, especialmente upload de fotos de qualidade",
+      "mitigated_by": "H10 testa o tempo real de onboarding no prototipo. Se ultrapassar 30min, simplificar (ex: permitir publicar sem foto e adicionar depois).",
+      "risk_type": "usability"
+    },
+    {
+      "risk": "O posicionamento premium (Midnight Express) pode afastar o segmento C3 (Cacador de Ofertas) que associa dark mode a precos altos",
+      "mitigated_by": "H02 testa percepcao de premium vs acessibilidade. Se C3 sentir exclusao, ajustar comunicacao de promocoes para ser mais proeminente.",
+      "risk_type": "value"
+    }
+  ],
+  "next_hitl": 3,
+  "hitl_request": {
+    "hitl_number": 3,
+    "type": "approval",
+    "summary": "Ideacao concluida: 14 hipoteses de solucao distribuidas em 5 temas, com suposicoes falsificaveis, criterios de sucesso e flows detalhados. 6 hipoteses recomendadas para prototipo low-fi (H01, H04, H05, H07, H10, H13). Todas as 13 oportunidades do MVP estao cobertas. Solicita-se aprovacao humana para prosseguir a etapa de prototipacao.",
+    "items_for_review": [
+      "14 hipoteses de solucao com descricao, suposicoes, testes e criterios de sucesso",
+      "Cobertura completa das 13 oportunidades priorizadas",
+      "6 hipoteses recomendadas para prototipo low-fi com justificativa",
+      "Matriz de cobertura hipotese-oportunidade",
+      "Riscos identificados com mitigacoes",
+      "Principios de design aplicados com rastreabilidade"
+    ],
+    "key_decisions_for_human": [
+      "As 6 hipoteses recomendadas para prototipo sao as certas? Adicionar ou trocar alguma?",
+      "O nivel de detalhe dos user flows e suficiente para guiar a prototipacao?",
+      "Os criterios de sucesso sao realisticos para testes com prototipo low-fi?",
+      "A cobertura de segmentos (C1, C2, C3, R1, R2) esta equilibrada?",
+      "Os riscos identificados estao completos? Algum risco nao mapeado?"
+    ],
+    "decision_options": ["approved", "rejected", "approved_with_reservations"]
+  }
+}

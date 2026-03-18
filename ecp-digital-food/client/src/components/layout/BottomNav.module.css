@@ -1,0 +1,73 @@
+.bottomNav {
+  position: fixed;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 35;
+  width: min(760px, calc(100vw - 24px));
+  padding: 10px;
+  border-radius: 22px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+  display: flex;
+}
+
+.navItem {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.79rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  font-family: inherit;
+}
+
+.navItem.active {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+}
+
+.navItemIcon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.navItemLabel {
+  white-space: nowrap;
+}
+
+.navBadge {
+  position: absolute;
+  top: 2px;
+  right: calc(50% - 16px);
+  background: var(--brand-2);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 720px) {
+  .navItem {
+    font-size: 0.72rem;
+  }
+
+  .bottomNav {
+    width: calc(100vw - 16px);
+  }
+}

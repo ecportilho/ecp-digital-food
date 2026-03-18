@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fase 03 &mdash; Product Delivery | ECP Food</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">&#x2B21;</span>
+      ECP Food docs
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="index.html"><span class="nav-icon">&#x25C9;</span> Vis&atilde;o Geral</a></li>
+      <li class="sidebar-section-title">Fases do Produto</li>
+      <li><a href="fase-01.html"><span class="nav-icon">01</span> Contexto Estrat&eacute;gico</a></li>
+      <li><a href="fase-02.html"><span class="nav-icon">02</span> Product Discovery</a></li>
+      <li><a href="fase-03.html" class="active"><span class="nav-icon">03</span> Product Delivery</a></li>
+      <li><a href="fase-04.html"><span class="nav-icon">04</span> Opera&ccedil;&atilde;o</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="INSTALACAO.md">&#x1F4E6; Guia de Instala&ccedil;&atilde;o</a>
+      <a href="dashboard/index.html">&#x1F4CA; Dashboard App</a>
+    </div>
+  </aside>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-title">Fase 03 &mdash; Product Delivery</div>
+    <div class="topbar-meta">
+      <span><span class="status-dot green"></span> HITLs #7-#10 Aprovados</span>
+      <span>Architect + Dev + QA</span>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="content">
+    <h1>Fase 03 &mdash; Product Delivery</h1>
+    <p class="subtitle">Arquitetura DDD, ADRs, API REST, banco de dados, stack t&eacute;cnica e QA report.</p>
+
+    <!-- Architecture -->
+    <h2>Arquitetura &mdash; Bounded Contexts</h2>
+    <section class="section">
+      <p>6 bounded contexts no modelo de dom&iacute;nio DDD:</p>
+      <div class="kr-grid">
+        <div class="kr-card">
+          <div class="kr-id">Identity</div>
+          <div class="kr-description">Autentica&ccedil;&atilde;o, autoriza&ccedil;&atilde;o, sess&otilde;es e perfis</div>
+          <div class="kr-meta">Aggregates: User (User, Address, Session)</div>
+          <div class="kr-metric">JWT 24h + Refresh Token 7d. Roles: consumer, restaurant, admin. bcryptjs 12 rounds.</div>
+        </div>
+        <div class="kr-card">
+          <div class="kr-id">Catalog</div>
+          <div class="kr-description">Restaurantes, categorias, card&aacute;pios e itens</div>
+          <div class="kr-meta">Aggregates: Restaurant, Category</div>
+          <div class="kr-metric">Dom&iacute;nio p&uacute;blico (leitura sem auth). 6 restaurantes seed, 24 itens, 7 categorias.</div>
+        </div>
+        <div class="kr-card">
+          <div class="kr-id">Ordering</div>
+          <div class="kr-description">Carrinho, pedidos, itens de pedido, cupons</div>
+          <div class="kr-meta">Aggregates: Cart, Order, Coupon</div>
+          <div class="kr-metric">Status: pending_payment &rarr; confirmed &rarr; preparing &rarr; out_for_delivery &rarr; delivered. Frete gr&aacute;tis &ge; R$ 120.</div>
+        </div>
+        <div class="kr-card">
+          <div class="kr-id">Payment</div>
+          <div class="kr-description">Integra&ccedil;&atilde;o ECP Digital Bank: cart&atilde;o virtual, PIX, webhooks, SSE</div>
+          <div class="kr-meta">Aggregates: Payment + Services (bank-integration, webhook-handler, sse-manager)</div>
+          <div class="kr-metric">Valores em centavos. Circuit breaker (5 falhas = 30s block). PIX expira em 10 min. HMAC-SHA256 validation.</div>
+        </div>
+        <div class="kr-card">
+          <div class="kr-id">Delivery</div>
+          <div class="kr-description">Tracking simulado de entregas</div>
+          <div class="kr-meta">Refer&ecirc;ncia cruzada com Ordering context</div>
+          <div class="kr-metric">MVP: restaurante atualiza status manualmente. Sem GPS real. ETA calculado a partir de eta_min/eta_max.</div>
+        </div>
+        <div class="kr-card">
+          <div class="kr-id">Admin</div>
+          <div class="kr-description">Dashboard, gest&atilde;o de restaurantes, categorias, cupons</div>
+          <div class="kr-meta">Aggregates: PlatformAdmin, RestaurantAdmin</div>
+          <div class="kr-metric">M&eacute;tricas: total restaurantes, pedidos, receita, ticket m&eacute;dio. CRUD de restaurantes, categorias e cupons.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADRs -->
+    <h2>Architecture Decision Records (ADRs)</h2>
+    <section class="section">
+      <div class="adr-card">
+        <div class="adr-id">ADR-001</div>
+        <div class="adr-title">Monorepo Single-Server Architecture</div>
+        <div class="adr-status">Accepted</div>
+        <div class="adr-body">
+          <p><strong>Decis&atilde;o:</strong> Fastify serve API REST (/api/*) + React SPA (client/dist/) em um &uacute;nico processo Node.js. Em dev, Vite com HMR separado; em produ&ccedil;&atilde;o, static files.</p>
+          <p><strong>Positivo:</strong> Deploy simplificado (PM2), custo m&iacute;nimo (VPS R$ 20-50/m&ecirc;s), padr&atilde;o validado no ecp-digital-banking.</p>
+          <p><strong>Negativo:</strong> Escalabilidade horizontal limitada, frontend e backend acoplados no deploy.</p>
+        </div>
+      </div>
+      <div class="adr-card">
+        <div class="adr-id">ADR-002</div>
+        <div class="adr-title">SQLite with better-sqlite3 as Primary Database</div>
+        <div class="adr-status">Accepted</div>
+        <div class="adr-body">
+          <p><strong>Decis&atilde;o:</strong> SQLite via better-sqlite3 11.x com WAL mode. Arquivo em ./data/foodflow.db. Migrations inline no startup.</p>
+          <p><strong>Positivo:</strong> Zero-config, performance excepcional para &lt; 100k rows, prepared statements nativos, API s&iacute;ncrona.</p>
+          <p><strong>Negativo:</strong> Escritas concorrentes limitadas, sem replica&ccedil;&atilde;o nativa.</p>
+        </div>
+      </div>
+      <div class="adr-card">
+        <div class="adr-id">ADR-003</div>
+        <div class="adr-title">ECP Digital Bank Integration as Payment Proxy</div>
+        <div class="adr-status">Accepted</div>
+        <div class="adr-body">
+          <p><strong>Decis&atilde;o:</strong> FoodFlow atua como proxy de pagamento. bank-integration.mjs encapsula todas as chamadas. Cart&atilde;o Virtual ECP via d&eacute;bito PIX transfer + PIX QR Code com webhook + SSE.</p>
+          <p><strong>Positivo:</strong> Pagamentos reais sem gateway externo, seguran&ccedil;a server-side, JWT ef&ecirc;mero.</p>
+          <p><strong>Negativo:</strong> Depend&ecirc;ncia de disponibilidade do banco, lat&ecirc;ncia de proxy.</p>
+        </div>
+      </div>
+      <div class="adr-card">
+        <div class="adr-id">ADR-004</div>
+        <div class="adr-title">SSE for Real-Time PIX Payment Notification</div>
+        <div class="adr-status">Accepted</div>
+        <div class="adr-body">
+          <p><strong>Decis&atilde;o:</strong> Server-Sent Events via GET /api/payments/:id/events. SSE Manager com Map&lt;paymentId, Set&lt;ServerResponse&gt;&gt;. Auth via token JWT curta dura&ccedil;&atilde;o (5 min) em query param.</p>
+          <p><strong>Positivo:</strong> Nativo no browser (EventSource), unidirecional, baixo overhead, auto-reconnect.</p>
+          <p><strong>Negativo:</strong> EventSource n&atilde;o suporta headers customizados, limite 6 conex&otilde;es em HTTP/1.1.</p>
+        </div>
+      </div>
+      <div class="adr-card">
+        <div class="adr-id">ADR-005</div>
+        <div class="adr-title">CSS Modules with CSS Custom Properties for Theming</div>
+        <div class="adr-status">Accepted</div>
+        <div class="adr-body">
+          <p><strong>Decis&atilde;o:</strong> CSS Modules (*.module.css) para escopo isolado + CSS Custom Properties (vari&aacute;veis CSS) para theming global Midnight Express.</p>
+          <p><strong>Positivo:</strong> Zero runtime JS, theming centralizado, sem conflito de estilos, bundle m&iacute;nimo.</p>
+          <p><strong>Negativo:</strong> Sem dynamic styling baseado em props (resolvido com style prop inline).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- API Endpoints -->
+    <h2>API REST &mdash; 48 Endpoints</h2>
+    <section class="section">
+
+      <h3>Authentication (3)</h3>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/auth/register</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/auth/login</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/auth/refresh</span></div>
+
+      <h3>Consumer Profile (5)</h3>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/consumer/profile</span></div>
+      <div class="endpoint"><span class="method put">PUT</span><span class="path">/api/consumer/profile</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/consumer/addresses</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/consumer/addresses</span></div>
+      <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/api/consumer/addresses/:id</span></div>
+
+      <h3>Catalog (4)</h3>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/categories</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/restaurants</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/restaurants/:id</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/restaurants/:id/menu</span></div>
+
+      <h3>Cart (5)</h3>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/cart</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/cart/items</span></div>
+      <div class="endpoint"><span class="method put">PUT</span><span class="path">/api/cart/items/:id</span></div>
+      <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/api/cart/items/:id</span></div>
+      <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/api/cart</span></div>
+
+      <h3>Orders (4)</h3>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/orders</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/orders</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/orders/:id</span></div>
+      <div class="endpoint"><span class="method patch">PATCH</span><span class="path">/api/orders/:id/status</span></div>
+
+      <h3>Coupons (1)</h3>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/coupons/validate</span></div>
+
+      <h3>Payments (5)</h3>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/payments/bank-auth</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/payments/bank-cards</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/payments/bank-balance</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/payments/card</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/payments/pix</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/payments/:id/events</span> <span class="badge info">SSE</span></div>
+
+      <h3>Webhook (1)</h3>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/webhooks/bank/pix-received</span></div>
+
+      <h3>Favorites (3)</h3>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/favorites</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/favorites</span></div>
+      <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/api/favorites/:restaurantId</span></div>
+
+      <h3>Restaurant Admin (7)</h3>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/restaurant-admin/profile</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/restaurant-admin/menu-items</span></div>
+      <div class="endpoint"><span class="method put">PUT</span><span class="path">/api/restaurant-admin/menu-items/:id</span></div>
+      <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/api/restaurant-admin/menu-items/:id</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/restaurant-admin/orders</span></div>
+      <div class="endpoint"><span class="method put">PUT</span><span class="path">/api/restaurant-admin/orders/:id/status</span></div>
+      <div class="endpoint"><span class="method put">PUT</span><span class="path">/api/restaurant-admin/settings</span></div>
+
+      <h3>Platform Admin (9)</h3>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/admin/dashboard</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/admin/restaurants</span></div>
+      <div class="endpoint"><span class="method patch">PATCH</span><span class="path">/api/admin/restaurants/:id/status</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/admin/categories</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/admin/categories</span></div>
+      <div class="endpoint"><span class="method put">PUT</span><span class="path">/api/admin/categories/:id</span></div>
+      <div class="endpoint"><span class="method delete">DELETE</span><span class="path">/api/admin/categories/:id</span></div>
+      <div class="endpoint"><span class="method get">GET</span><span class="path">/api/admin/coupons</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/admin/coupons</span></div>
+      <div class="endpoint"><span class="method put">PUT</span><span class="path">/api/admin/coupons/:id</span></div>
+    </section>
+
+    <!-- DB Schema -->
+    <h2>Banco de Dados &mdash; 12 Tabelas</h2>
+    <section class="section">
+      <table class="data-table">
+        <thead><tr><th>Tabela</th><th>Descri&ccedil;&atilde;o</th><th>Colunas</th></tr></thead>
+        <tbody>
+          <tr><td>users</td><td>Usu&aacute;rios (consumer, restaurant, admin)</td><td>id, email, password_hash, name, phone, role, restaurant_id, created_at, updated_at</td></tr>
+          <tr><td>addresses</td><td>Endere&ccedil;os de entrega</td><td>id, user_id, label, street, number, complement, neighborhood, city, state, zip_code, is_default</td></tr>
+          <tr><td>categories</td><td>Categorias do marketplace</td><td>id, name, emoji, sort_order, is_active</td></tr>
+          <tr><td>restaurants</td><td>Restaurantes parceiros</td><td>id, name, slug, cuisine, subtitle, category_id, rating, review_count, eta_min, eta_max, delivery_fee, min_order, cover_gradient, hero_emoji, promo_text, tags, is_active, is_open</td></tr>
+          <tr><td>menu_items</td><td>Itens do card&aacute;pio</td><td>id, restaurant_id, name, description, price, emoji, badge, category, sort_order, is_available</td></tr>
+          <tr><td>carts</td><td>Carrinho server-side (1 por usu&aacute;rio)</td><td>id, user_id, updated_at</td></tr>
+          <tr><td>cart_items</td><td>Itens no carrinho</td><td>id, cart_id, menu_item_id, quantity</td></tr>
+          <tr><td>orders</td><td>Pedidos com valores calculados</td><td>id, user_id, address_text, subtotal, delivery_fee, discount, total, coupon_code, payment_method, status</td></tr>
+          <tr><td>order_items</td><td>Snapshot de itens do pedido</td><td>id, order_id, restaurant_id, restaurant_name, menu_item_id, item_name, item_price, quantity</td></tr>
+          <tr><td>favorites</td><td>Rela&ccedil;&atilde;o consumer-restaurante</td><td>id, user_id, restaurant_id, created_at</td></tr>
+          <tr><td>coupons</td><td>Cupons de desconto</td><td>id, code, discount_type, discount_value, min_order, max_uses, uses_count, is_active, expires_at</td></tr>
+          <tr><td>payments</td><td>Pagamentos integrados com ECP Bank</td><td>id, order_id, user_id, method, status, amount_cents, bank_transaction_id, pix_qrcode_data, pix_expiration, card_last4, webhook_received_at</td></tr>
+        </tbody>
+      </table>
+      <p><strong>Engine:</strong> SQLite via better-sqlite3 11.x | <strong>Seed:</strong> 7 categorias, 6 restaurantes, 24 itens, cupom MVP10 (R$ 10 off, min R$ 80), 3 usu&aacute;rios demo.</p>
+    </section>
+
+    <!-- Stack -->
+    <h2>Stack T&eacute;cnica</h2>
+    <section class="section">
+      <div class="two-col">
+        <div class="artifact-card">
+          <div class="artifact-label">Backend</div>
+          <div class="artifact-body">
+            <ul>
+              <li><strong>Runtime:</strong> Node.js 20 LTS</li>
+              <li><strong>Framework:</strong> Fastify 5.x</li>
+              <li><strong>Database:</strong> SQLite via better-sqlite3 11.x</li>
+              <li><strong>Auth:</strong> JWT (jsonwebtoken) + bcryptjs</li>
+              <li><strong>Validation:</strong> TypeBox (JSON Schema)</li>
+              <li><strong>SSE:</strong> reply.raw.write nativo</li>
+              <li><strong>Webhook:</strong> HMAC-SHA256 + timingSafeEqual</li>
+            </ul>
+          </div>
+        </div>
+        <div class="artifact-card">
+          <div class="artifact-label">Frontend</div>
+          <div class="artifact-body">
+            <ul>
+              <li><strong>Framework:</strong> React 18</li>
+              <li><strong>Build:</strong> Vite 5.x</li>
+              <li><strong>Styling:</strong> CSS Modules + CSS Custom Properties</li>
+              <li><strong>Routing:</strong> React Router 6</li>
+              <li><strong>State:</strong> Context API (Auth, Cart, Theme)</li>
+              <li><strong>HTTP:</strong> Fetch API com wrapper custom</li>
+              <li><strong>SSE:</strong> EventSource nativo + hook useSSE</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QA Report -->
+    <h2>QA Report</h2>
+    <section class="section">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value">82</div>
+          <div class="stat-label">Quality Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">142</div>
+          <div class="stat-label">Test Cases</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">98</div>
+          <div class="stat-label">ACs Cobertos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">6</div>
+          <div class="stat-label">Bugs Encontrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color: var(--warning);">Conditional Go</div>
+          <div class="stat-label">Go/No-Go</div>
+        </div>
+      </div>
+
+      <h3>Bugs Cr&iacute;ticos</h3>
+      <div class="artifact-card" style="border-left: 3px solid var(--danger);">
+        <div class="artifact-label" style="color: var(--danger);">BUG-001 &mdash; Critical</div>
+        <div class="artifact-title">EventSource nativo n&atilde;o suporta headers customizados (Authorization: Bearer)</div>
+        <div class="artifact-body">Sem autentica&ccedil;&atilde;o na SSE, qualquer pessoa pode escutar eventos de pagamento. Solu&ccedil;&atilde;o: token via query param com expira&ccedil;&atilde;o curta (5 min).</div>
+      </div>
+      <div class="artifact-card" style="border-left: 3px solid var(--danger);">
+        <div class="artifact-label" style="color: var(--danger);">BUG-002 &mdash; Critical</div>
+        <div class="artifact-title">Regra de frete gr&aacute;tis n&atilde;o considera corretamente carrinho multi-restaurante</div>
+        <div class="artifact-body">Frete de todos os restaurantes no carrinho precisa ser somado antes de aplicar isen&ccedil;&atilde;o (&ge; R$ 120). C&aacute;lculo agregado n&atilde;o &eacute; trivial.</div>
+      </div>
+
+      <h3>Bugs Major</h3>
+      <div class="artifact-card" style="border-left: 3px solid var(--warning);">
+        <div class="artifact-label" style="color: var(--warning);">BUG-003 &mdash; Major</div>
+        <div class="artifact-title">Inconsist&ecirc;ncia cupom MVP10: 10% no backlog vs R$ 10 fixo no tech_spec</div>
+      </div>
+      <div class="artifact-card" style="border-left: 3px solid var(--warning);">
+        <div class="artifact-label" style="color: var(--warning);">BUG-004 &mdash; Major</div>
+        <div class="artifact-title">Sem valida&ccedil;&atilde;o de pedido m&iacute;nimo por restaurante no checkout</div>
+      </div>
+
+      <h3>Condi&ccedil;&otilde;es para Deploy</h3>
+      <ul>
+        <li>Corrigir BUG-001: autenticação SSE via query param token</li>
+        <li>Corrigir BUG-002: regra de frete multi-restaurante</li>
+        <li>Resolver BUG-003: decidir se MVP10 &eacute; 10% ou R$ 10</li>
+        <li>Implementar BUG-004: valida&ccedil;&atilde;o min_order</li>
+        <li>Smoke tests P0 (32 casos) passando 100%</li>
+        <li>Core tests P1 (68 casos) passando &ge; 95%</li>
+        <li>Zero bugs cr&iacute;ticos abertos</li>
+      </ul>
+    </section>
+
+    <!-- Files -->
+    <h2>Artefatos Gerados</h2>
+    <section class="section">
+      <div class="artifact-meta" style="gap: 8px;">
+        <span class="file-ref">03-product-delivery/architecture.json</span>
+        <span class="file-ref">03-product-delivery/qa-report.json</span>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="assets/nav.js"></script>
+</body>
+</html>

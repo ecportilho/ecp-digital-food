@@ -1,0 +1,280 @@
+{
+  "agent": "product-owner+product-manager+product-designer",
+  "phase": "02-product-discovery",
+  "step": "four-risks",
+  "product": "FoodFlow",
+  "generated_at": "2026-03-17",
+  "methodology_references": [
+    "Marty Cagan — Inspired: os 4 riscos que todo produto deve validar antes de construir",
+    "Marty Cagan — Empowered: times de produto empoderados mitigam riscos com evidencias, nao opiniao",
+    "Teresa Torres — Continuous Discovery Habits: decisoes baseadas em evidencias coletadas ao longo do discovery"
+  ],
+  "four_risks": {
+    "customer_value": {
+      "question": "Os consumidores e restaurantes realmente querem isso? O FoodFlow resolve problemas reais que justificam migrar de plataformas estabelecidas?",
+      "verdict": "approved_with_reservations",
+      "confidence": "alta",
+      "confidence_score": 0.80,
+      "evidence": [
+        {
+          "source": "Analise de mercado (Fase 01)",
+          "finding": "Mercado de food delivery no Brasil atinge R$75 bi/ano (TAM). SAM em SP e R$12 bi/ano. Reviews de app stores do iFood mencionam UI poluida e fadiga de decisao como dores recorrentes."
+        },
+        {
+          "source": "Segmentacao de consumidores (Fase 01)",
+          "finding": "5 segmentos validados com JTBDs distintos. C1 (Explorador, ticket R$50-80) e C2 (Pratico Recorrente, ticket R$40-60) juntos representam o core target. Ambos tem dores explicitas com plataformas atuais: fadiga de decisao (C1), checkout lento (C2), cupons confusos (C3)."
+        },
+        {
+          "source": "Priorizacao de oportunidades (HITL #2 aprovado)",
+          "finding": "13 oportunidades priorizadas via RICE cobrindo 4 KRs. OPP-02 (checkout sem surpresas) tem o maior RICE score (41.67). OPP-12 (frete gratis como alavanca) tem o maior RICE ajustado (80.0). Validacao de que as dores sao reais e endereçaveis."
+        },
+        {
+          "source": "Ideacao e hipoteses (HITL #3 aprovado)",
+          "finding": "14 hipoteses com suposicoes falsificaveis e criterios de sucesso mensuráveis. As 6 hipoteses recomendadas para prototipo (H01, H04, H05, H07, H10, H13) cobrem os fluxos criticos de valor."
+        },
+        {
+          "source": "Dor validada do supply-side",
+          "finding": "Restaurantes artesanais (R1) pagam 12-27% de comissao no iFood com visibilidade limitada sem midia paga. O principio 'Restaurante parceiro, nao refem' e ranking por qualidade (H12) endereçam diretamente essa dor."
+        }
+      ],
+      "open_assumptions": [
+        {
+          "id": "A-CV-1",
+          "assumption": "Consumidores com historico, favoritos e creditos no iFood aceitarao migrar para uma plataforma nova sem base de restaurantes equivalente",
+          "risk_level": "alto",
+          "mitigation": "Cupom de boas-vindas MVP10, frete gratis > R$120, e UX premium como incentivos iniciais. Validar com early adopters se incentivos sao suficientes."
+        },
+        {
+          "id": "A-CV-2",
+          "assumption": "O posicionamento premium (Midnight Express, curadoria artesanal) atrai segmentos C1 e C2 sem alienar C3 (Cacador de Ofertas) que precisa sentir economia",
+          "risk_level": "medio",
+          "mitigation": "H02 testa percepcao de premium vs acessibilidade. Promocoes e cupons visiveis na home atendem C3 sem comprometer posicionamento."
+        },
+        {
+          "id": "A-CV-3",
+          "assumption": "50 restaurantes artesanais em SP sao suficientes para gerar variedade percebida e evitar que consumidores sintam catalogo limitado",
+          "risk_level": "medio",
+          "mitigation": "Foco em 6 categorias curadas (Hamburguer, Japones, Pizza, Saudavel, Massas, Brasileira) com 8+ restaurantes por categoria. Qualidade sobre quantidade."
+        }
+      ]
+    },
+    "business_value": {
+      "question": "O FoodFlow gera valor de negocio sustentavel? As metricas de conversao, ticket, recompra e supply justificam o investimento?",
+      "verdict": "approved",
+      "confidence": "alta",
+      "confidence_score": 0.85,
+      "evidence": [
+        {
+          "source": "OKRs definidos (Fase 01, HITL #1 aprovado)",
+          "finding": "4 KRs com metas mensuráveis: KR1 conversao > 8%, KR2 recompra > 25%, KR3 ticket medio > R$45, KR4 50+ restaurantes ativos. North Star Metric: 630 pedidos completados com satisfacao por semana (90/dia nos primeiros 3 meses)."
+        },
+        {
+          "source": "Market sizing (Fase 01)",
+          "finding": "SOM de R$18 milhoes/ano e realista (0,15% do SAM). Premissa: 50-80 restaurantes, ticket R$55, 900 pedidos/dia apos ramp-up. Margem de comissao de 10-18% gera receita de R$1.8-3.2M/ano."
+        },
+        {
+          "source": "Modelo de receita",
+          "finding": "Comissao por pedido (10-18%) como receita primaria. Sem dependencia de servicos pagos externos no MVP. Infraestrutura em VPS Linux (baixo custo). Pagamento integrado com ecp-digital-bank ja em producao (custo marginal de integracao)."
+        },
+        {
+          "source": "Vantagem competitiva sustentavel",
+          "finding": "Integracao com ecp-digital-bank e diferencial unico que nenhum concorrente oferece. Ranking por qualidade (nao pay-to-play) cria proposta de valor para supply-side que iFood nao pode replicar sem canibalizar receita de midia."
+        },
+        {
+          "source": "Analise competitiva",
+          "finding": "Keeta (ByteDance) validou que mercado aceita novos entrantes com UX diferenciada. 99food validou espaco para challenger brands. Gap de experiencia premium nao atendido por incumbentes."
+        }
+      ],
+      "open_assumptions": [
+        {
+          "id": "A-BV-1",
+          "assumption": "A comissao de 10-18% e suficiente para cobrir custos operacionais e gerar margem positiva com 50 restaurantes",
+          "risk_level": "medio",
+          "mitigation": "OQ1 da Fase 01 — PM deve definir modelo de comissao detalhado antes do delivery. Cenarios com 0% comissao nos primeiros 3 meses (A2) precisam de runway financeiro."
+        },
+        {
+          "id": "A-BV-2",
+          "assumption": "O cold start problem (atrair restaurantes e consumidores simultaneamente) pode ser superado sem budget de marketing significativo",
+          "risk_level": "alto",
+          "mitigation": "Estrategia de seed com 20-30 restaurantes parceiros no lancamento. Abordagem direta a restaurantes artesanais em Pinheiros, Vila Madalena, Itaim. Comissao zero inicial como incentivo."
+        }
+      ]
+    },
+    "usability": {
+      "question": "Os consumidores e restaurantes conseguem usar o FoodFlow sem dificuldade? Os fluxos criticos sao intuitivos e completaveis sem ajuda?",
+      "verdict": "approved_with_reservations",
+      "confidence": "alta",
+      "confidence_score": 0.78,
+      "evidence": [
+        {
+          "source": "Hipoteses com criterios de usabilidade (Fase 02, HITL #3 aprovado)",
+          "finding": "14 hipoteses com 38 suposicoes falsificaveis, incluindo 15 especificamente de risco de usabilidade. Cada hipotese tem criterios de sucesso mensuráveis testados em prototipo."
+        },
+        {
+          "source": "User flows detalhados por hipotese",
+          "finding": "Flows de 8-12 passos para cada fluxo critico: descoberta (H01: 9 passos), checkout (H04: 10 passos), pagamento cartao (H05: 12 passos), pagamento PIX (H06: 10 passos), repetir pedido (H07: 12 passos), onboarding restaurante (H10: 11 passos)."
+        },
+        {
+          "source": "Principios de design aplicados (Don Norman)",
+          "finding": "7 principios de design aplicados com rastreabilidade: visibilidade do estado do sistema (pagamento, frete gratis), correspondencia com mundo real (fotos, linguagem natural), reconhecimento vs memorizacao (historico, favoritos), progressive disclosure (painel restaurante)."
+        },
+        {
+          "source": "Criterios de sucesso de usabilidade validaveis",
+          "finding": "H01: 80% selecionam restaurante em < 3 toques e 90s. H05: 85% completam pagamento em < 30s. H07: 100% repetem pedido em < 3 toques e 30s. H10: 80% completam onboarding em < 30 min."
+        }
+      ],
+      "open_assumptions": [
+        {
+          "id": "A-US-1",
+          "assumption": "A autenticacao inline no ecp-digital-bank (email + senha dentro do FoodFlow) e intuitiva e nao gera desconfianca sobre seguranca (phishing perception)",
+          "risk_level": "alto",
+          "mitigation": "H05 testa esse fluxo no prototipo. Se desconfianca for detectada, alternativa e redirect seguro com branding do banco. Suposicao A3 da Fase 01 flaggou esse risco."
+        },
+        {
+          "id": "A-US-2",
+          "assumption": "O fluxo de PIX QR Code com espera de confirmacao via SSE nao gera ansiedade excessiva no consumidor (tempo entre escanear e confirmar)",
+          "risk_level": "medio",
+          "mitigation": "H06 inclui timer de validade, instrucoes contextuais e feedback de 'Aguardando pagamento...' com animacao. Testes de usabilidade validarao se e suficiente."
+        },
+        {
+          "id": "A-US-3",
+          "assumption": "Restaurantes artesanais (dono/chef com equipe enxuta) conseguem completar o onboarding em 30 min mesmo com upload de fotos de qualidade e descricoes ricas",
+          "risk_level": "medio",
+          "mitigation": "H10 permite publicar com minimo de 3 itens. Progresso salvo automaticamente. Se 30 min for insuficiente, simplificar (publicar sem foto e adicionar depois)."
+        }
+      ]
+    },
+    "technical_feasibility": {
+      "question": "A equipe consegue construir o FoodFlow com a stack definida, dentro do prazo e com a qualidade necessaria? A integracao com ecp-digital-bank e viavel?",
+      "verdict": "approved_with_reservations",
+      "confidence": "media-alta",
+      "confidence_score": 0.72,
+      "evidence": [
+        {
+          "source": "tech_spec.md — Stack tecnologica",
+          "finding": "Stack identica ao ecp-digital-banking (Node.js + Fastify + SQLite + React) — equipe ja tem experiencia comprovada com esta stack em producao."
+        },
+        {
+          "source": "ecp-digital-bank em producao",
+          "finding": "O ecp-digital-bank (https://bank.ecportilho.com) ja esta em producao e expoe APIs REST com autenticacao JWT. Endpoints necessarios (POST /auth/login, GET /cards, GET /accounts/balance, POST /pix/transfer, POST /pix/qrcode) ja existem."
+        },
+        {
+          "source": "Escopo tecnico do MVP",
+          "finding": "51 historias de usuario com estimativa de story points. Distribuicao: S=15, M=24, L=8, XL=1. Uma unica historia XL (US-023: SSE para pagamento PIX em tempo real) — componente tecnico mais complexo do MVP."
+        },
+        {
+          "source": "Requisitos nao-funcionais viaveis",
+          "finding": "FCP < 1.5s e TTI < 3s sao atingiveis com React + Fastify + SQLite. Breakpoints responsivos (720/980/1180/1440px) sao padrao. Contraste WCAG AA exige atencao no dark mode (Midnight Express) mas e solucionavel."
+        }
+      ],
+      "open_assumptions": [
+        {
+          "id": "A-TF-1",
+          "assumption": "A integracao com ecp-digital-bank via API funciona com latencia aceitavel (< 2s para auth, < 3s para QR Code) em ambiente de producao",
+          "risk_level": "medio",
+          "mitigation": "Spike tecnico na Fase 03 (Delivery) para validar latencia e resiliencia da integracao. Definir timeouts, retries e fallbacks."
+        },
+        {
+          "id": "A-TF-2",
+          "assumption": "SSE (Server-Sent Events) para notificacao em tempo real do pagamento PIX funciona de forma confiavel em diferentes navegadores e conexoes moveis",
+          "risk_level": "medio",
+          "mitigation": "Spike tecnico para SSE com fallback para polling. Testar em Chrome, Safari, Firefox e redes 3G/4G. US-023 estimada como XL por essa complexidade."
+        },
+        {
+          "id": "A-TF-3",
+          "assumption": "Manter paridade de experiencia responsiva (desktop + mobile + tablet) com equipe enxuta e viavel sem comprometer qualidade e prazo",
+          "risk_level": "medio",
+          "mitigation": "Design system com tokens compartilhados. Mobile-first approach com breakpoints definidos. Priorizar mobile e desktop, tablet como adaptacao natural."
+        },
+        {
+          "id": "A-TF-4",
+          "assumption": "Webhook do ecp-digital-bank para confirmacao de PIX (POST /api/webhooks/bank/pix-received) e confiavel e entrega em tempo habil (< 5s apos pagamento)",
+          "risk_level": "medio",
+          "mitigation": "Implementar idempotencia no handler de webhook. Mecanismo de retry no lado do banco. Status 'aguardando confirmacao' com timeout de 15 min como fallback."
+        }
+      ]
+    }
+  },
+  "overall_verdict": "approved_with_reservations",
+  "overall_confidence": 0.79,
+  "verdict_rationale": "O FoodFlow passa nos 4 riscos de Cagan com reservas em 3 deles. O valor de negocio e o risco mais bem mitigado (alta confianca, 0.85) — o mercado existe, as metricas sao mensuráveis e a vantagem competitiva (ecp-digital-bank + ranking por qualidade) e real. O valor para o cliente e forte mas depende de superar o efeito de rede do iFood (cold start problem). A usabilidade foi extensivamente projetada com 14 hipoteses e principios de Norman, mas a autenticacao inline no banco digital e o ponto de maior risco. A viabilidade tecnica e a reserva mais significativa — a integracao com ecp-digital-bank (especialmente SSE + webhook para PIX) requer spike tecnico antes de commit de delivery.",
+  "recommendation": "proceed_to_delivery",
+  "conditions_for_delivery": [
+    {
+      "condition": "Spike tecnico de integracao com ecp-digital-bank",
+      "description": "Na primeira semana da Fase 03, o Arquiteto deve executar spike tecnico validando: latencia de autenticacao (POST /auth/login), geracao de QR Code (POST /pix/qrcode), recebimento de webhook (POST /api/webhooks/bank/pix-received) e notificacao via SSE. Criterio de saida: fluxo completo de pagamento PIX funcionando em ambiente de desenvolvimento.",
+      "responsible": "Software Architect",
+      "blocking": true
+    },
+    {
+      "condition": "Definicao do modelo de comissao",
+      "description": "PM deve definir o modelo de comissao antes do inicio do delivery: percentual por pedido, periodo de comissao zero para onboarding, e projecao de break-even. Afeta parametrizacao do sistema e proposta de valor para restaurantes.",
+      "responsible": "Product Manager",
+      "blocking": false
+    },
+    {
+      "condition": "Seed de dados de qualidade para MVP",
+      "description": "Para que o MVP transmita sensacao de 'plataforma ativa', sera necessario seed de 20-30 restaurantes com fotos de alta qualidade, descricoes ricas e ratings. Qualidade do seed impacta diretamente a percepcao de valor do consumidor.",
+      "responsible": "Product Designer + Back End Developer",
+      "blocking": false
+    },
+    {
+      "condition": "Validacao de acessibilidade WCAG AA no dark mode",
+      "description": "O tema Midnight Express (dark mode) exige validacao de contraste WCAG AA em todos os componentes de texto e interacao. Designer deve fornecer tokens de cor validados antes da implementacao.",
+      "responsible": "Product Designer",
+      "blocking": false
+    },
+    {
+      "condition": "Estrategia de onboarding de restaurantes parceiros",
+      "description": "PM deve ter pipeline de pelo menos 20 restaurantes artesanais comprometidos para o lancamento. Abordagem direta em bairros-alvo (Pinheiros, Vila Madalena, Itaim). Sem supply, nao ha marketplace.",
+      "responsible": "Product Manager",
+      "blocking": false
+    }
+  ],
+  "risk_mitigation_timeline": {
+    "week_1_delivery": [
+      "Spike tecnico ecp-digital-bank (Auth + PIX + Webhook + SSE)",
+      "Validacao de contraste WCAG AA nos tokens Midnight Express"
+    ],
+    "week_2_delivery": [
+      "Definicao final do modelo de comissao",
+      "Inicio da curadoria de seed de restaurantes"
+    ],
+    "week_3_delivery": [
+      "Resultado do spike tecnico — go/no-go para fluxo de pagamento",
+      "Ajuste de UX se spike revelar limitacoes de latencia"
+    ],
+    "ongoing": [
+      "Pipeline de restaurantes parceiros para lancamento",
+      "Testes de usabilidade incrementais nos fluxos criticos"
+    ]
+  },
+  "backlog_summary": {
+    "total_epics": 7,
+    "total_features": 19,
+    "total_stories": 51,
+    "coverage": "Todas as 12 funcionalidades do briefing (F01-F12) estao cobertas nos 7 epicos. Todas as 13 oportunidades priorizadas estao traceaveis. Todas as 14 hipoteses aprovadas estao referenciadas."
+  },
+  "next_hitl": 6,
+  "hitl_request": {
+    "hitl_number": 6,
+    "type": "approval",
+    "summary": "Etapas 5 e 6 da Fase 02 concluidas. Backlog estruturado com 7 epicos, 19 features e 51 historias de usuario com Gherkin. Avaliacao dos 4 riscos de Cagan resulta em 'approved_with_reservations' com recomendacao de prosseguir para Delivery com 5 condicoes. Solicita-se aprovacao humana para transicao a Fase 03.",
+    "items_for_review": [
+      "7 epicos com benefit hypothesis e traceabilidade a KRs, oportunidades e hipoteses",
+      "19 features com acceptance criteria de alto nivel",
+      "51 historias de usuario com criterios de aceite em Gherkin (Dado/Quando/Entao)",
+      "Avaliacao dos 4 riscos: valor cliente (0.80), valor negocio (0.85), usabilidade (0.78), viabilidade tecnica (0.72)",
+      "5 condicoes para delivery (1 bloqueante: spike tecnico ecp-digital-bank)",
+      "Matriz de traceabilidade F01-F12 para epicos"
+    ],
+    "key_decisions_for_human": [
+      "A condicao bloqueante (spike tecnico ecp-digital-bank) deve ser executada antes de iniciar qualquer desenvolvimento?",
+      "O modelo de comissao (A-BV-1) precisa ser definido pelo PM antes ou em paralelo ao delivery?",
+      "51 historias sao suficientes para o MVP ou ha gaps funcionais?",
+      "As 10 open assumptions (riscos residuais) estao adequadamente mitigadas?",
+      "A confianca geral de 0.79 e suficiente para prosseguir?"
+    ],
+    "decision_options": ["approved", "rejected", "approved_with_reservations"]
+  }
+}

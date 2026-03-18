@@ -1,0 +1,2291 @@
+{
+  "meta": {
+    "artifact": "architecture",
+    "phase": "03-product-delivery",
+    "step": 1,
+    "agent": "software-architect",
+    "product": "FoodFlow",
+    "version": "1.0.0",
+    "created_at": "2026-03-17"
+  },
+
+  "domain_model": {
+    "bounded_contexts": [
+      {
+        "name": "Identity",
+        "description": "Gerencia autenticação, autorização, sessões e perfis de usuário (consumer, restaurant, admin).",
+        "aggregates": [
+          {
+            "name": "User",
+            "root_entity": "User",
+            "entities": [
+              {
+                "name": "User",
+                "attributes": ["id", "email", "password_hash", "name", "phone", "role", "restaurant_id", "created_at", "updated_at"]
+              },
+              {
+                "name": "Address",
+                "attributes": ["id", "user_id", "label", "street", "number", "complement", "neighborhood", "city", "state", "zip_code", "is_default", "created_at"]
+              },
+              {
+                "name": "Session",
+                "attributes": ["access_token", "refresh_token", "expires_at"]
+              }
+            ],
+            "value_objects": [
+              { "name": "Email", "description": "Email validado e normalizado (lowercase, unique)" },
+              { "name": "PasswordHash", "description": "Hash bcryptjs com 12 rounds, nunca armazenado em texto plano" },
+              { "name": "Role", "description": "Enum: consumer | restaurant | admin" },
+              { "name": "JWT", "description": "Token de acesso com payload { id, email, role }, expiração 24h" },
+              { "name": "RefreshToken", "description": "Token de refresh com expiração 7 dias" },
+              { "name": "ZipCode", "description": "CEP brasileiro no formato XXXXX-XXX" }
+            ],
+            "domain_events": [
+              "UserRegistered",
+              "UserLoggedIn",
+              "TokenRefreshed",
+              "ProfileUpdated",
+              "AddressAdded",
+              "AddressRemoved",
+              "DefaultAddressChanged"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Catalog",
+        "description": "Gerencia restaurantes, categorias do marketplace, cardápios e itens. Domínio público (leitura sem auth).",
+        "aggregates": [
+          {
+            "name": "Restaurant",
+            "root_entity": "Restaurant",
+            "entities": [
+              {
+                "name": "Restaurant",
+                "attributes": ["id", "name", "slug", "cuisine", "subtitle", "category_id", "rating", "review_count", "eta_min", "eta_max", "delivery_fee", "min_order", "cover_gradient", "hero_emoji", "promo_text", "note", "tags", "is_active", "is_open", "created_at", "updated_at"]
+              },
+              {
+                "name": "MenuItem",
+                "attributes": ["id", "restaurant_id", "name", "description", "price", "emoji", "badge", "category", "sort_order", "is_available", "created_at", "updated_at"]
+              }
+            ],
+            "value_objects": [
+              { "name": "Slug", "description": "Identificador URL-friendly único do restaurante (kebab-case)" },
+              { "name": "CoverGradient", "description": "CSS linear-gradient string para o card do restaurante" },
+              { "name": "ETA", "description": "Par eta_min/eta_max representando tempo estimado de entrega em minutos" },
+              { "name": "DeliveryFee", "description": "Taxa de entrega em reais (REAL), 0 = frete grátis nativo" },
+              { "name": "Badge", "description": "Label visual do item: Best seller, Vegetariano, Novo, Picante, etc." },
+              { "name": "Tags", "description": "JSON array de tags descritivas do restaurante (ex: [\"Promoção\", \"Top 10\"])" },
+              { "name": "Price", "description": "Preço unitário em reais (REAL), exibido com 2 casas decimais" }
+            ],
+            "domain_events": [
+              "RestaurantCreated",
+              "RestaurantUpdated",
+              "RestaurantActivated",
+              "RestaurantSuspended",
+              "RestaurantOpened",
+              "RestaurantClosed",
+              "MenuItemAdded",
+              "MenuItemUpdated",
+              "MenuItemDisabled",
+              "MenuItemRemoved"
+            ]
+          },
+          {
+            "name": "Category",
+            "root_entity": "Category",
+            "entities": [
+              {
+                "name": "Category",
+                "attributes": ["id", "name", "emoji", "sort_order", "is_active"]
+              }
+            ],
+            "value_objects": [
+              { "name": "Emoji", "description": "Emoji Unicode representando visualmente a categoria" },
+              { "name": "SortOrder", "description": "Inteiro que define a posição de exibição da categoria" }
+            ],
+            "domain_events": [
+              "CategoryCreated",
+              "CategoryUpdated",
+              "CategoryRemoved"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Ordering",
+        "description": "Gerencia o ciclo de vida do carrinho, criação de pedidos, itens de pedido e transições de status.",
+        "aggregates": [
+          {
+            "name": "Cart",
+            "root_entity": "Cart",
+            "entities": [
+              {
+                "name": "Cart",
+                "attributes": ["id", "user_id", "updated_at"]
+              },
+              {
+                "name": "CartItem",
+                "attributes": ["id", "cart_id", "menu_item_id", "quantity"]
+              }
+            ],
+            "value_objects": [
+              { "name": "Quantity", "description": "Inteiro positivo >= 1; ao atingir 0, item é removido do carrinho" }
+            ],
+            "domain_events": [
+              "CartItemAdded",
+              "CartItemQuantityUpdated",
+              "CartItemRemoved",
+              "CartCleared"
+            ]
+          },
+          {
+            "name": "Order",
+            "root_entity": "Order",
+            "entities": [
+              {
+                "name": "Order",
+                "attributes": ["id", "user_id", "address_text", "subtotal", "delivery_fee", "discount", "total", "coupon_code", "payment_method", "status", "created_at", "updated_at"]
+              },
+              {
+                "name": "OrderItem",
+                "attributes": ["id", "order_id", "restaurant_id", "restaurant_name", "menu_item_id", "item_name", "item_price", "quantity"]
+              }
+            ],
+            "value_objects": [
+              { "name": "OrderStatus", "description": "Enum: pending_payment | payment_failed | confirmed | preparing | out_for_delivery | delivered | cancelled" },
+              { "name": "PaymentMethod", "description": "Enum: card_ecp | pix_qrcode" },
+              { "name": "MoneyAmount", "description": "Valor monetário em reais (REAL) com 2 casas decimais" },
+              { "name": "AddressText", "description": "Endereço de entrega serializado como texto livre" },
+              { "name": "CouponCode", "description": "Código alfanumérico do cupom aplicado (nullable)" }
+            ],
+            "domain_events": [
+              "OrderCreated",
+              "OrderConfirmed",
+              "OrderStartedPreparing",
+              "OrderOutForDelivery",
+              "OrderDelivered",
+              "OrderCancelled",
+              "OrderPaymentFailed"
+            ],
+            "business_rules": [
+              "Subtotal = sum(item_price * quantity) para todos os itens",
+              "Delivery fee = soma das taxas dos restaurantes envolvidos; grátis se subtotal >= R$ 120",
+              "Discount = valor fixo ou percentual do cupom, respeitando min_order",
+              "Total = max(subtotal + delivery_fee - discount, 0)",
+              "Pedido criado como pending_payment até pagamento completed",
+              "Se pagamento completed -> status muda para confirmed automaticamente",
+              "Se pagamento failed ou expired -> status muda para payment_failed",
+              "Cancelamento permitido apenas se status = confirmed"
+            ]
+          },
+          {
+            "name": "Coupon",
+            "root_entity": "Coupon",
+            "entities": [
+              {
+                "name": "Coupon",
+                "attributes": ["id", "code", "discount_type", "discount_value", "min_order", "max_uses", "uses_count", "is_active", "expires_at", "created_at"]
+              }
+            ],
+            "value_objects": [
+              { "name": "DiscountType", "description": "Enum: fixed | percent" },
+              { "name": "DiscountValue", "description": "Valor do desconto: em reais (fixed) ou percentual 0-100 (percent)" }
+            ],
+            "domain_events": [
+              "CouponValidated",
+              "CouponApplied",
+              "CouponCreated",
+              "CouponUpdated",
+              "CouponExhausted"
+            ],
+            "business_rules": [
+              "Cupom validado no momento da aplicação e na criação do pedido",
+              "Verificações: código ativo, não expirado, min_order atendido, max_uses não atingido",
+              "Cupom seed: MVP10 com R$ 10 de desconto fixo, min_order R$ 80"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Payment",
+        "description": "Gerencia integração com ECP Digital Bank: pagamentos com cartão virtual, PIX QR Code, webhooks, SSE e ciclo de vida de transações.",
+        "aggregates": [
+          {
+            "name": "Payment",
+            "root_entity": "Payment",
+            "entities": [
+              {
+                "name": "Payment",
+                "attributes": ["id", "order_id", "user_id", "method", "status", "amount_cents", "bank_transaction_id", "bank_jwt_token", "pix_qrcode_data", "pix_qrcode_image", "pix_expiration", "card_last4", "webhook_received_at", "webhook_payload", "error_message", "created_at", "updated_at"]
+              }
+            ],
+            "value_objects": [
+              { "name": "PaymentStatus", "description": "Enum: pending | processing | completed | failed | expired" },
+              { "name": "AmountCents", "description": "Valor inteiro em centavos para comunicação com o banco: Math.round(totalReais * 100)" },
+              { "name": "BankTransactionId", "description": "ID da transação retornado pela API do ecp-digital-bank" },
+              { "name": "PixQrCodeData", "description": "String copia-e-cola do QR Code PIX gerado pelo banco" },
+              { "name": "PixQrCodeImage", "description": "Imagem base64 do QR Code PIX" },
+              { "name": "PixExpiration", "description": "Timestamp de expiração do QR Code PIX (now + 10 minutos)" },
+              { "name": "HmacSignature", "description": "HMAC-SHA256 do body do webhook usando ECP_BANK_WEBHOOK_SECRET" },
+              { "name": "CardLast4", "description": "Últimos 4 dígitos do cartão virtual (nunca armazenado completo)" }
+            ],
+            "domain_events": [
+              "PaymentCreated",
+              "PaymentProcessing",
+              "PaymentCompleted",
+              "PaymentFailed",
+              "PaymentExpired",
+              "PixQrCodeGenerated",
+              "WebhookReceived",
+              "WebhookValidated",
+              "WebhookRejected",
+              "SSEConnectionOpened",
+              "SSEPaymentUpdateSent",
+              "SSEConnectionClosed"
+            ],
+            "business_rules": [
+              "Valores trafegam como integer (centavos) entre FoodFlow e ecp-digital-bank",
+              "Todo pagamento gera registro na tabela payments antes de chamar API do banco",
+              "Pagamento é idempotente: mesmo payment.id reenviado não processa duplicata",
+              "JWT do consumidor no banco é efêmero: nunca persistido além da transação",
+              "bank_jwt_token limpo da tabela após conclusão (sucesso ou falha)",
+              "PIX QR Code expira em 10 minutos; expiration worker verifica a cada 30s",
+              "Webhook sempre retorna 200 OK ao banco para evitar retries",
+              "Webhook validado via HMAC-SHA256 com timingSafeEqual",
+              "SSE protegido: requer autenticação e valida ownership do payment",
+              "Rate limiting: 5 req/min por usuário nas rotas /api/payments/*"
+            ]
+          }
+        ],
+        "services": [
+          {
+            "name": "bank-integration.mjs",
+            "description": "Encapsula toda comunicação com ecp-digital-bank. Nenhuma outra parte do código acessa a API do banco diretamente.",
+            "methods": [
+              "bankLogin(email, password) -> { token, user }",
+              "bankListCards(bankJwt) -> Array<{ id, last4, status, type }>",
+              "bankGetBalance(bankJwt) -> { balance: number }",
+              "bankPixTransfer(bankJwt, amountInCents, description) -> { transactionId, status }",
+              "bankGeneratePixQrCode(platformJwt, amountInCents, description) -> { qrcodeData, qrcodeImage, expiresAt }",
+              "getPlatformBankToken() -> string (cached, refresh a cada 23h)"
+            ],
+            "error_handling": [
+              { "bank_error": "Login inválido (401)", "foodflow_code": "BANK_AUTH_FAILED", "http_status": 401 },
+              { "bank_error": "Saldo insuficiente", "foodflow_code": "INSUFFICIENT_BALANCE", "http_status": 422 },
+              { "bank_error": "Cartão bloqueado", "foodflow_code": "CARD_BLOCKED", "http_status": 422 },
+              { "bank_error": "Timeout >10s", "foodflow_code": "BANK_TIMEOUT", "http_status": 504 },
+              { "bank_error": "Banco indisponível (5xx)", "foodflow_code": "BANK_UNAVAILABLE", "http_status": 503 },
+              { "bank_error": "QR Code expirado", "foodflow_code": "PIX_EXPIRED", "http_status": 410 }
+            ],
+            "resilience": {
+              "timeout": "10s para todas as chamadas",
+              "retry": "1x automático para erros 5xx com backoff de 2s",
+              "circuit_breaker": "Após 5 falhas consecutivas, bloqueia por 30s",
+              "fallback": "Mensagem clara ao usuário se banco indisponível"
+            }
+          },
+          {
+            "name": "webhook-handler.mjs",
+            "description": "Processa callbacks HTTP recebidos do ecp-digital-bank para notificação de PIX recebido.",
+            "methods": [
+              "validateSignature(rawBody, signature) -> boolean",
+              "processPixReceived(db, payload) -> { processed, paymentId?, reason? }"
+            ],
+            "validation_steps": [
+              "1. Verificar header X-Webhook-Signature com HMAC-SHA256",
+              "2. Verificar event === 'pix.received'",
+              "3. Verificar pixKeyValue corresponde à chave da plataforma",
+              "4. Extrair payment_id do campo description via regex /FoodFlow #(p_\\w+)/",
+              "5. Buscar registro em payments onde id = payment_id e status = 'pending'",
+              "6. Verificar amountInCents confere com payments.amount_cents",
+              "7. Atualizar payment + order + emitir SSE",
+              "8. Retornar 200 OK (idempotência)"
+            ]
+          },
+          {
+            "name": "sse-manager.mjs",
+            "description": "Gerencia conexões SSE (Server-Sent Events) para notificação em tempo real de status de pagamento.",
+            "methods": [
+              "addConnection(paymentId, res)",
+              "removeConnection(paymentId, res)",
+              "emit(paymentId, eventName, data)",
+              "closeAll(paymentId)"
+            ],
+            "data_structure": "Map<paymentId, Set<ServerResponse>>"
+          }
+        ]
+      },
+      {
+        "name": "Delivery",
+        "description": "Gerencia tracking simulado de entregas. No MVP, a entrega é simulada com transições de status manuais pelo restaurante, sem integração com entregadores reais.",
+        "aggregates": [
+          {
+            "name": "DeliveryTracking",
+            "root_entity": "Order (referência cruzada com Ordering context)",
+            "entities": [],
+            "value_objects": [
+              { "name": "DeliveryStatus", "description": "Subconjunto de OrderStatus focado na entrega: confirmed -> preparing -> out_for_delivery -> delivered" },
+              { "name": "EstimatedTime", "description": "ETA calculado a partir dos eta_min/eta_max dos restaurantes do pedido" }
+            ],
+            "domain_events": [
+              "DeliveryStarted",
+              "DeliveryCompleted"
+            ],
+            "notes": "No MVP, delivery é uma abstração sobre o status do Order. O restaurante atualiza manualmente: preparing -> out_for_delivery -> delivered. Sem rastreamento GPS real."
+          }
+        ]
+      },
+      {
+        "name": "Admin",
+        "description": "Gerencia operações administrativas da plataforma: dashboard de métricas, gestão de restaurantes, categorias, cupons e promoções globais.",
+        "aggregates": [
+          {
+            "name": "PlatformAdmin",
+            "root_entity": "Dashboard",
+            "entities": [
+              {
+                "name": "Dashboard",
+                "attributes": ["total_restaurants", "total_orders", "total_revenue", "avg_ticket", "active_coupons"]
+              }
+            ],
+            "value_objects": [
+              { "name": "DashboardMetrics", "description": "Agregação de métricas gerais da plataforma: total restaurantes, pedidos, receita, ticket médio" }
+            ],
+            "domain_events": [
+              "RestaurantApproved",
+              "RestaurantRejected",
+              "RestaurantSuspendedByAdmin",
+              "RestaurantReactivatedByAdmin",
+              "GlobalCouponCreated",
+              "GlobalCouponUpdated",
+              "CategoryManagedByAdmin"
+            ]
+          },
+          {
+            "name": "RestaurantAdmin",
+            "root_entity": "RestaurantPanel",
+            "entities": [],
+            "value_objects": [
+              { "name": "RestaurantSettings", "description": "Dados editáveis do restaurante: nome, subtítulo, cuisine, cover, ETA, delivery_fee, min_order, promo" }
+            ],
+            "domain_events": [
+              "RestaurantSettingsUpdated",
+              "MenuManagedByRestaurant",
+              "OrderStatusUpdatedByRestaurant"
+            ]
+          }
+        ]
+      }
+    ],
+
+    "ubiquitous_language": [
+      { "term": "Consumer", "definition": "Usuário final que busca restaurantes, faz pedidos e paga via ECP Digital Bank. Role = 'consumer'." },
+      { "term": "Restaurant", "definition": "Parceiro comercial com cardápio ativo no marketplace. Entidade com perfil, menu items e configurações de entrega." },
+      { "term": "Admin", "definition": "Operador da plataforma FoodFlow com acesso ao painel administrativo global. Role = 'admin'." },
+      { "term": "Category", "definition": "Classificação de culinária do marketplace (Hambúrguer, Japonês, Pizza, Saudável, Massas, Brasileira). Usada para filtrar restaurantes." },
+      { "term": "MenuItem", "definition": "Item individual do cardápio de um restaurante: nome, descrição, preço, emoji, badge e disponibilidade." },
+      { "term": "Badge", "definition": "Label visual que destaca características de um MenuItem: Best seller, Vegetariano, Novo, Picante." },
+      { "term": "Cart", "definition": "Carrinho de compras server-side, persistente entre sessões. Um consumer tem exatamente um carrinho ativo." },
+      { "term": "CartItem", "definition": "Linha do carrinho: referência ao MenuItem com quantidade. Unique por (cart_id, menu_item_id)." },
+      { "term": "Order", "definition": "Pedido criado a partir do carrinho. Contém snapshot dos itens, endereço, valores calculados e status." },
+      { "term": "OrderItem", "definition": "Snapshot de um item no momento da criação do pedido: nome, preço e quantidade fixados." },
+      { "term": "OrderStatus", "definition": "Ciclo de vida do pedido: pending_payment -> confirmed -> preparing -> out_for_delivery -> delivered. Desvios: payment_failed, cancelled." },
+      { "term": "Subtotal", "definition": "Soma de (preço x quantidade) de todos os itens do pedido." },
+      { "term": "DeliveryFee", "definition": "Taxa de entrega: soma das taxas dos restaurantes envolvidos. Grátis se subtotal >= R$ 120." },
+      { "term": "Discount", "definition": "Valor abatido do pedido via cupom. Pode ser fixo (reais) ou percentual." },
+      { "term": "Total", "definition": "Valor final: max(subtotal + delivery_fee - discount, 0)." },
+      { "term": "Coupon", "definition": "Código promocional com regras: tipo de desconto, valor, min_order, max_uses, expiração." },
+      { "term": "Payment", "definition": "Registro de transação financeira vinculado a um Order. Métodos: card_ecp ou pix_qrcode." },
+      { "term": "CardECP", "definition": "Método de pagamento via cartão virtual do ECP Digital Bank. Débito direto via API PIX transfer." },
+      { "term": "PixQRCode", "definition": "Método de pagamento via QR Code PIX gerado pelo ECP Digital Bank. Consumer escaneia e paga." },
+      { "term": "AmountCents", "definition": "Valor monetário em centavos (integer) para comunicação com o banco: Math.round(totalReais * 100)." },
+      { "term": "BankJWT", "definition": "Token JWT obtido do ecp-digital-bank. Efêmero: usado apenas durante a transação e limpo após." },
+      { "term": "PlatformAccount", "definition": "Conta FoodFlow no ecp-digital-bank que recebe todos os pagamentos. Chave PIX: foodflow@ecportilho.com." },
+      { "term": "Webhook", "definition": "Callback HTTP do ecp-digital-bank para FoodFlow quando um PIX é recebido na conta da plataforma." },
+      { "term": "HMAC Signature", "definition": "Assinatura HMAC-SHA256 do body do webhook usando secret compartilhado. Validação obrigatória." },
+      { "term": "SSE", "definition": "Server-Sent Events: canal unidirecional server->client para notificar mudanças de status do pagamento em tempo real." },
+      { "term": "ExpirationWorker", "definition": "Worker (setInterval 30s) que verifica pagamentos PIX pendentes com pix_expiration < now e os marca como expired." },
+      { "term": "Favorite", "definition": "Relação consumer->restaurant marcada como favorito. Unique por (user_id, restaurant_id)." },
+      { "term": "Address", "definition": "Endereço de entrega do consumer: label, rua, número, complemento, bairro, cidade, estado, CEP." },
+      { "term": "ETA", "definition": "Estimated Time of Arrival: faixa eta_min a eta_max em minutos, definida por restaurante." },
+      { "term": "Slug", "definition": "Identificador URL-friendly do restaurante, gerado em kebab-case a partir do nome." },
+      { "term": "CoverGradient", "definition": "CSS linear-gradient string usada como background visual do card do restaurante." },
+      { "term": "Seed", "definition": "Dados iniciais populados no banco: categorias, restaurantes, menu items, cupom MVP10, usuários demo." },
+      { "term": "HeroBanner", "definition": "Componente principal da home: exibe promoção do dia, campo de busca e métricas ao vivo." },
+      { "term": "Checkout", "definition": "Fluxo de finalização do pedido: confirmação de endereço, aplicação de cupom, seleção de pagamento e confirmação." },
+      { "term": "RepeatOrder", "definition": "Funcionalidade que permite recriar um pedido anterior no carrinho automaticamente." },
+      { "term": "BankApiError", "definition": "Erro customizado para falhas na comunicação com ecp-digital-bank. Contém code, statusCode e detail." },
+      { "term": "CircuitBreaker", "definition": "Padrão de resiliência: após 5 falhas consecutivas na API do banco, bloqueia chamadas por 30 segundos." }
+    ]
+  },
+
+  "project_structure": {
+    "description": "Monorepo single-server: Fastify serve API REST + React SPA (client/dist) como static files em produção.",
+    "tree": [
+      "ecp-digital-food/",
+      "├── package.json                    # Scripts do monorepo (dev, build, start, seed)",
+      "├── .env.example                    # Variáveis de ambiente template",
+      "├── .env                            # Variáveis de ambiente local (gitignored)",
+      "├── README.md",
+      "│",
+      "├── server/",
+      "│   ├── index.mjs                   # Entry point — Fastify bootstrap, plugin register",
+      "│   ├── config.mjs                  # Env vars, constantes, configuração centralizada",
+      "│   ├── database.mjs                # Inicialização SQLite, migrations, connection",
+      "│   ├── seed.mjs                    # Seed de dados mockados (restaurantes, cardápios, categorias)",
+      "│   ├── auth.mjs                    # Middleware JWT, helpers de autenticação",
+      "│   │",
+      "│   ├── routes/",
+      "│   │   ├── auth.routes.mjs         # POST /api/auth/register, POST /api/auth/login, POST /api/auth/refresh",
+      "│   │   ├── consumer.routes.mjs     # GET/PUT /api/consumer/profile, GET/POST/DELETE /api/consumer/addresses",
+      "│   │   ├── restaurant.routes.mjs   # GET /api/restaurants, GET /api/restaurants/:id, GET /api/restaurants/:id/menu",
+      "│   │   ├── category.routes.mjs     # GET /api/categories",
+      "│   │   ├── cart.routes.mjs         # GET/POST/PUT/DELETE /api/cart (server-side cart)",
+      "│   │   ├── order.routes.mjs        # POST /api/orders, GET /api/orders, GET /api/orders/:id, PATCH /api/orders/:id/status",
+      "│   │   ├── payment.routes.mjs      # POST /api/payments/card, POST /api/payments/pix, GET /api/payments/:id/events (SSE)",
+      "│   │   ├── webhook.routes.mjs      # POST /api/webhooks/bank/pix-received (callback do ecp-digital-bank)",
+      "│   │   ├── coupon.routes.mjs       # POST /api/coupons/validate",
+      "│   │   ├── favorite.routes.mjs     # GET/POST/DELETE /api/favorites",
+      "│   │   ├── admin.routes.mjs        # Rotas do painel admin da plataforma",
+      "│   │   └── restaurant-admin.routes.mjs # Rotas do painel admin do restaurante",
+      "│   │",
+      "│   └── services/",
+      "│       ├── bank-integration.mjs    # Comunicação com ecp-digital-bank (login, cards, balance, pix transfer, qrcode)",
+      "│       ├── webhook-handler.mjs     # Validação HMAC + processamento de webhook PIX",
+      "│       └── sse-manager.mjs         # Gerenciamento de conexões SSE (Map<paymentId, Set<ServerResponse>>)",
+      "│",
+      "├── client/",
+      "│   ├── index.html",
+      "│   ├── vite.config.js",
+      "│   │",
+      "│   └── src/",
+      "│       ├── main.jsx                # React entry point + BrowserRouter",
+      "│       ├── App.jsx                 # Route definitions + layout wrapper",
+      "│       │",
+      "│       ├── pages/",
+      "│       │   ├── Home.jsx            # Hero banner + categorias + grid restaurantes",
+      "│       │   ├── RestaurantDetail.jsx # Perfil do restaurante + cardápio",
+      "│       │   ├── Checkout.jsx        # Resumo + cupom + pagamento + confirmação",
+      "│       │   ├── OrderTracking.jsx   # Status do pedido em tempo real",
+      "│       │   ├── OrderHistory.jsx    # Lista de pedidos anteriores",
+      "│       │   ├── Favorites.jsx       # Restaurantes favoritos",
+      "│       │   ├── Profile.jsx         # Dados pessoais + endereços + cupons",
+      "│       │   ├── Login.jsx           # Autenticação",
+      "│       │   ├── Register.jsx        # Cadastro de consumidor",
+      "│       │   │",
+      "│       │   ├── admin/",
+      "│       │   │   ├── Dashboard.jsx          # Métricas gerais da plataforma",
+      "│       │   │   ├── ManageRestaurants.jsx   # CRUD de restaurantes",
+      "│       │   │   ├── ManageCategories.jsx    # CRUD de categorias",
+      "│       │   │   └── ManagePromotions.jsx    # CRUD de promoções globais",
+      "│       │   │",
+      "│       │   └── restaurant/",
+      "│       │       ├── MenuManager.jsx         # CRUD do cardápio do restaurante",
+      "│       │       ├── OrderManager.jsx        # Pedidos recebidos e gestão de status",
+      "│       │       └── RestaurantSettings.jsx  # Dados do restaurante",
+      "│       │",
+      "│       ├── components/",
+      "│       │   ├── layout/",
+      "│       │   │   ├── Shell.jsx         # Container max-width + safe-area padding",
+      "│       │   │   ├── TopBar.jsx        # Brand mark + pills de status",
+      "│       │   │   ├── BottomNav.jsx     # Navegação fixa mobile/desktop",
+      "│       │   │   └── MobileSheet.jsx   # Bottom sheet para carrinho mobile",
+      "│       │   │",
+      "│       │   ├── home/",
+      "│       │   │   ├── HeroBanner.jsx    # Hero com busca, promo e stats",
+      "│       │   │   ├── CategoryChips.jsx # Filtro por categorias",
+      "│       │   │   ├── RestaurantGrid.jsx # Grid de cards de restaurantes",
+      "│       │   │   ├── RestaurantCard.jsx # Card individual do restaurante",
+      "│       │   │   └── MenuGrid.jsx      # Grid de itens do cardápio",
+      "│       │   │",
+      "│       │   ├── cart/",
+      "│       │   │   ├── CartPanel.jsx     # Painel lateral desktop / conteúdo do sheet",
+      "│       │   │   ├── CartItem.jsx      # Linha de item no carrinho",
+      "│       │   │   ├── CartSummary.jsx   # Subtotal, frete, desconto, total",
+      "│       │   │   ├── QuantityControl.jsx # +/- com display",
+      "│       │   │   └── EmptyCart.jsx     # Estado vazio do carrinho",
+      "│       │   │",
+      "│       │   ├── payment/",
+      "│       │   │   ├── PaymentMethodSelector.jsx # Seleção Cartão ECP vs PIX QR Code",
+      "│       │   │   ├── BankLoginForm.jsx  # Form email/senha do ecp-digital-bank",
+      "│       │   │   ├── CardSelector.jsx   # Lista de cartões virtuais do banco",
+      "│       │   │   ├── PixQrCode.jsx      # Exibição do QR Code + timer + status SSE",
+      "│       │   │   └── PaymentStatus.jsx  # Feedback de sucesso/erro/expirado",
+      "│       │   │",
+      "│       │   └── shared/",
+      "│       │       ├── Button.jsx",
+      "│       │       ├── Input.jsx",
+      "│       │       ├── Modal.jsx",
+      "│       │       ├── Toast.jsx",
+      "│       │       ├── Spinner.jsx",
+      "│       │       └── Badge.jsx",
+      "│       │",
+      "│       ├── context/",
+      "│       │   ├── AuthContext.jsx    # JWT storage, login/logout, role check",
+      "│       │   ├── CartContext.jsx    # Cart state sync com server",
+      "│       │   └── ThemeContext.jsx   # Dark mode (default), variáveis CSS",
+      "│       │",
+      "│       ├── hooks/",
+      "│       │   ├── useAuth.js",
+      "│       │   ├── useCart.js",
+      "│       │   ├── useFetch.js        # Wrapper fetch com JWT auto-inject e error handling",
+      "│       │   └── useSSE.js          # Hook para conexão SSE com auto-reconnect",
+      "│       │",
+      "│       ├── styles/",
+      "│       │   ├── variables.css      # CSS Custom Properties (tokens do design_spec.md)",
+      "│       │   ├── global.css         # Reset, body, tipografia base",
+      "│       │   └── *.module.css       # CSS Modules por componente",
+      "│       │",
+      "│       └── utils/",
+      "│           ├── api.js             # Base URL, fetch wrapper, interceptors",
+      "│           ├── formatters.js      # Moeda, data, endereço",
+      "│           └── validators.js      # Email, CEP, senha, telefone",
+      "│",
+      "├── scripts/",
+      "│   ├── seed.mjs                   # Popular banco com dados de demonstração",
+      "│   ├── setup.mjs                  # Setup inicial: criar DB, rodar migrations, seed",
+      "│   └── register-webhook.mjs       # Registrar webhook no ecp-digital-bank",
+      "│",
+      "└── data/",
+      "    └── foodflow.db                # SQLite database (gitignored)"
+    ]
+  },
+
+  "api_contracts": [
+    {
+      "group": "Authentication",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "description": "Criar conta de consumidor",
+          "auth_required": false,
+          "rate_limit": "10 req/min por IP",
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "name": { "type": "string", "required": true, "min_length": 2 },
+              "email": { "type": "string", "format": "email", "required": true },
+              "password": { "type": "string", "required": true, "min_length": 6 },
+              "phone": { "type": "string", "required": false }
+            }
+          },
+          "response": {
+            "201": {
+              "body": {
+                "user": { "id": "string", "name": "string", "email": "string", "role": "consumer" },
+                "token": "string (JWT 24h)",
+                "refreshToken": "string (7d)"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "VALIDATION_ERROR", "description": "Campos obrigatórios faltando ou inválidos" },
+            { "status": 409, "code": "EMAIL_ALREADY_EXISTS", "description": "Email já cadastrado" },
+            { "status": 429, "code": "RATE_LIMIT", "description": "Muitas tentativas de registro" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "description": "Login com email/senha, retorna JWT",
+          "auth_required": false,
+          "rate_limit": "10 req/min por IP",
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "email": { "type": "string", "format": "email", "required": true },
+              "password": { "type": "string", "required": true }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "user": { "id": "string", "name": "string", "email": "string", "role": "string" },
+                "token": "string (JWT 24h)",
+                "refreshToken": "string (7d)"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "INVALID_CREDENTIALS", "description": "Email ou senha incorretos" },
+            { "status": 429, "code": "RATE_LIMIT", "description": "Muitas tentativas de login" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh",
+          "description": "Renovar token JWT usando refresh token",
+          "auth_required": true,
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "refreshToken": { "type": "string", "required": true }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "token": "string (JWT 24h)",
+                "refreshToken": "string (7d)"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "INVALID_REFRESH_TOKEN", "description": "Refresh token inválido ou expirado" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Consumer Profile",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/consumer/profile",
+          "description": "Obter dados do perfil do consumidor logado",
+          "auth_required": true,
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "id": "string",
+                "name": "string",
+                "email": "string",
+                "phone": "string|null",
+                "role": "consumer",
+                "created_at": "string (ISO 8601)"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido ou expirado" }
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/consumer/profile",
+          "description": "Atualizar dados do perfil",
+          "auth_required": true,
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "name": { "type": "string", "required": false },
+              "phone": { "type": "string", "required": false }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "id": "string",
+                "name": "string",
+                "email": "string",
+                "phone": "string|null",
+                "updated_at": "string"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "VALIDATION_ERROR", "description": "Dados inválidos" },
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/consumer/addresses",
+          "description": "Listar endereços salvos do consumidor",
+          "auth_required": true,
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "addresses": [
+                  {
+                    "id": "string",
+                    "label": "string",
+                    "street": "string",
+                    "number": "string",
+                    "complement": "string|null",
+                    "neighborhood": "string",
+                    "city": "string",
+                    "state": "string",
+                    "zip_code": "string",
+                    "is_default": "boolean"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/consumer/addresses",
+          "description": "Adicionar novo endereço de entrega",
+          "auth_required": true,
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "label": { "type": "string", "required": false, "default": "Casa" },
+              "street": { "type": "string", "required": true },
+              "number": { "type": "string", "required": true },
+              "complement": { "type": "string", "required": false },
+              "neighborhood": { "type": "string", "required": true },
+              "city": { "type": "string", "required": false, "default": "São Paulo" },
+              "state": { "type": "string", "required": false, "default": "SP" },
+              "zip_code": { "type": "string", "required": true },
+              "is_default": { "type": "boolean", "required": false, "default": false }
+            }
+          },
+          "response": {
+            "201": {
+              "body": {
+                "id": "string",
+                "label": "string",
+                "street": "string",
+                "number": "string",
+                "complement": "string|null",
+                "neighborhood": "string",
+                "city": "string",
+                "state": "string",
+                "zip_code": "string",
+                "is_default": "boolean"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "VALIDATION_ERROR", "description": "Campos obrigatórios faltando" },
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/consumer/addresses/:id",
+          "description": "Remover endereço",
+          "auth_required": true,
+          "request": {
+            "params": { "id": "string (address ID)" }
+          },
+          "response": {
+            "200": { "body": { "deleted": true } }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 404, "code": "ADDRESS_NOT_FOUND", "description": "Endereço não encontrado ou não pertence ao usuário" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Catalog",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/categories",
+          "description": "Listar categorias ativas do marketplace",
+          "auth_required": false,
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "categories": [
+                  {
+                    "id": "string",
+                    "name": "string",
+                    "emoji": "string",
+                    "sort_order": "number"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": []
+        },
+        {
+          "method": "GET",
+          "path": "/api/restaurants",
+          "description": "Listar restaurantes com filtros e paginação",
+          "auth_required": false,
+          "request": {
+            "query": {
+              "category": { "type": "string", "required": false, "description": "ID da categoria para filtrar" },
+              "q": { "type": "string", "required": false, "description": "Busca por nome, prato, tag" },
+              "page": { "type": "integer", "required": false, "default": 1 },
+              "limit": { "type": "integer", "required": false, "default": 20 }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "restaurants": [
+                  {
+                    "id": "string",
+                    "name": "string",
+                    "slug": "string",
+                    "cuisine": "string",
+                    "subtitle": "string|null",
+                    "category_id": "string",
+                    "rating": "number",
+                    "review_count": "number",
+                    "eta_min": "number",
+                    "eta_max": "number",
+                    "delivery_fee": "number",
+                    "min_order": "number",
+                    "cover_gradient": "string",
+                    "hero_emoji": "string",
+                    "promo_text": "string|null",
+                    "tags": "string[] (parsed JSON)",
+                    "is_open": "boolean"
+                  }
+                ],
+                "total": "number",
+                "page": "number",
+                "limit": "number"
+              }
+            }
+          },
+          "errors": []
+        },
+        {
+          "method": "GET",
+          "path": "/api/restaurants/:id",
+          "description": "Detalhe completo de um restaurante",
+          "auth_required": false,
+          "request": {
+            "params": { "id": "string (restaurant ID)" }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "id": "string",
+                "name": "string",
+                "slug": "string",
+                "cuisine": "string",
+                "subtitle": "string|null",
+                "category_id": "string",
+                "rating": "number",
+                "review_count": "number",
+                "eta_min": "number",
+                "eta_max": "number",
+                "delivery_fee": "number",
+                "min_order": "number",
+                "cover_gradient": "string",
+                "hero_emoji": "string",
+                "promo_text": "string|null",
+                "note": "string|null",
+                "tags": "string[]",
+                "is_open": "boolean"
+              }
+            }
+          },
+          "errors": [
+            { "status": 404, "code": "RESTAURANT_NOT_FOUND", "description": "Restaurante não encontrado ou inativo" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/restaurants/:id/menu",
+          "description": "Cardápio completo do restaurante",
+          "auth_required": false,
+          "request": {
+            "params": { "id": "string (restaurant ID)" }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "restaurant_id": "string",
+                "items": [
+                  {
+                    "id": "string",
+                    "name": "string",
+                    "description": "string|null",
+                    "price": "number",
+                    "emoji": "string",
+                    "badge": "string|null",
+                    "category": "string|null",
+                    "is_available": "boolean"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 404, "code": "RESTAURANT_NOT_FOUND", "description": "Restaurante não encontrado" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Cart",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/cart",
+          "description": "Obter carrinho do usuário logado com itens e cálculos",
+          "auth_required": true,
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "id": "string",
+                "items": [
+                  {
+                    "id": "string (cart_item ID)",
+                    "menu_item_id": "string",
+                    "name": "string",
+                    "price": "number",
+                    "quantity": "number",
+                    "emoji": "string",
+                    "restaurant_id": "string",
+                    "restaurant_name": "string"
+                  }
+                ],
+                "subtotal": "number",
+                "delivery_fee": "number",
+                "item_count": "number"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/cart/items",
+          "description": "Adicionar item ao carrinho (incrementa quantidade se já existe)",
+          "auth_required": true,
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "menu_item_id": { "type": "string", "required": true },
+              "quantity": { "type": "integer", "required": false, "default": 1, "min": 1 }
+            }
+          },
+          "response": {
+            "200": {
+              "body": { "cart": "Cart (mesmo schema do GET /api/cart)" }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "VALIDATION_ERROR", "description": "menu_item_id inválido" },
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 404, "code": "MENU_ITEM_NOT_FOUND", "description": "Item não encontrado ou indisponível" }
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/cart/items/:itemId",
+          "description": "Atualizar quantidade de um item no carrinho",
+          "auth_required": true,
+          "request": {
+            "params": { "itemId": "string (cart_item ID)" },
+            "content_type": "application/json",
+            "body": {
+              "quantity": { "type": "integer", "required": true, "min": 0, "description": "0 remove o item" }
+            }
+          },
+          "response": {
+            "200": {
+              "body": { "cart": "Cart (mesmo schema do GET /api/cart)" }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 404, "code": "CART_ITEM_NOT_FOUND", "description": "Item não encontrado no carrinho" }
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/cart/items/:itemId",
+          "description": "Remover item do carrinho",
+          "auth_required": true,
+          "request": {
+            "params": { "itemId": "string (cart_item ID)" }
+          },
+          "response": {
+            "200": {
+              "body": { "cart": "Cart (mesmo schema do GET /api/cart)" }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 404, "code": "CART_ITEM_NOT_FOUND", "description": "Item não encontrado no carrinho" }
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/cart",
+          "description": "Limpar todos os itens do carrinho",
+          "auth_required": true,
+          "request": {},
+          "response": {
+            "200": {
+              "body": { "cleared": true }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Orders",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/orders",
+          "description": "Criar pedido a partir do carrinho atual. Valida cupom novamente se aplicado.",
+          "auth_required": true,
+          "allowed_roles": ["consumer"],
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "address_text": { "type": "string", "required": true, "description": "Endereço de entrega completo" },
+              "coupon_code": { "type": "string", "required": false },
+              "payment_method": { "type": "string", "required": true, "enum": ["card_ecp", "pix_qrcode"] }
+            }
+          },
+          "response": {
+            "201": {
+              "body": {
+                "id": "string",
+                "user_id": "string",
+                "address_text": "string",
+                "subtotal": "number",
+                "delivery_fee": "number",
+                "discount": "number",
+                "total": "number",
+                "coupon_code": "string|null",
+                "payment_method": "string",
+                "status": "pending_payment",
+                "items": [
+                  {
+                    "id": "string",
+                    "restaurant_name": "string",
+                    "item_name": "string",
+                    "item_price": "number",
+                    "quantity": "number"
+                  }
+                ],
+                "created_at": "string"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "CART_EMPTY", "description": "Carrinho vazio" },
+            { "status": 400, "code": "INVALID_COUPON", "description": "Cupom inválido, expirado ou min_order não atendido" },
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/orders",
+          "description": "Listar pedidos do usuário logado (consumer vê os seus, restaurant vê os recebidos)",
+          "auth_required": true,
+          "request": {
+            "query": {
+              "page": { "type": "integer", "required": false, "default": 1 },
+              "limit": { "type": "integer", "required": false, "default": 20 }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "orders": [
+                  {
+                    "id": "string",
+                    "subtotal": "number",
+                    "delivery_fee": "number",
+                    "discount": "number",
+                    "total": "number",
+                    "status": "string",
+                    "payment_method": "string",
+                    "item_count": "number",
+                    "created_at": "string"
+                  }
+                ],
+                "total": "number",
+                "page": "number"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/orders/:id",
+          "description": "Detalhe completo do pedido com itens",
+          "auth_required": true,
+          "request": {
+            "params": { "id": "string (order ID)" }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "id": "string",
+                "user_id": "string",
+                "address_text": "string",
+                "subtotal": "number",
+                "delivery_fee": "number",
+                "discount": "number",
+                "total": "number",
+                "coupon_code": "string|null",
+                "payment_method": "string",
+                "status": "string",
+                "items": [
+                  {
+                    "id": "string",
+                    "restaurant_id": "string",
+                    "restaurant_name": "string",
+                    "menu_item_id": "string",
+                    "item_name": "string",
+                    "item_price": "number",
+                    "quantity": "number"
+                  }
+                ],
+                "created_at": "string",
+                "updated_at": "string"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 404, "code": "ORDER_NOT_FOUND", "description": "Pedido não encontrado ou não pertence ao usuário" }
+          ]
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/orders/:id/status",
+          "description": "Atualizar status do pedido (restaurant avança status, admin pode cancelar)",
+          "auth_required": true,
+          "allowed_roles": ["restaurant", "admin"],
+          "request": {
+            "params": { "id": "string (order ID)" },
+            "content_type": "application/json",
+            "body": {
+              "status": { "type": "string", "required": true, "enum": ["preparing", "out_for_delivery", "delivered", "cancelled"] }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "id": "string",
+                "status": "string",
+                "updated_at": "string"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "INVALID_STATUS_TRANSITION", "description": "Transição de status inválida" },
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 403, "code": "FORBIDDEN", "description": "Sem permissão para alterar este pedido" },
+            { "status": 404, "code": "ORDER_NOT_FOUND", "description": "Pedido não encontrado" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Coupons",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/coupons/validate",
+          "description": "Validar cupom e retornar valor do desconto",
+          "auth_required": true,
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "code": { "type": "string", "required": true },
+              "subtotal": { "type": "number", "required": true, "description": "Subtotal do carrinho para validar min_order" }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "valid": true,
+                "code": "string",
+                "discount_type": "fixed|percent",
+                "discount_value": "number",
+                "calculated_discount": "number (valor real do desconto aplicado)"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "INVALID_COUPON", "description": "Cupom inválido, expirado ou já atingiu max_uses" },
+            { "status": 400, "code": "MIN_ORDER_NOT_MET", "description": "Subtotal abaixo do min_order do cupom" },
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Payments (ECP Digital Bank Integration)",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/payments/bank-auth",
+          "description": "Proxy: autenticar consumidor no ecp-digital-bank para checkout com cartão",
+          "auth_required": true,
+          "allowed_roles": ["consumer"],
+          "rate_limit": "5 req/min por usuário",
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "email": { "type": "string", "required": true, "description": "Email do consumidor no ecp-digital-bank" },
+              "password": { "type": "string", "required": true, "description": "Senha no ecp-digital-bank" }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "authenticated": true,
+                "bank_session_id": "string (referência interna, não o JWT real)"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "BANK_AUTH_FAILED", "description": "Credenciais inválidas no ecp-digital-bank" },
+            { "status": 429, "code": "RATE_LIMIT", "description": "Muitas tentativas" },
+            { "status": 504, "code": "BANK_TIMEOUT", "description": "Banco não respondeu em 10s" },
+            { "status": 503, "code": "BANK_UNAVAILABLE", "description": "Banco indisponível" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/payments/bank-cards",
+          "description": "Proxy: listar cartões virtuais do consumidor no ecp-digital-bank",
+          "auth_required": true,
+          "allowed_roles": ["consumer"],
+          "rate_limit": "5 req/min por usuário",
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "cards": [
+                  { "id": "string", "last4": "string", "status": "string", "type": "string" }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "BANK_SESSION_REQUIRED", "description": "Autenticação bancária necessária primeiro" },
+            { "status": 503, "code": "BANK_UNAVAILABLE", "description": "Banco indisponível" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/payments/bank-balance",
+          "description": "Proxy: consultar saldo do consumidor no ecp-digital-bank (em centavos)",
+          "auth_required": true,
+          "allowed_roles": ["consumer"],
+          "rate_limit": "5 req/min por usuário",
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "balance": "number (centavos)",
+                "balance_formatted": "string (R$ XX,XX)"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "BANK_SESSION_REQUIRED", "description": "Autenticação bancária necessária" },
+            { "status": 503, "code": "BANK_UNAVAILABLE", "description": "Banco indisponível" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/payments/card",
+          "description": "Pagar pedido com cartão ECP (débito direto via PIX transfer no banco)",
+          "auth_required": true,
+          "allowed_roles": ["consumer"],
+          "rate_limit": "5 req/min por usuário",
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "order_id": { "type": "string", "required": true },
+              "card_id": { "type": "string", "required": true, "description": "ID do cartão selecionado no banco" }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "payment_id": "string",
+                "status": "completed",
+                "order_id": "string",
+                "order_status": "confirmed",
+                "bank_transaction_id": "string",
+                "amount_cents": "number"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "ORDER_NOT_PENDING", "description": "Pedido não está em pending_payment" },
+            { "status": 401, "code": "BANK_SESSION_REQUIRED", "description": "Autenticação bancária necessária" },
+            { "status": 422, "code": "INSUFFICIENT_BALANCE", "description": "Saldo insuficiente no banco" },
+            { "status": 422, "code": "CARD_BLOCKED", "description": "Cartão bloqueado" },
+            { "status": 504, "code": "BANK_TIMEOUT", "description": "Timeout na comunicação com o banco" },
+            { "status": 503, "code": "BANK_UNAVAILABLE", "description": "Banco indisponível" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/payments/pix",
+          "description": "Gerar QR Code PIX para pagamento do pedido via ecp-digital-bank",
+          "auth_required": true,
+          "allowed_roles": ["consumer"],
+          "rate_limit": "5 req/min por usuário",
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "order_id": { "type": "string", "required": true }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "payment_id": "string (formato p_XXXX)",
+                "qrcode_data": "string (copia-e-cola)",
+                "qrcode_image": "string (base64 PNG)",
+                "expires_at": "string (ISO 8601, now + 10 min)",
+                "amount_cents": "number"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "ORDER_NOT_PENDING", "description": "Pedido não está em pending_payment" },
+            { "status": 503, "code": "BANK_UNAVAILABLE", "description": "Banco indisponível para gerar QR Code" },
+            { "status": 504, "code": "BANK_TIMEOUT", "description": "Timeout" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/payments/:id/events",
+          "description": "SSE stream: notifica frontend sobre mudanças de status do pagamento em tempo real",
+          "auth_required": true,
+          "allowed_roles": ["consumer"],
+          "request": {
+            "params": { "id": "string (payment ID)" },
+            "query": {
+              "token": { "type": "string", "required": true, "description": "JWT de curta duração (5 min) para autenticação SSE (EventSource não suporta headers)" }
+            }
+          },
+          "response": {
+            "200": {
+              "content_type": "text/event-stream",
+              "events": [
+                { "event": "connected", "data": "{ paymentId: string }" },
+                { "event": "payment_update", "data": "{ status: 'completed' | 'failed' | 'expired', orderId?: string }" }
+              ]
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido ou expirado" },
+            { "status": 404, "code": "PAYMENT_NOT_FOUND", "description": "Pagamento não encontrado ou não pertence ao usuário" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Webhook (recebido do ECP Digital Bank)",
+      "endpoints": [
+        {
+          "method": "POST",
+          "path": "/api/webhooks/bank/pix-received",
+          "description": "Callback chamado pelo ecp-digital-bank quando um PIX é recebido na conta da plataforma",
+          "auth_required": false,
+          "auth_mechanism": "HMAC-SHA256 via header X-Webhook-Signature",
+          "request": {
+            "content_type": "application/json",
+            "headers": {
+              "X-Webhook-Signature": "string (HMAC-SHA256 hex do body usando ECP_BANK_WEBHOOK_SECRET)"
+            },
+            "body": {
+              "event": { "type": "string", "value": "pix.received" },
+              "transactionId": { "type": "string" },
+              "amountInCents": { "type": "integer" },
+              "pixKeyValue": { "type": "string" },
+              "senderName": { "type": "string" },
+              "senderTaxId": { "type": "string", "description": "CPF mascarado" },
+              "description": { "type": "string", "pattern": "FoodFlow #p_XXXX" },
+              "timestamp": { "type": "string", "format": "ISO 8601" }
+            }
+          },
+          "response": {
+            "200": {
+              "body": { "received": true },
+              "note": "Sempre retorna 200 para evitar retries do banco, mesmo em caso de erro interno"
+            }
+          },
+          "errors": []
+        }
+      ]
+    },
+    {
+      "group": "Favorites",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/favorites",
+          "description": "Listar restaurantes favoritos do consumidor",
+          "auth_required": true,
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "favorites": [
+                  {
+                    "id": "string (favorite ID)",
+                    "restaurant_id": "string",
+                    "restaurant_name": "string",
+                    "restaurant_cuisine": "string",
+                    "restaurant_rating": "number",
+                    "restaurant_cover_gradient": "string",
+                    "restaurant_hero_emoji": "string",
+                    "created_at": "string"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/favorites",
+          "description": "Adicionar restaurante aos favoritos",
+          "auth_required": true,
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "restaurant_id": { "type": "string", "required": true }
+            }
+          },
+          "response": {
+            "201": {
+              "body": {
+                "id": "string",
+                "restaurant_id": "string",
+                "created_at": "string"
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 404, "code": "RESTAURANT_NOT_FOUND", "description": "Restaurante não encontrado" },
+            { "status": 409, "code": "ALREADY_FAVORITED", "description": "Restaurante já está nos favoritos" }
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/favorites/:restaurantId",
+          "description": "Remover restaurante dos favoritos",
+          "auth_required": true,
+          "request": {
+            "params": { "restaurantId": "string (restaurant ID)" }
+          },
+          "response": {
+            "200": { "body": { "deleted": true } }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 404, "code": "FAVORITE_NOT_FOUND", "description": "Favorito não encontrado" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Restaurant Admin",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/restaurant-admin/menu",
+          "description": "Listar itens do cardápio do restaurante do usuário logado",
+          "auth_required": true,
+          "allowed_roles": ["restaurant"],
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "items": [
+                  {
+                    "id": "string",
+                    "name": "string",
+                    "description": "string|null",
+                    "price": "number",
+                    "emoji": "string",
+                    "badge": "string|null",
+                    "category": "string|null",
+                    "sort_order": "number",
+                    "is_available": "boolean"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 401, "code": "UNAUTHORIZED", "description": "Token inválido" },
+            { "status": 403, "code": "FORBIDDEN", "description": "Usuário não é role restaurant" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/restaurant-admin/menu",
+          "description": "Adicionar item ao cardápio",
+          "auth_required": true,
+          "allowed_roles": ["restaurant"],
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "name": { "type": "string", "required": true },
+              "description": { "type": "string", "required": false },
+              "price": { "type": "number", "required": true, "min": 0.01 },
+              "emoji": { "type": "string", "required": false, "default": "🍽️" },
+              "badge": { "type": "string", "required": false },
+              "category": { "type": "string", "required": false },
+              "sort_order": { "type": "integer", "required": false, "default": 0 },
+              "is_available": { "type": "boolean", "required": false, "default": true }
+            }
+          },
+          "response": {
+            "201": {
+              "body": {
+                "id": "string",
+                "name": "string",
+                "description": "string|null",
+                "price": "number",
+                "emoji": "string",
+                "badge": "string|null",
+                "category": "string|null",
+                "sort_order": "number",
+                "is_available": "boolean"
+              }
+            }
+          },
+          "errors": [
+            { "status": 400, "code": "VALIDATION_ERROR", "description": "Campos obrigatórios faltando" },
+            { "status": 403, "code": "FORBIDDEN", "description": "Sem permissão" }
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/restaurant-admin/menu/:id",
+          "description": "Editar item do cardápio",
+          "auth_required": true,
+          "allowed_roles": ["restaurant"],
+          "request": {
+            "params": { "id": "string (menu_item ID)" },
+            "content_type": "application/json",
+            "body": {
+              "name": { "type": "string", "required": false },
+              "description": { "type": "string", "required": false },
+              "price": { "type": "number", "required": false },
+              "emoji": { "type": "string", "required": false },
+              "badge": { "type": "string", "required": false },
+              "category": { "type": "string", "required": false },
+              "sort_order": { "type": "integer", "required": false },
+              "is_available": { "type": "boolean", "required": false }
+            }
+          },
+          "response": {
+            "200": { "body": { "updated": "MenuItem object" } }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Item não pertence ao restaurante do usuário" },
+            { "status": 404, "code": "MENU_ITEM_NOT_FOUND", "description": "Item não encontrado" }
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/restaurant-admin/menu/:id",
+          "description": "Remover item do cardápio",
+          "auth_required": true,
+          "allowed_roles": ["restaurant"],
+          "request": {
+            "params": { "id": "string (menu_item ID)" }
+          },
+          "response": {
+            "200": { "body": { "deleted": true } }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Item não pertence ao restaurante" },
+            { "status": 404, "code": "MENU_ITEM_NOT_FOUND", "description": "Item não encontrado" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/restaurant-admin/orders",
+          "description": "Listar pedidos recebidos pelo restaurante",
+          "auth_required": true,
+          "allowed_roles": ["restaurant"],
+          "request": {
+            "query": {
+              "status": { "type": "string", "required": false, "description": "Filtrar por status" }
+            }
+          },
+          "response": {
+            "200": {
+              "body": {
+                "orders": [
+                  {
+                    "id": "string",
+                    "consumer_name": "string",
+                    "items": [{ "item_name": "string", "quantity": "number", "item_price": "number" }],
+                    "total": "number",
+                    "status": "string",
+                    "created_at": "string"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Sem permissão" }
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/restaurant-admin/settings",
+          "description": "Atualizar dados do restaurante",
+          "auth_required": true,
+          "allowed_roles": ["restaurant"],
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "name": { "type": "string", "required": false },
+              "subtitle": { "type": "string", "required": false },
+              "cuisine": { "type": "string", "required": false },
+              "eta_min": { "type": "integer", "required": false },
+              "eta_max": { "type": "integer", "required": false },
+              "delivery_fee": { "type": "number", "required": false },
+              "min_order": { "type": "number", "required": false },
+              "promo_text": { "type": "string", "required": false },
+              "cover_gradient": { "type": "string", "required": false }
+            }
+          },
+          "response": {
+            "200": { "body": { "updated": "Restaurant object" } }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Sem permissão" }
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Platform Admin",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/admin/dashboard",
+          "description": "Métricas gerais da plataforma",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "total_restaurants": "number",
+                "active_restaurants": "number",
+                "total_orders": "number",
+                "total_revenue": "number",
+                "avg_ticket": "number",
+                "active_coupons": "number",
+                "total_consumers": "number"
+              }
+            }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/restaurants",
+          "description": "Listar todos os restaurantes (ativos e inativos)",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "restaurants": [
+                  {
+                    "id": "string",
+                    "name": "string",
+                    "cuisine": "string",
+                    "is_active": "boolean",
+                    "is_open": "boolean",
+                    "order_count": "number",
+                    "created_at": "string"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" }
+          ]
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/admin/restaurants/:id",
+          "description": "Ativar ou suspender restaurante",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {
+            "params": { "id": "string (restaurant ID)" },
+            "content_type": "application/json",
+            "body": {
+              "is_active": { "type": "boolean", "required": true }
+            }
+          },
+          "response": {
+            "200": { "body": { "id": "string", "is_active": "boolean", "updated_at": "string" } }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" },
+            { "status": 404, "code": "RESTAURANT_NOT_FOUND", "description": "Restaurante não encontrado" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/categories",
+          "description": "Listar todas as categorias (incluindo inativas)",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "categories": [
+                  { "id": "string", "name": "string", "emoji": "string", "sort_order": "number", "is_active": "boolean" }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/admin/categories",
+          "description": "Criar nova categoria",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "name": { "type": "string", "required": true },
+              "emoji": { "type": "string", "required": false },
+              "sort_order": { "type": "integer", "required": false, "default": 0 }
+            }
+          },
+          "response": {
+            "201": { "body": { "id": "string", "name": "string", "emoji": "string", "sort_order": "number", "is_active": true } }
+          },
+          "errors": [
+            { "status": 400, "code": "VALIDATION_ERROR", "description": "Nome obrigatório" },
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" },
+            { "status": 409, "code": "CATEGORY_EXISTS", "description": "Categoria com este nome já existe" }
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/admin/categories/:id",
+          "description": "Editar categoria",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {
+            "params": { "id": "string (category ID)" },
+            "content_type": "application/json",
+            "body": {
+              "name": { "type": "string", "required": false },
+              "emoji": { "type": "string", "required": false },
+              "sort_order": { "type": "integer", "required": false },
+              "is_active": { "type": "boolean", "required": false }
+            }
+          },
+          "response": {
+            "200": { "body": { "updated": "Category object" } }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" },
+            { "status": 404, "code": "CATEGORY_NOT_FOUND", "description": "Categoria não encontrada" }
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/admin/categories/:id",
+          "description": "Remover categoria (soft delete via is_active = 0)",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {
+            "params": { "id": "string (category ID)" }
+          },
+          "response": {
+            "200": { "body": { "deleted": true } }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" },
+            { "status": 404, "code": "CATEGORY_NOT_FOUND", "description": "Não encontrada" }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin/coupons",
+          "description": "Listar todos os cupons",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {},
+          "response": {
+            "200": {
+              "body": {
+                "coupons": [
+                  {
+                    "id": "string",
+                    "code": "string",
+                    "discount_type": "fixed|percent",
+                    "discount_value": "number",
+                    "min_order": "number",
+                    "max_uses": "number|null",
+                    "uses_count": "number",
+                    "is_active": "boolean",
+                    "expires_at": "string|null"
+                  }
+                ]
+              }
+            }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/admin/coupons",
+          "description": "Criar novo cupom",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {
+            "content_type": "application/json",
+            "body": {
+              "code": { "type": "string", "required": true },
+              "discount_type": { "type": "string", "required": true, "enum": ["fixed", "percent"] },
+              "discount_value": { "type": "number", "required": true },
+              "min_order": { "type": "number", "required": false, "default": 0 },
+              "max_uses": { "type": "integer", "required": false },
+              "expires_at": { "type": "string", "format": "ISO 8601", "required": false }
+            }
+          },
+          "response": {
+            "201": { "body": { "id": "string", "code": "string", "discount_type": "string", "discount_value": "number" } }
+          },
+          "errors": [
+            { "status": 400, "code": "VALIDATION_ERROR", "description": "Campos obrigatórios faltando" },
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" },
+            { "status": 409, "code": "COUPON_CODE_EXISTS", "description": "Código já existe" }
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/admin/coupons/:id",
+          "description": "Editar cupom existente",
+          "auth_required": true,
+          "allowed_roles": ["admin"],
+          "request": {
+            "params": { "id": "string (coupon ID)" },
+            "content_type": "application/json",
+            "body": {
+              "discount_type": { "type": "string", "required": false },
+              "discount_value": { "type": "number", "required": false },
+              "min_order": { "type": "number", "required": false },
+              "max_uses": { "type": "integer", "required": false },
+              "is_active": { "type": "boolean", "required": false },
+              "expires_at": { "type": "string", "required": false }
+            }
+          },
+          "response": {
+            "200": { "body": { "updated": "Coupon object" } }
+          },
+          "errors": [
+            { "status": 403, "code": "FORBIDDEN", "description": "Apenas admin" },
+            { "status": 404, "code": "COUPON_NOT_FOUND", "description": "Cupom não encontrado" }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "db_schema": {
+    "engine": "SQLite via better-sqlite3 11.x",
+    "file_path": "./data/foodflow.db",
+    "tables": [
+      {
+        "name": "users",
+        "description": "Usuários do sistema: consumidores, donos de restaurante e admins",
+        "sql": "CREATE TABLE users (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  email TEXT UNIQUE NOT NULL,\n  password_hash TEXT NOT NULL,\n  name TEXT NOT NULL,\n  phone TEXT,\n  role TEXT NOT NULL DEFAULT 'consumer' CHECK(role IN ('consumer', 'restaurant', 'admin')),\n  restaurant_id TEXT REFERENCES restaurants(id),\n  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n  updated_at TEXT NOT NULL DEFAULT (datetime('now'))\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "email", "type": "TEXT", "unique": true, "not_null": true },
+          { "name": "password_hash", "type": "TEXT", "not_null": true, "note": "bcryptjs 12 rounds" },
+          { "name": "name", "type": "TEXT", "not_null": true },
+          { "name": "phone", "type": "TEXT", "nullable": true },
+          { "name": "role", "type": "TEXT", "not_null": true, "default": "consumer", "check": "consumer | restaurant | admin" },
+          { "name": "restaurant_id", "type": "TEXT", "fk": "restaurants(id)", "nullable": true, "note": "Vincula user role=restaurant ao restaurante" },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" },
+          { "name": "updated_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ]
+      },
+      {
+        "name": "addresses",
+        "description": "Endereços de entrega dos consumidores",
+        "sql": "CREATE TABLE addresses (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n  label TEXT NOT NULL DEFAULT 'Casa',\n  street TEXT NOT NULL,\n  number TEXT NOT NULL,\n  complement TEXT,\n  neighborhood TEXT NOT NULL,\n  city TEXT NOT NULL DEFAULT 'São Paulo',\n  state TEXT NOT NULL DEFAULT 'SP',\n  zip_code TEXT NOT NULL,\n  is_default INTEGER NOT NULL DEFAULT 0,\n  created_at TEXT NOT NULL DEFAULT (datetime('now'))\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "user_id", "type": "TEXT", "not_null": true, "fk": "users(id) ON DELETE CASCADE" },
+          { "name": "label", "type": "TEXT", "not_null": true, "default": "Casa" },
+          { "name": "street", "type": "TEXT", "not_null": true },
+          { "name": "number", "type": "TEXT", "not_null": true },
+          { "name": "complement", "type": "TEXT", "nullable": true },
+          { "name": "neighborhood", "type": "TEXT", "not_null": true },
+          { "name": "city", "type": "TEXT", "not_null": true, "default": "São Paulo" },
+          { "name": "state", "type": "TEXT", "not_null": true, "default": "SP" },
+          { "name": "zip_code", "type": "TEXT", "not_null": true },
+          { "name": "is_default", "type": "INTEGER", "not_null": true, "default": 0 },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ]
+      },
+      {
+        "name": "categories",
+        "description": "Categorias do marketplace (Hambúrguer, Japonês, Pizza, etc.)",
+        "sql": "CREATE TABLE categories (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  name TEXT UNIQUE NOT NULL,\n  emoji TEXT,\n  sort_order INTEGER NOT NULL DEFAULT 0,\n  is_active INTEGER NOT NULL DEFAULT 1\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "name", "type": "TEXT", "unique": true, "not_null": true },
+          { "name": "emoji", "type": "TEXT", "nullable": true },
+          { "name": "sort_order", "type": "INTEGER", "not_null": true, "default": 0 },
+          { "name": "is_active", "type": "INTEGER", "not_null": true, "default": 1 }
+        ]
+      },
+      {
+        "name": "restaurants",
+        "description": "Restaurantes parceiros do marketplace",
+        "sql": "CREATE TABLE restaurants (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  name TEXT NOT NULL,\n  slug TEXT UNIQUE NOT NULL,\n  cuisine TEXT NOT NULL,\n  subtitle TEXT,\n  category_id TEXT NOT NULL REFERENCES categories(id),\n  rating REAL NOT NULL DEFAULT 0,\n  review_count INTEGER NOT NULL DEFAULT 0,\n  eta_min INTEGER NOT NULL DEFAULT 20,\n  eta_max INTEGER NOT NULL DEFAULT 40,\n  delivery_fee REAL NOT NULL DEFAULT 0,\n  min_order REAL NOT NULL DEFAULT 0,\n  cover_gradient TEXT NOT NULL DEFAULT 'linear-gradient(135deg, #7b61ff, #ff5fa2)',\n  hero_emoji TEXT NOT NULL DEFAULT '🍽️',\n  promo_text TEXT,\n  note TEXT,\n  tags TEXT NOT NULL DEFAULT '[]',\n  is_active INTEGER NOT NULL DEFAULT 1,\n  is_open INTEGER NOT NULL DEFAULT 1,\n  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n  updated_at TEXT NOT NULL DEFAULT (datetime('now'))\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "name", "type": "TEXT", "not_null": true },
+          { "name": "slug", "type": "TEXT", "unique": true, "not_null": true },
+          { "name": "cuisine", "type": "TEXT", "not_null": true },
+          { "name": "subtitle", "type": "TEXT", "nullable": true },
+          { "name": "category_id", "type": "TEXT", "not_null": true, "fk": "categories(id)" },
+          { "name": "rating", "type": "REAL", "not_null": true, "default": 0 },
+          { "name": "review_count", "type": "INTEGER", "not_null": true, "default": 0 },
+          { "name": "eta_min", "type": "INTEGER", "not_null": true, "default": 20 },
+          { "name": "eta_max", "type": "INTEGER", "not_null": true, "default": 40 },
+          { "name": "delivery_fee", "type": "REAL", "not_null": true, "default": 0 },
+          { "name": "min_order", "type": "REAL", "not_null": true, "default": 0 },
+          { "name": "cover_gradient", "type": "TEXT", "not_null": true, "default": "linear-gradient(135deg, #7b61ff, #ff5fa2)" },
+          { "name": "hero_emoji", "type": "TEXT", "not_null": true, "default": "🍽️" },
+          { "name": "promo_text", "type": "TEXT", "nullable": true },
+          { "name": "note", "type": "TEXT", "nullable": true },
+          { "name": "tags", "type": "TEXT", "not_null": true, "default": "[]", "note": "JSON array de strings" },
+          { "name": "is_active", "type": "INTEGER", "not_null": true, "default": 1 },
+          { "name": "is_open", "type": "INTEGER", "not_null": true, "default": 1 },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" },
+          { "name": "updated_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ]
+      },
+      {
+        "name": "menu_items",
+        "description": "Itens do cardápio de cada restaurante",
+        "sql": "CREATE TABLE menu_items (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  restaurant_id TEXT NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,\n  name TEXT NOT NULL,\n  description TEXT,\n  price REAL NOT NULL,\n  emoji TEXT NOT NULL DEFAULT '🍽️',\n  badge TEXT,\n  category TEXT,\n  sort_order INTEGER NOT NULL DEFAULT 0,\n  is_available INTEGER NOT NULL DEFAULT 1,\n  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n  updated_at TEXT NOT NULL DEFAULT (datetime('now'))\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "restaurant_id", "type": "TEXT", "not_null": true, "fk": "restaurants(id) ON DELETE CASCADE" },
+          { "name": "name", "type": "TEXT", "not_null": true },
+          { "name": "description", "type": "TEXT", "nullable": true },
+          { "name": "price", "type": "REAL", "not_null": true },
+          { "name": "emoji", "type": "TEXT", "not_null": true, "default": "🍽️" },
+          { "name": "badge", "type": "TEXT", "nullable": true, "note": "Best seller, Vegetariano, Novo, Picante" },
+          { "name": "category", "type": "TEXT", "nullable": true, "note": "Categoria interna do restaurante" },
+          { "name": "sort_order", "type": "INTEGER", "not_null": true, "default": 0 },
+          { "name": "is_available", "type": "INTEGER", "not_null": true, "default": 1 },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" },
+          { "name": "updated_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ]
+      },
+      {
+        "name": "carts",
+        "description": "Carrinho de compras server-side (um por usuário)",
+        "sql": "CREATE TABLE carts (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  user_id TEXT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n  updated_at TEXT NOT NULL DEFAULT (datetime('now'))\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "user_id", "type": "TEXT", "unique": true, "not_null": true, "fk": "users(id) ON DELETE CASCADE" },
+          { "name": "updated_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ]
+      },
+      {
+        "name": "cart_items",
+        "description": "Itens dentro do carrinho com quantidade",
+        "sql": "CREATE TABLE cart_items (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  cart_id TEXT NOT NULL REFERENCES carts(id) ON DELETE CASCADE,\n  menu_item_id TEXT NOT NULL REFERENCES menu_items(id),\n  quantity INTEGER NOT NULL DEFAULT 1 CHECK(quantity > 0),\n  UNIQUE(cart_id, menu_item_id)\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "cart_id", "type": "TEXT", "not_null": true, "fk": "carts(id) ON DELETE CASCADE" },
+          { "name": "menu_item_id", "type": "TEXT", "not_null": true, "fk": "menu_items(id)" },
+          { "name": "quantity", "type": "INTEGER", "not_null": true, "default": 1, "check": "quantity > 0" }
+        ],
+        "constraints": ["UNIQUE(cart_id, menu_item_id)"]
+      },
+      {
+        "name": "orders",
+        "description": "Pedidos criados a partir do carrinho com valores calculados",
+        "sql": "CREATE TABLE orders (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  user_id TEXT NOT NULL REFERENCES users(id),\n  address_text TEXT NOT NULL,\n  subtotal REAL NOT NULL,\n  delivery_fee REAL NOT NULL DEFAULT 0,\n  discount REAL NOT NULL DEFAULT 0,\n  total REAL NOT NULL,\n  coupon_code TEXT,\n  payment_method TEXT NOT NULL DEFAULT 'pix_qrcode' CHECK(payment_method IN ('card_ecp', 'pix_qrcode')),\n  status TEXT NOT NULL DEFAULT 'pending_payment' CHECK(status IN ('pending_payment', 'payment_failed', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled')),\n  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n  updated_at TEXT NOT NULL DEFAULT (datetime('now'))\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "user_id", "type": "TEXT", "not_null": true, "fk": "users(id)" },
+          { "name": "address_text", "type": "TEXT", "not_null": true },
+          { "name": "subtotal", "type": "REAL", "not_null": true },
+          { "name": "delivery_fee", "type": "REAL", "not_null": true, "default": 0 },
+          { "name": "discount", "type": "REAL", "not_null": true, "default": 0 },
+          { "name": "total", "type": "REAL", "not_null": true },
+          { "name": "coupon_code", "type": "TEXT", "nullable": true },
+          { "name": "payment_method", "type": "TEXT", "not_null": true, "default": "pix_qrcode", "check": "card_ecp | pix_qrcode" },
+          { "name": "status", "type": "TEXT", "not_null": true, "default": "pending_payment", "check": "pending_payment | payment_failed | confirmed | preparing | out_for_delivery | delivered | cancelled" },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" },
+          { "name": "updated_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ]
+      },
+      {
+        "name": "order_items",
+        "description": "Snapshot dos itens no momento da criação do pedido (dados desnormalizados para histórico)",
+        "sql": "CREATE TABLE order_items (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,\n  restaurant_id TEXT NOT NULL REFERENCES restaurants(id),\n  restaurant_name TEXT NOT NULL,\n  menu_item_id TEXT NOT NULL,\n  item_name TEXT NOT NULL,\n  item_price REAL NOT NULL,\n  quantity INTEGER NOT NULL DEFAULT 1\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "order_id", "type": "TEXT", "not_null": true, "fk": "orders(id) ON DELETE CASCADE" },
+          { "name": "restaurant_id", "type": "TEXT", "not_null": true, "fk": "restaurants(id)" },
+          { "name": "restaurant_name", "type": "TEXT", "not_null": true, "note": "Desnormalizado para histórico" },
+          { "name": "menu_item_id", "type": "TEXT", "not_null": true },
+          { "name": "item_name", "type": "TEXT", "not_null": true, "note": "Desnormalizado para histórico" },
+          { "name": "item_price", "type": "REAL", "not_null": true, "note": "Preço no momento do pedido" },
+          { "name": "quantity", "type": "INTEGER", "not_null": true, "default": 1 }
+        ]
+      },
+      {
+        "name": "favorites",
+        "description": "Relação consumer-restaurante para favoritos",
+        "sql": "CREATE TABLE favorites (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n  restaurant_id TEXT NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,\n  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n  UNIQUE(user_id, restaurant_id)\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "user_id", "type": "TEXT", "not_null": true, "fk": "users(id) ON DELETE CASCADE" },
+          { "name": "restaurant_id", "type": "TEXT", "not_null": true, "fk": "restaurants(id) ON DELETE CASCADE" },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ],
+        "constraints": ["UNIQUE(user_id, restaurant_id)"]
+      },
+      {
+        "name": "coupons",
+        "description": "Cupons de desconto da plataforma",
+        "sql": "CREATE TABLE coupons (\n  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),\n  code TEXT UNIQUE NOT NULL,\n  discount_type TEXT NOT NULL DEFAULT 'fixed' CHECK(discount_type IN ('fixed', 'percent')),\n  discount_value REAL NOT NULL,\n  min_order REAL NOT NULL DEFAULT 0,\n  max_uses INTEGER,\n  uses_count INTEGER NOT NULL DEFAULT 0,\n  is_active INTEGER NOT NULL DEFAULT 1,\n  expires_at TEXT,\n  created_at TEXT NOT NULL DEFAULT (datetime('now'))\n);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "lower(hex(randomblob(8)))" },
+          { "name": "code", "type": "TEXT", "unique": true, "not_null": true },
+          { "name": "discount_type", "type": "TEXT", "not_null": true, "default": "fixed", "check": "fixed | percent" },
+          { "name": "discount_value", "type": "REAL", "not_null": true },
+          { "name": "min_order", "type": "REAL", "not_null": true, "default": 0 },
+          { "name": "max_uses", "type": "INTEGER", "nullable": true },
+          { "name": "uses_count", "type": "INTEGER", "not_null": true, "default": 0 },
+          { "name": "is_active", "type": "INTEGER", "not_null": true, "default": 1 },
+          { "name": "expires_at", "type": "TEXT", "nullable": true },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ]
+      },
+      {
+        "name": "payments",
+        "description": "Registros de pagamento integrados com ECP Digital Bank",
+        "sql": "CREATE TABLE payments (\n  id TEXT PRIMARY KEY DEFAULT ('p_' || lower(hex(randomblob(8)))),\n  order_id TEXT NOT NULL REFERENCES orders(id),\n  user_id TEXT NOT NULL REFERENCES users(id),\n  method TEXT NOT NULL CHECK(method IN ('card_ecp', 'pix_qrcode')),\n  status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed', 'expired')),\n  amount_cents INTEGER NOT NULL,\n  bank_transaction_id TEXT,\n  bank_jwt_token TEXT,\n  pix_qrcode_data TEXT,\n  pix_qrcode_image TEXT,\n  pix_expiration TEXT,\n  card_last4 TEXT,\n  webhook_received_at TEXT,\n  webhook_payload TEXT,\n  error_message TEXT,\n  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n  updated_at TEXT NOT NULL DEFAULT (datetime('now'))\n);\nCREATE INDEX idx_payments_status_expiration ON payments(status, pix_expiration);",
+        "columns": [
+          { "name": "id", "type": "TEXT", "pk": true, "default": "'p_' || lower(hex(randomblob(8)))", "note": "Prefixo p_ para identificação em webhooks" },
+          { "name": "order_id", "type": "TEXT", "not_null": true, "fk": "orders(id)" },
+          { "name": "user_id", "type": "TEXT", "not_null": true, "fk": "users(id)" },
+          { "name": "method", "type": "TEXT", "not_null": true, "check": "card_ecp | pix_qrcode" },
+          { "name": "status", "type": "TEXT", "not_null": true, "default": "pending", "check": "pending | processing | completed | failed | expired" },
+          { "name": "amount_cents", "type": "INTEGER", "not_null": true, "note": "Valor em centavos para integração com banco" },
+          { "name": "bank_transaction_id", "type": "TEXT", "nullable": true },
+          { "name": "bank_jwt_token", "type": "TEXT", "nullable": true, "note": "JWT efêmero do banco, limpo após transação" },
+          { "name": "pix_qrcode_data", "type": "TEXT", "nullable": true, "note": "String copia-e-cola do QR Code" },
+          { "name": "pix_qrcode_image", "type": "TEXT", "nullable": true, "note": "Base64 PNG do QR Code" },
+          { "name": "pix_expiration", "type": "TEXT", "nullable": true, "note": "Expira em 10 min após geração" },
+          { "name": "card_last4", "type": "TEXT", "nullable": true },
+          { "name": "webhook_received_at", "type": "TEXT", "nullable": true },
+          { "name": "webhook_payload", "type": "TEXT", "nullable": true, "note": "JSON do payload do webhook para auditoria" },
+          { "name": "error_message", "type": "TEXT", "nullable": true },
+          { "name": "created_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" },
+          { "name": "updated_at", "type": "TEXT", "not_null": true, "default": "datetime('now')" }
+        ],
+        "indexes": [
+          { "name": "idx_payments_status_expiration", "columns": ["status", "pix_expiration"], "purpose": "Expiration worker query performance" }
+        ]
+      }
+    ],
+    "relationships": [
+      { "from": "addresses.user_id", "to": "users.id", "type": "many-to-one", "on_delete": "CASCADE" },
+      { "from": "restaurants.category_id", "to": "categories.id", "type": "many-to-one" },
+      { "from": "users.restaurant_id", "to": "restaurants.id", "type": "many-to-one", "note": "Apenas para role=restaurant" },
+      { "from": "menu_items.restaurant_id", "to": "restaurants.id", "type": "many-to-one", "on_delete": "CASCADE" },
+      { "from": "carts.user_id", "to": "users.id", "type": "one-to-one", "on_delete": "CASCADE" },
+      { "from": "cart_items.cart_id", "to": "carts.id", "type": "many-to-one", "on_delete": "CASCADE" },
+      { "from": "cart_items.menu_item_id", "to": "menu_items.id", "type": "many-to-one" },
+      { "from": "orders.user_id", "to": "users.id", "type": "many-to-one" },
+      { "from": "order_items.order_id", "to": "orders.id", "type": "many-to-one", "on_delete": "CASCADE" },
+      { "from": "order_items.restaurant_id", "to": "restaurants.id", "type": "many-to-one" },
+      { "from": "favorites.user_id", "to": "users.id", "type": "many-to-one", "on_delete": "CASCADE" },
+      { "from": "favorites.restaurant_id", "to": "restaurants.id", "type": "many-to-one", "on_delete": "CASCADE" },
+      { "from": "payments.order_id", "to": "orders.id", "type": "many-to-one" },
+      { "from": "payments.user_id", "to": "users.id", "type": "many-to-one" }
+    ],
+    "seed_data": {
+      "categories": ["Todos", "Hambúrguer", "Japonês", "Pizza", "Saudável", "Massas", "Brasileira"],
+      "restaurants": ["Pasta & Fogo", "Sushi Wave", "Burger Lab", "Green Bowl Co.", "Pizza Club 24h", "Brasa & Lenha"],
+      "menu_items_per_restaurant": 4,
+      "total_menu_items": 24,
+      "coupon": { "code": "MVP10", "discount_type": "fixed", "discount_value": 10, "min_order": 80 },
+      "users": [
+        { "email": "admin@foodflow.com", "password": "admin123", "role": "admin" },
+        { "email": "pasta@foodflow.com", "password": "pasta123", "role": "restaurant", "restaurant": "Pasta & Fogo" },
+        { "email": "user@foodflow.com", "password": "user123", "role": "consumer" }
+      ]
+    }
+  },
+
+  "adrs": [
+    {
+      "id": "ADR-001",
+      "title": "Monorepo Single-Server Architecture",
+      "status": "accepted",
+      "context": "FoodFlow precisa de uma arquitetura que suporte API REST + SPA React em um único deploy. O produto é um MVP que prioriza velocidade de desenvolvimento, simplicidade operacional e custo mínimo de infraestrutura. O padrão já foi validado com sucesso no ecp-digital-banking.",
+      "decision": "Adotar arquitetura monorepo single-server onde Fastify serve tanto a API REST (/api/*) quanto o frontend React SPA (client/dist/ como static files) a partir de um único processo Node.js. Em desenvolvimento, Vite roda separadamente com HMR; em produção, o build gera arquivos estáticos servidos pelo Fastify.",
+      "consequences": {
+        "positive": [
+          "Deploy simplificado: um único processo Node.js (PM2) por VPS",
+          "Sem complexidade de orquestração de containers ou microserviços",
+          "Custo mínimo: roda em VPS de R$ 20-50/mês",
+          "DX excelente: npm run dev inicia tudo com concurrently",
+          "Padrão já validado e operacional no ecp-digital-banking",
+          "Compartilhamento fácil de tipos e constantes entre server e client"
+        ],
+        "negative": [
+          "Escalabilidade horizontal limitada (escala vertical apenas)",
+          "Frontend e backend acoplados no deploy (qualquer mudança redeployia tudo)",
+          "Não adequado para mais de ~500 conexões simultâneas sem otimização"
+        ],
+        "mitigation": "Para o escopo MVP com poucos milhares de usuários, a arquitetura é mais que suficiente. Migração para separação server/client ou containers é possível sem refatoração significativa."
+      }
+    },
+    {
+      "id": "ADR-002",
+      "title": "SQLite with better-sqlite3 as Primary Database",
+      "status": "accepted",
+      "context": "O MVP precisa de persistência relacional com suporte a transações, foreign keys e queries SQL padrão. O time busca zero-config de banco de dados, sem necessidade de instalar ou configurar um servidor de banco (PostgreSQL, MySQL). O padrão já está validado no ecp-digital-banking com better-sqlite3.",
+      "decision": "Usar SQLite via better-sqlite3 (driver síncrono nativo para Node.js) como banco de dados primário. O arquivo do banco fica em ./data/foodflow.db. Migrations são executadas inline no startup (database.mjs). better-sqlite3 versão 11.x com prepared statements nativos.",
+      "consequences": {
+        "positive": [
+          "Zero-config: sem servidor de banco, sem Docker, sem variáveis de conexão",
+          "Performance excepcional para leituras (melhor que PostgreSQL para < 100k rows)",
+          "Prepared statements nativos previnem SQL injection",
+          "API síncrona simplifica o código (sem async/await para queries)",
+          "Backup = copiar um arquivo; restore = substituir um arquivo",
+          "Transações ACID completas com suporte a WAL mode",
+          "Já validado em produção no ecp-digital-banking"
+        ],
+        "negative": [
+          "Escritas concorrentes limitadas (um writer por vez via WAL)",
+          "Sem suporte a replicação nativa",
+          "Requer node-gyp e VS Build Tools no Windows para compilação",
+          "Não escala horizontalmente (arquivo local)"
+        ],
+        "mitigation": "WAL mode habilitado para melhorar concorrência de leitura/escrita. Para escala futura, migração para PostgreSQL é direta (SQL compatível em 95% dos casos). O volume de dados do MVP (< 100k registros) está dentro da zona de conforto do SQLite."
+      }
+    },
+    {
+      "id": "ADR-003",
+      "title": "ECP Digital Bank Integration as Payment Proxy",
+      "status": "accepted",
+      "context": "FoodFlow precisa processar pagamentos reais sem integrar gateways de pagamento externos (Stripe, PagSeguro). O ecp-digital-bank já está em produção em https://bank.ecportilho.com com APIs REST para autenticação, cartões virtuais, saldo, transferência PIX e geração de QR Code PIX.",
+      "decision": "O FoodFlow atua como proxy de pagamento, intermediando toda comunicação entre o frontend e o ecp-digital-bank. O serviço bank-integration.mjs encapsula todas as chamadas. Duas modalidades: (A) Cartão Virtual ECP via débito PIX transfer direto, e (B) PIX QR Code com webhook + SSE para notificação em tempo real. Nenhuma chamada ao banco é feita diretamente do frontend.",
+      "consequences": {
+        "positive": [
+          "Pagamentos reais sem custo de gateway externo",
+          "Segurança: todas as chamadas ao banco são server-side",
+          "JWT do consumidor no banco é efêmero e nunca persistido",
+          "Dados de cartão nunca armazenados no FoodFlow (apenas last4)",
+          "Transação aparece no extrato real do ecp-digital-bank",
+          "Dois métodos de pagamento no MVP sem custo adicional"
+        ],
+        "negative": [
+          "Dependência de disponibilidade do ecp-digital-bank",
+          "Latência adicional por proxy (FoodFlow -> banco -> resposta)",
+          "Complexidade de manter dois fluxos de pagamento (cartão + PIX)"
+        ],
+        "mitigation": "Circuit breaker (5 falhas = 30s block), timeout de 10s com retry 1x para 5xx, fallback com mensagem clara ao usuário. Monitoramento de disponibilidade do banco via health check."
+      }
+    },
+    {
+      "id": "ADR-004",
+      "title": "SSE for Real-Time PIX Payment Notification",
+      "status": "accepted",
+      "context": "Quando o consumidor paga via PIX QR Code, o pagamento é confirmado assincronamente via webhook do banco. O frontend precisa ser notificado em tempo real de que o pagamento foi recebido para redirecionar o usuário para a tela de acompanhamento do pedido. Alternativas consideradas: polling (simples mas ineficiente), WebSocket (bidirecional mas complexo para um canal unidirecional), SSE (unidirecional server->client, nativo no browser).",
+      "decision": "Usar Server-Sent Events (SSE) via endpoint GET /api/payments/:id/events. O SSE Manager mantém um Map<paymentId, Set<ServerResponse>> de conexões ativas. Quando o webhook do banco é processado e o pagamento confirmado, o SSE Manager emite evento payment_update para todas as conexões daquele payment. Autenticação via token JWT de curta duração (5 min) passado como query param (EventSource nativo não suporta headers).",
+      "consequences": {
+        "positive": [
+          "Nativo no browser: EventSource API sem dependências externas",
+          "Unidirecional (server->client): semântica perfeita para o caso de uso",
+          "Baixo overhead: sem handshake de WebSocket, sem polling",
+          "Auto-reconnect nativo do EventSource",
+          "Implementação simples no Fastify (reply.raw.write)",
+          "Expiration worker integrado: emite SSE expired e fecha conexão"
+        ],
+        "negative": [
+          "EventSource nativo não suporta headers customizados (JWT via query param)",
+          "Limite de ~6 conexões SSE por domínio no HTTP/1.1 (sem impacto com HTTP/2)",
+          "Conexões abertas consomem memória (Set<ServerResponse> por payment)"
+        ],
+        "mitigation": "Token SSE de curta duração (5 min) mitiga risco de exposição. Connections são limpas automaticamente ao fechar, expirar ou completar. Limit de conexões SSE simultâneas por usuário. HTTP/2 via Nginx elimina limite de 6 conexões."
+      }
+    },
+    {
+      "id": "ADR-005",
+      "title": "CSS Modules with CSS Custom Properties for Theming",
+      "status": "accepted",
+      "context": "FoodFlow tem identidade visual Midnight Express (dark mode premium) definida no design_spec.md com tokens de cores, tipografia, espaçamento e elevação. O CSS precisa suportar: escopo isolado por componente (sem conflitos), theming centralizado via tokens, sem build extra ou runtime JS para estilos. Alternativas: Tailwind (utility-first, classes longas), styled-components (runtime JS, bundle maior), CSS Modules + CSS Variables (escopo + theming nativo).",
+      "decision": "Usar CSS Modules (*.module.css) para escopo isolado por componente, combinado com CSS Custom Properties (variáveis CSS) definidas em styles/variables.css para theming global. Tokens do design_spec.md (cores, tipografia, espaçamento, border-radius, elevation) são mapeados como variáveis CSS. Componentes referenciam variáveis, nunca valores hardcoded.",
+      "consequences": {
+        "positive": [
+          "Zero runtime JS: CSS puro com escopo via build-time class hashing (Vite)",
+          "Theming centralizado: mudar uma variável atualiza toda a aplicação",
+          "Sem conflito de estilos: classes são únicas por componente",
+          "Bundle mínimo: sem runtime de CSS-in-JS",
+          "Developer experience natural: CSS padrão sem learning curve",
+          "Design tokens do design_spec.md mapeados 1:1 para variáveis CSS",
+          "Dark mode nativo via variáveis (sem toggle adicional no MVP)"
+        ],
+        "negative": [
+          "Sem dynamic styling baseado em props (resolvido com variáveis CSS inline via style prop)",
+          "Organização manual de variáveis (sem type-safety como em typed CSS-in-JS)",
+          "Media queries repetidas por componente (sem mixins nativos em CSS Modules)"
+        ],
+        "mitigation": "Variáveis CSS inline via style prop para valores dinâmicos (ex: cover_gradient). Breakpoints documentados como variáveis de referência em variables.css. Lint via stylelint para consistência."
+      }
+    }
+  ]
+}
