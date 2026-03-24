@@ -872,6 +872,87 @@ pre code {
   letter-spacing: 0.06em;
 }
 
+/* --- Persona Cards --- */
+.persona-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.persona-card:hover {
+  border-color: rgba(123, 97, 255, 0.25);
+}
+
+.persona-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.persona-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.persona-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.persona-demo {
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+
+.persona-jtbd {
+  background: var(--surface-2);
+  border-left: 3px solid var(--lime);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+  font-style: italic;
+  line-height: 1.6;
+  margin: 10px 0;
+}
+
+.persona-section-title {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 10px 0 4px;
+}
+
+.persona-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.persona-tag {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.persona-tag.behavior { background: var(--lime-dim); color: var(--lime); }
+.persona-tag.pain { background: rgba(255, 107, 129, 0.12); color: var(--danger); }
+.persona-tag.wtp { background: rgba(47, 211, 135, 0.12); color: var(--success); }
+
 /* --- Mermaid dark theme overrides --- */
 .mermaid {
   background: var(--surface);
