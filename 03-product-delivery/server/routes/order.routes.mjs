@@ -8,6 +8,7 @@ const CreateOrderBody = Type.Object({
   payment_method: Type.Optional(Type.Union([
     Type.Literal('card_ecp'),
     Type.Literal('pix_qrcode'),
+    Type.Literal('credit_card'),
   ])),
 });
 

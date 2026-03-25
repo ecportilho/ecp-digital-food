@@ -2,6 +2,16 @@
 #  ECP Food v1.0  -  Script de Instalacao Completo
 #  Windows 11 | PowerShell 5.1+
 #  Executar: PowerShell -ExecutionPolicy Bypass -File .\ecp-digital-food-install.ps1
+#
+#  Estrutura esperada do repositorio:
+#    ecp-digital-food/
+#      03-product-delivery/       <-- codigo-fonte (server + client)
+#        package.json
+#        server/
+#        client/
+#        data/
+#        .env
+#      04-product-operation/      <-- este script
 # ============================================================================
 
 # --- Configuracao ---
@@ -73,29 +83,41 @@ Write-Host "  Data:      $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundC
 Write-Host ""
 
 # --- Detectar diretorio do projeto ---
+# O script esta em 04-product-operation/, o repo esta um nivel acima,
+# e o codigo-fonte esta em 03-product-delivery/
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Split-Path -Parent $scriptDir
+$repoRoot = Split-Path -Parent $scriptDir
 
-# Se o script esta em 04-product-operation, o projeto esta um nivel acima
-if (Test-Path "$projectRoot\package.json") {
-    $PROJECT_DIR = $projectRoot
-} elseif (Test-Path ".\package.json") {
-    $PROJECT_DIR = (Get-Location).Path
-} else {
-    # Tentar o caminho padrao
-    $PROJECT_DIR = "C:\Users\$env:USERNAME\projetos_git\ecp-digital-food"
+# O codigo-fonte (package.json, server/, client/) esta em 03-product-delivery
+$APP_DIR = Join-Path $repoRoot "03-product-delivery"
+
+# Fallback: se o script foi executado de outro lugar
+if (-not (Test-Path "$APP_DIR\package.json")) {
+    # Tentar caminho padrao
+    $APP_DIR = "C:\Users\$env:USERNAME\projetos_git\ecp-digital-food\03-product-delivery"
 }
 
-Write-Host "  Projeto:   $PROJECT_DIR" -ForegroundColor Gray
+# Ultimo fallback: diretorio atual
+if (-not (Test-Path "$APP_DIR\package.json")) {
+    if (Test-Path ".\package.json") {
+        $APP_DIR = (Get-Location).Path
+    } elseif (Test-Path ".\03-product-delivery\package.json") {
+        $APP_DIR = Join-Path (Get-Location).Path "03-product-delivery"
+    }
+}
 
-if (-not (Test-Path "$PROJECT_DIR\package.json")) {
-    Write-Fail "Diretorio do projeto nao encontrado em: $PROJECT_DIR"
+Write-Host "  Repositorio: $repoRoot" -ForegroundColor Gray
+Write-Host "  App (code):  $APP_DIR" -ForegroundColor Gray
+
+if (-not (Test-Path "$APP_DIR\package.json")) {
+    Write-Fail "Diretorio do codigo-fonte nao encontrado em: $APP_DIR"
+    Write-Host "     Esperado: ecp-digital-food/03-product-delivery/package.json" -ForegroundColor Red
     Write-Host "     Verifique o caminho e tente novamente." -ForegroundColor Red
     exit 1
 }
 
-Set-Location $PROJECT_DIR
-Write-Ok "Diretorio do projeto localizado"
+Set-Location $APP_DIR
+Write-Ok "Diretorio do codigo-fonte localizado: $APP_DIR"
 Write-Host ""
 
 # ============================================================================
@@ -229,7 +251,7 @@ if ($pythonCmd) {
 }
 
 # --- 1.7 Estrutura do projeto ---
-Write-Step "1.7" "Estrutura do projeto ECP Food"
+Write-Step "1.7" "Estrutura do projeto ECP Food (em 03-product-delivery/)"
 
 $requiredFiles = @(
     "package.json",
@@ -243,10 +265,25 @@ $requiredFiles = @(
     "server\routes\cart.routes.mjs",
     "server\routes\order.routes.mjs",
     "server\routes\payment.routes.mjs",
+    "server\routes\webhook.routes.mjs",
+    "server\routes\admin.routes.mjs",
+    "server\routes\category.routes.mjs",
+    "server\routes\consumer.routes.mjs",
+    "server\routes\coupon.routes.mjs",
+    "server\routes\favorite.routes.mjs",
+    "server\routes\restaurant-admin.routes.mjs",
     "server\services\payment.service.mjs",
     "server\services\bank-integration.mjs",
     "server\services\webhook-handler.mjs",
     "server\services\sse-manager.mjs",
+    "server\services\auth.service.mjs",
+    "server\services\cart.service.mjs",
+    "server\services\order.service.mjs",
+    "server\services\restaurant.service.mjs",
+    "server\services\category.service.mjs",
+    "server\services\coupon.service.mjs",
+    "server\services\favorite.service.mjs",
+    "server\services\user.service.mjs",
     "client\package.json",
     "client\index.html",
     "client\vite.config.js",
@@ -256,7 +293,7 @@ $requiredFiles = @(
 
 $missingFiles = @()
 foreach ($f in $requiredFiles) {
-    if (Test-Path "$PROJECT_DIR\$f") {
+    if (Test-Path "$APP_DIR\$f") {
         Write-SubStep "$f"
     } else {
         Write-Fail "Arquivo nao encontrado: $f"
@@ -302,14 +339,14 @@ Write-Banner "FASE 2 / 6  -  Instalacao de Dependencias"
 
 # --- 2.1 Server ---
 Write-Step "2.1" "Dependencias do server (Fastify, better-sqlite3, bcryptjs, JWT)"
-Write-SubStep "Executando: npm install"
+Write-SubStep "Executando: npm install (em 03-product-delivery/)"
 Write-Warn "Este passo compila better-sqlite3 com node-gyp  -  pode levar 1-2 min"
 
-Set-Location $PROJECT_DIR
+Set-Location $APP_DIR
 
 # Garantir pasta data/ existe
-if (-not (Test-Path "$PROJECT_DIR\data")) {
-    New-Item -ItemType Directory -Path "$PROJECT_DIR\data" -Force | Out-Null
+if (-not (Test-Path "$APP_DIR\data")) {
+    New-Item -ItemType Directory -Path "$APP_DIR\data" -Force | Out-Null
     Write-SubStep "Pasta data/ criada"
 }
 
@@ -320,15 +357,15 @@ Write-Host ""
 
 # Verificacoes do server
 $serverChecks = @(
-    @{ name = "better-sqlite3 (binario nativo)"; path = "node_modules\better-sqlite3\build\Release\better_sqlite3.node" },
-    @{ name = "fastify";                          path = "node_modules\fastify" },
-    @{ name = "@fastify/cors";                    path = "node_modules\@fastify\cors" },
-    @{ name = "@fastify/helmet";                  path = "node_modules\@fastify\helmet" },
-    @{ name = "@fastify/rate-limit";              path = "node_modules\@fastify\rate-limit" },
-    @{ name = "@fastify/static";                  path = "node_modules\@fastify\static" },
-    @{ name = "@sinclair/typebox";                path = "node_modules\@sinclair\typebox" },
-    @{ name = "bcryptjs";                         path = "node_modules\bcryptjs" },
-    @{ name = "jsonwebtoken";                     path = "node_modules\jsonwebtoken" }
+    @{ name = "better-sqlite3 (binario nativo)"; path = "$APP_DIR\node_modules\better-sqlite3\build\Release\better_sqlite3.node" },
+    @{ name = "fastify";                          path = "$APP_DIR\node_modules\fastify" },
+    @{ name = "@fastify/cors";                    path = "$APP_DIR\node_modules\@fastify\cors" },
+    @{ name = "@fastify/helmet";                  path = "$APP_DIR\node_modules\@fastify\helmet" },
+    @{ name = "@fastify/rate-limit";              path = "$APP_DIR\node_modules\@fastify\rate-limit" },
+    @{ name = "@fastify/static";                  path = "$APP_DIR\node_modules\@fastify\static" },
+    @{ name = "@sinclair/typebox";                path = "$APP_DIR\node_modules\@sinclair\typebox" },
+    @{ name = "bcryptjs";                         path = "$APP_DIR\node_modules\bcryptjs" },
+    @{ name = "jsonwebtoken";                     path = "$APP_DIR\node_modules\jsonwebtoken" }
 )
 
 $serverOk = $true
@@ -348,21 +385,21 @@ if (-not $serverOk) {
 
 # --- 2.2 Client ---
 Write-Step "2.2" "Dependencias do client (React, Vite, React Router, Lucide)"
-Write-SubStep "Executando: npm install (client/)"
+Write-SubStep "Executando: npm install (em 03-product-delivery/client/)"
 Write-Host ""
 
-Set-Location "$PROJECT_DIR\client"
+Set-Location "$APP_DIR\client"
 npm install 2>&1 | ForEach-Object { Write-Host "      $_" -ForegroundColor DarkGray }
 
 Write-Host ""
 
 $webChecks = @(
-    @{ name = "react";             path = "node_modules\react" },
-    @{ name = "react-dom";         path = "node_modules\react-dom" },
-    @{ name = "react-router-dom";  path = "node_modules\react-router-dom" },
-    @{ name = "lucide-react";      path = "node_modules\lucide-react" },
-    @{ name = "vite";              path = "node_modules\vite" },
-    @{ name = "@vitejs/plugin-react"; path = "node_modules\@vitejs\plugin-react" }
+    @{ name = "react";             path = "$APP_DIR\client\node_modules\react" },
+    @{ name = "react-dom";         path = "$APP_DIR\client\node_modules\react-dom" },
+    @{ name = "react-router-dom";  path = "$APP_DIR\client\node_modules\react-router-dom" },
+    @{ name = "lucide-react";      path = "$APP_DIR\client\node_modules\lucide-react" },
+    @{ name = "vite";              path = "$APP_DIR\client\node_modules\vite" },
+    @{ name = "@vitejs/plugin-react"; path = "$APP_DIR\client\node_modules\@vitejs\plugin-react" }
 )
 
 $webOk = $true
@@ -375,13 +412,13 @@ foreach ($check in $webChecks) {
     }
 }
 
-Set-Location $PROJECT_DIR
+Set-Location $APP_DIR
 
 # --- Resumo ---
 Write-Host ""
 Write-Host ("  " + ("=" * 60)) -ForegroundColor DarkMagenta
-Write-Host "  node_modules raiz:   $(if (Test-Path 'node_modules') { 'OK' } else { 'FALHA' })" -ForegroundColor $(if (Test-Path 'node_modules') { 'Green' } else { 'Red' })
-Write-Host "  node_modules client: $(if (Test-Path 'client\node_modules') { 'OK' } else { 'FALHA' })" -ForegroundColor $(if (Test-Path 'client\node_modules') { 'Green' } else { 'Red' })
+Write-Host "  node_modules server:  $(if (Test-Path "$APP_DIR\node_modules") { 'OK' } else { 'FALHA' })" -ForegroundColor $(if (Test-Path "$APP_DIR\node_modules") { 'Green' } else { 'Red' })
+Write-Host "  node_modules client:  $(if (Test-Path "$APP_DIR\client\node_modules") { 'OK' } else { 'FALHA' })" -ForegroundColor $(if (Test-Path "$APP_DIR\client\node_modules") { 'Green' } else { 'Red' })
 Write-Host ("  " + ("=" * 60)) -ForegroundColor DarkMagenta
 
 Pause-Step "Revise a instalacao de dependencias"
@@ -392,9 +429,9 @@ Pause-Step "Revise a instalacao de dependencias"
 
 Write-Banner "FASE 3 / 6  -  Configuracao de Ambiente"
 
-Write-Step "3.1" "Arquivo .env"
+Write-Step "3.1" "Arquivo .env (em 03-product-delivery/)"
 
-$envFile = "$PROJECT_DIR\.env"
+$envFile = "$APP_DIR\.env"
 
 if (Test-Path $envFile) {
     Write-Warn "Arquivo .env ja existe  -  mantendo o existente"
@@ -435,16 +472,17 @@ FOODFLOW_PUBLIC_URL=http://localhost:3000
 
     $utf8NoBom = New-Object System.Text.UTF8Encoding $false
     [System.IO.File]::WriteAllText($envFile, $envContent, $utf8NoBom)
-    Write-Ok "Arquivo .env criado"
+    Write-Ok "Arquivo .env criado em 03-product-delivery/.env"
     Write-SubStep "Conteudo:"
     Get-Content $envFile | ForEach-Object { Write-Host "      | $_" -ForegroundColor DarkGray }
 }
 
 Write-Host ""
 Write-Step "3.2" "Resumo da configuracao"
+Write-Info "App dir:    $APP_DIR"
 Write-Info "API:        $HOST_API"
 Write-Info "Frontend:   $HOST_WEB"
-Write-Info "Banco:      data/foodflow.db (arquivo local SQLite)"
+Write-Info "Banco:      03-product-delivery/data/foodflow.db (arquivo local SQLite)"
 Write-Info "JWT:        Secret de desenvolvimento (trocar em producao!)"
 Write-Info "Proxy:      Vite redireciona /api/* para a API automaticamente"
 Write-Info "Banco ECP:  https://bank.ecportilho.com (integracao PIX + Cartao)"
@@ -458,7 +496,7 @@ Write-Banner "FASE 4 / 6  -  Banco de Dados (SQLite3)"
 # --- 4.1 Limpar banco existente ---
 Write-Step "4.1" "Verificar banco existente"
 
-$dbFile = "$PROJECT_DIR\data\foodflow.db"
+$dbFile = "$APP_DIR\data\foodflow.db"
 if (Test-Path $dbFile) {
     $dbSize = [math]::Round((Get-Item $dbFile).Length / 1KB, 1)
     Write-Warn "Banco ja existe ($dbSize KB)"
@@ -467,9 +505,9 @@ if (Test-Path $dbFile) {
     $resp = Read-Host "      Resposta"
     if ($resp -match "^[sS]") {
         Write-SubStep "Removendo banco existente..."
-        Remove-Item "$PROJECT_DIR\data\foodflow.db" -ErrorAction SilentlyContinue
-        Remove-Item "$PROJECT_DIR\data\foodflow.db-wal" -ErrorAction SilentlyContinue
-        Remove-Item "$PROJECT_DIR\data\foodflow.db-shm" -ErrorAction SilentlyContinue
+        Remove-Item "$APP_DIR\data\foodflow.db" -ErrorAction SilentlyContinue
+        Remove-Item "$APP_DIR\data\foodflow.db-wal" -ErrorAction SilentlyContinue
+        Remove-Item "$APP_DIR\data\foodflow.db-shm" -ErrorAction SilentlyContinue
         Write-Ok "Banco removido"
     } else {
         Write-Info "Mantendo banco existente"
@@ -480,10 +518,10 @@ if (Test-Path $dbFile) {
 
 # --- 4.2 Migrations (criacao de tabelas) ---
 Write-Step "4.2" "Executar migrations (criar 12 tabelas e indices)"
-Write-SubStep "Executando: npm run migrate"
+Write-SubStep "Executando: npm run migrate (em 03-product-delivery/)"
 Write-Host ""
 
-Set-Location $PROJECT_DIR
+Set-Location $APP_DIR
 $migrateOutput = npm run migrate 2>&1
 $migrateOutput | ForEach-Object { Write-Host "      $_" -ForegroundColor DarkGray }
 
@@ -491,18 +529,18 @@ Write-Host ""
 
 if (Test-Path $dbFile) {
     $dbSize = [math]::Round((Get-Item $dbFile).Length / 1KB, 1)
-    Write-Ok "Banco criado: data/foodflow.db ($dbSize KB)"
+    Write-Ok "Banco criado: 03-product-delivery/data/foodflow.db ($dbSize KB)"
 } else {
     Write-Fail "Banco nao foi criado  -  verifique erros acima"
 }
 
 # --- 4.3 Seed ---
 Write-Step "4.3" "Popular banco com dados de demonstracao (seed)"
-Write-SubStep "Executando: npm run seed"
+Write-SubStep "Executando: npm run seed (em 03-product-delivery/)"
 Write-SubStep "Criando: 7 categorias, 6 restaurantes, 41 itens, 2 cupons, 3 usuarios"
 Write-Host ""
 
-Set-Location $PROJECT_DIR
+Set-Location $APP_DIR
 $seedOutput = npm run seed 2>&1
 $seedOutput | ForEach-Object { Write-Host "      $_" -ForegroundColor DarkGray }
 
@@ -544,7 +582,6 @@ $port5174 = netstat -ano 2>$null | Select-String ":5174\s" | Select-String "LIST
 
 if ($port3000) {
     Write-Warn "Porta 3000 ja esta em uso!"
-    # Extrair PID e matar automaticamente
     $stalePid = ($port3000 -split '\s+')[-1]
     if ($stalePid -match '^\d+$') {
         Write-SubStep "Matando processo PID $stalePid que ocupa a porta 3000..."
@@ -576,17 +613,16 @@ if ($port5174) {
 
 # --- Iniciar servidor API ---
 Write-Step "5.2" "Iniciando API Fastify (porta 3000)"
-Write-SubStep "Executando: npm run dev (em background)"
+Write-SubStep "Executando: npm run dev (em 03-product-delivery/)"
 
-Set-Location $PROJECT_DIR
+Set-Location $APP_DIR
 $serverJob = Start-Process -FilePath "cmd.exe" `
-    -ArgumentList "/c","cd /d `"$PROJECT_DIR`" && npm run dev" `
-    -WorkingDirectory $PROJECT_DIR `
+    -ArgumentList "/c","cd /d `"$APP_DIR`" && npm run dev" `
+    -WorkingDirectory $APP_DIR `
     -PassThru -WindowStyle Hidden `
-    -RedirectStandardOutput "$PROJECT_DIR\server-stdout.log" `
-    -RedirectStandardError "$PROJECT_DIR\server-stderr.log"
+    -RedirectStandardOutput "$APP_DIR\server-stdout.log" `
+    -RedirectStandardError "$APP_DIR\server-stderr.log"
 
-# Liberar handles imediatamente para nao travar o terminal
 $serverPid = $serverJob.Id
 $serverJob.Close()
 $serverJob.Dispose()
@@ -616,8 +652,8 @@ if ($apiReady) {
 } else {
     Write-Fail "API nao respondeu em 30 segundos"
 
-    if (Test-Path "$PROJECT_DIR\server-stderr.log") {
-        $errLog = Get-Content "$PROJECT_DIR\server-stderr.log" -Raw -ErrorAction SilentlyContinue
+    if (Test-Path "$APP_DIR\server-stderr.log") {
+        $errLog = Get-Content "$APP_DIR\server-stderr.log" -Raw -ErrorAction SilentlyContinue
         if ($errLog) {
             Write-Host ""
             Write-SubStep "Ultimas linhas do log de erro:"
@@ -625,22 +661,21 @@ if ($apiReady) {
         }
     }
     Write-Info "Verifique os logs:"
-    Write-Info "  Get-Content server-stdout.log"
-    Write-Info "  Get-Content server-stderr.log"
+    Write-Info "  Get-Content $APP_DIR\server-stdout.log"
+    Write-Info "  Get-Content $APP_DIR\server-stderr.log"
 }
 
 # --- Iniciar frontend ---
 Write-Step "5.3" "Iniciando Frontend Vite (porta 5174)"
-Write-SubStep "Executando: npm run dev (client/) em background"
+Write-SubStep "Executando: npm run dev (em 03-product-delivery/client/)"
 
 $webJob = Start-Process -FilePath "cmd.exe" `
-    -ArgumentList "/c","cd /d `"$PROJECT_DIR\client`" && npm run dev" `
-    -WorkingDirectory $PROJECT_DIR `
+    -ArgumentList "/c","cd /d `"$APP_DIR\client`" && npm run dev" `
+    -WorkingDirectory "$APP_DIR\client" `
     -PassThru -WindowStyle Hidden `
-    -RedirectStandardOutput "$PROJECT_DIR\client-stdout.log" `
-    -RedirectStandardError "$PROJECT_DIR\client-stderr.log"
+    -RedirectStandardOutput "$APP_DIR\client-stdout.log" `
+    -RedirectStandardError "$APP_DIR\client-stderr.log"
 
-# Liberar handles imediatamente para nao travar o terminal
 $webPid = $webJob.Id
 $webJob.Close()
 $webJob.Dispose()
@@ -666,7 +701,7 @@ if ($webReady) {
     Write-Ok "Frontend Vite rodando em $HOST_WEB"
 } else {
     Write-Warn "Frontend nao respondeu em 30 segundos  -  pode estar compilando"
-    Write-Info "Verifique: Get-Content client-stdout.log"
+    Write-Info "Verifique: Get-Content $APP_DIR\client-stdout.log"
 }
 
 # --- Resumo ---
@@ -722,7 +757,6 @@ if (Test-Endpoint "POST /api/auth/login (user@foodflow.com)" {
     $r = Invoke-RestMethod "$HOST_API/api/auth/login" -Method POST `
         -ContentType "application/json" -Body $body -TimeoutSec 5 -ErrorAction Stop
 
-    # Tentar extrair token de varios formatos possiveis
     if ($r.data -and $r.data.token)             { $script:token = $r.data.token }
     elseif ($r.data -and $r.data.accessToken)    { $script:token = $r.data.accessToken }
     elseif ($r.data -and $r.data.access_token)   { $script:token = $r.data.access_token }
@@ -884,6 +918,14 @@ Write-Host "    6 restaurantes, 41 itens, 7 categorias" -ForegroundColor Gray
 Write-Host "    Cupons: MVP10 (10% off), FRETEGRATIS (frete gratis)" -ForegroundColor Gray
 Write-Host "    Frete gratis para pedidos acima de R`$ 120" -ForegroundColor Gray
 Write-Host ""
+Write-Host "  Estrutura:" -ForegroundColor Magenta
+Write-Host ""
+Write-Host "    Codigo:    $APP_DIR" -ForegroundColor Gray
+Write-Host "    Banco:     $APP_DIR\data\foodflow.db" -ForegroundColor Gray
+Write-Host "    .env:      $APP_DIR\.env" -ForegroundColor Gray
+Write-Host "    Logs API:  $APP_DIR\server-stdout.log" -ForegroundColor Gray
+Write-Host "    Logs Web:  $APP_DIR\client-stdout.log" -ForegroundColor Gray
+Write-Host ""
 Write-Host "  Processos em execucao:" -ForegroundColor Magenta
 Write-Host ""
 Write-Host "    API PID:   $serverPid" -ForegroundColor Gray
@@ -892,11 +934,6 @@ Write-Host ""
 Write-Host "  Para parar:" -ForegroundColor Magenta
 Write-Host ""
 Write-Host "    Stop-Process -Id $serverPid,$webPid -Force" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "  Logs:" -ForegroundColor Magenta
-Write-Host ""
-Write-Host "    Get-Content server-stdout.log -Tail 20" -ForegroundColor Gray
-Write-Host "    Get-Content client-stdout.log -Tail 20" -ForegroundColor Gray
 Write-Host ""
 
 # Abrir no browser

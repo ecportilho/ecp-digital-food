@@ -14,6 +14,11 @@ const PayCardBody = Type.Object({
   card_last4: Type.Optional(Type.String()),
 });
 
+const PayCreditCardBody = Type.Object({
+  order_id: Type.String(),
+  credit_card_id: Type.String(),
+});
+
 const PayPixBody = Type.Object({
   order_id: Type.String(),
 });
@@ -73,6 +78,19 @@ export async function paymentRoutes(app) {
     config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
   }, async (request, reply) => {
     const result = await paymentService.payWithCard(app.db, request.user.id, request.body);
+    if (!result.success) {
+      return reply.code(result.statusCode || 400).send(result);
+    }
+    return reply.send(result);
+  });
+
+  // POST /api/payments/credit-card — pay with registered credit card
+  app.post('/api/payments/credit-card', {
+    preHandler: [authMiddleware],
+    schema: { body: PayCreditCardBody },
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
+    const result = await paymentService.payWithCreditCard(app.db, request.user.id, request.body);
     if (!result.success) {
       return reply.code(result.statusCode || 400).send(result);
     }

@@ -1,23 +1,37 @@
 /**
  * PM2 Ecosystem Config — ECP Food
  *
- * Uso:
- *   pm2 start ecosystem.config.cjs
+ * Producao (VPS Linux):
+ *   O deploy copia 03-product-delivery/ para /opt/foodflow/
+ *   pm2 start ecosystem.config.cjs --env production
+ *
+ * Desenvolvimento local (Windows):
+ *   cd ecp-digital-food/04-product-operation
+ *   pm2 start ecosystem.config.cjs --env development
+ *   (cwd aponta para ../03-product-delivery automaticamente)
+ *
+ * Comandos:
  *   pm2 reload ecosystem.config.cjs   (zero-downtime reload)
  *   pm2 stop ecosystem.config.cjs
  *   pm2 delete ecosystem.config.cjs
- *
- * Logs:
  *   pm2 logs foodflow
  *   pm2 monit
  */
+
+const path = require('path');
+
+// Em dev, este arquivo esta em 04-product-operation/, o codigo em 03-product-delivery/
+const devCwd = path.resolve(__dirname, '..', '03-product-delivery');
+// Em producao, o deploy copia para /opt/foodflow/
+const prodCwd = '/opt/foodflow';
+const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
   apps: [
     {
       name: 'foodflow',
       script: 'server/index.mjs',
-      cwd: '/opt/foodflow',
+      cwd: isProduction ? prodCwd : devCwd,
 
       // Node.js interpreter
       interpreter: 'node',

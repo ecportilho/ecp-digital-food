@@ -27,7 +27,7 @@ export default function RestaurantPage() {
     ])
       .then(([rest, menu]) => {
         setRestaurant(rest);
-        setMenuItems(menu || []);
+        setMenuItems(Array.isArray(menu) ? menu : (menu?.items || []));
       })
       .catch(() => {})
       .finally(() => setLoading(false));

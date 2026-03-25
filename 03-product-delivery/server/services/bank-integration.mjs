@@ -181,6 +181,43 @@ export async function bankGeneratePixQrCode(platformJwt, amountInCents, descript
 }
 
 /**
+ * Process a credit card purchase by card number on ecp-digital-bank.
+ * Uses the platform account JWT to authenticate (merchant-side operation).
+ * @param {string} platformJwt - Platform account JWT
+ * @param {string} cardNumber - Full credit card number
+ * @param {number} amountCents - Amount in centavos
+ * @param {string} description - Purchase description
+ * @param {string} merchantName - Merchant name
+ * @param {string} [merchantCategory] - Merchant category
+ * @returns {Promise<{ purchaseId, status, availableAfterCents }>}
+ */
+export async function bankCardPurchaseByNumber(platformJwt, cardNumber, amountCents, description, merchantName, merchantCategory) {
+  const res = await bankFetchWithRetry(`${BANK_API}/cards/purchase-by-number`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${platformJwt}`,
+    },
+    body: JSON.stringify({
+      cardNumber,
+      amountCents,
+      description,
+      merchantName,
+      merchantCategory: merchantCategory || 'Alimentacao',
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new BankApiError(
+      body.error?.code || 'CARD_PURCHASE_FAILED',
+      res.status,
+      body.error?.message || body.message || 'Failed to process card purchase'
+    );
+  }
+  return res.json();
+}
+
+/**
  * Get platform bank token. Cached in memory, refreshed every 23h.
  */
 let platformTokenCache = { token: null, expiresAt: 0 };

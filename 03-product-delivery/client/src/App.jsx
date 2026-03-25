@@ -11,11 +11,13 @@ import HomePage from './pages/HomePage';
 import RestaurantPage from './pages/RestaurantPage';
 import CheckoutPage from './pages/CheckoutPage';
 import CardPaymentPage from './pages/CardPaymentPage';
+import CreditCardPaymentPage from './pages/CreditCardPaymentPage';
 import PixPaymentPage from './pages/PixPaymentPage';
 import OrderConfirmedPage from './pages/OrderConfirmedPage';
 import OrdersPage from './pages/OrdersPage';
 import FavoritesPage from './pages/FavoritesPage';
 import ProfilePage from './pages/ProfilePage';
+import CreditCardsPage from './pages/CreditCardsPage';
 import RestaurantPanelPage from './pages/RestaurantPanelPage';
 import AdminPage from './pages/AdminPage';
 
@@ -56,11 +58,13 @@ function AppRoutes() {
         <Route path="/restaurant/:id" element={<RestaurantPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/checkout/card" element={<CardPaymentPage />} />
+        <Route path="/checkout/credit-card" element={<CreditCardPaymentPage />} />
         <Route path="/checkout/pix" element={<PixPaymentPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/orders/:id" element={<OrderConfirmedPage />} />
         <Route path="/favorites" element={<FavoritesPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/credit-cards" element={<CreditCardsPage />} />
         <Route path="/restaurant-panel" element={<RestaurantPanelPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Route>

@@ -16,6 +16,7 @@ function seed() {
     DELETE FROM cart_items;
     DELETE FROM carts;
     DELETE FROM favorites;
+    DELETE FROM credit_cards;
     DELETE FROM menu_items;
     DELETE FROM addresses;
     DELETE FROM users;
@@ -187,33 +188,109 @@ function seed() {
   couponStmt.run('coupon_frete', 'FRETEGRATIS', 'fixed', 0, 0, 500);
   console.log('  -> 2 coupons seeded (MVP10, FRETEGRATIS)');
 
-  // --- Users ---
+  // --- Users (synced with ecp-digital-bank — same email + password) ---
+  // All bank users use password: Senha@123
   const userStmt = db.prepare(`
     INSERT INTO users (id, email, password_hash, name, phone, role, restaurant_id)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
+  const cardStmt = db.prepare(`
+    INSERT INTO credit_cards (user_id, card_number, card_holder, card_expiry, card_last4, is_default)
+    VALUES (?, ?, ?, ?, ?, 1)
+  `);
+
+  const sharedPassword = bcrypt.hashSync('Senha@123', BCRYPT_ROUNDS);
+
+  // Admin user (FoodFlow internal)
   const adminHash = bcrypt.hashSync('Adm!nF00d@2026', BCRYPT_ROUNDS);
-  const pastaHash = bcrypt.hashSync('P@sta&Fogo#2026', BCRYPT_ROUNDS);
-  const userHash = bcrypt.hashSync('Us3r$Food!2026', BCRYPT_ROUNDS);
-
   userStmt.run('user_admin', 'admin@foodflow.com', adminHash, 'Admin ECP Food', '11999990000', 'admin', null);
-  userStmt.run('user_pasta', 'pasta@foodflow.com', pastaHash, 'Gerente Pasta & Fogo', '11999991111', 'restaurant', 'rest_pasta');
-  userStmt.run('user_consumer', 'user@foodflow.com', userHash, 'João Silva', '11999992222', 'consumer', null);
-  console.log('  -> 3 users seeded (admin, restaurant, consumer)');
 
-  // --- Address for consumer ---
+  // Restaurant user (FoodFlow internal)
+  const pastaHash = bcrypt.hashSync('P@sta&Fogo#2026', BCRYPT_ROUNDS);
+  userStmt.run('user_pasta', 'pasta@foodflow.com', pastaHash, 'Gerente Pasta & Fogo', '11999991111', 'restaurant', 'rest_pasta');
+
+  // Consumer users — synced with ecp-digital-bank
+  const bankUsers = [
+    {
+      id: 'user_marina', email: 'marina@email.com', name: 'Marina Silva',
+      phone: '+5511999887766',
+      cardNumber: '4539620189474832', cardLast4: '4832', cardHolder: 'MARINA SILVA', cardExpiry: '12/28',
+    },
+    {
+      id: 'user_carlos', email: 'carlos.mendes@email.com', name: 'Carlos Eduardo Mendes',
+      phone: '+5521988776655',
+      cardNumber: '5287341098567291', cardLast4: '7291', cardHolder: 'CARLOS EDUARDO MENDES', cardExpiry: '06/29',
+    },
+    {
+      id: 'user_aisha', email: 'aisha.santos@email.com', name: 'Aisha Oliveira Santos',
+      phone: '+5531977665544',
+      cardNumber: '4916783255011053', cardLast4: '1053', cardHolder: 'AISHA OLIVEIRA SANTOS', cardExpiry: '03/27',
+    },
+    {
+      id: 'user_roberto', email: 'roberto.tanaka@email.com', name: 'Roberto Yukio Tanaka',
+      phone: '+5511955443322',
+      cardNumber: '5412750012348814', cardLast4: '8814', cardHolder: 'ROBERTO YUKIO TANAKA', cardExpiry: '09/28',
+    },
+    {
+      id: 'user_francisca', email: 'francisca.lima@email.com', name: 'Francisca das Chagas Lima',
+      phone: '+5585966554433',
+      cardNumber: '4024007188533347', cardLast4: '3347', cardHolder: 'FRANCISCA DAS CHAGAS LIMA', cardExpiry: '01/27',
+    },
+    {
+      id: 'user_lucas', email: 'lucas.ndongo@email.com', name: 'Lucas Gabriel Ndongo',
+      phone: '+5541944332211',
+      cardNumber: '5168941237005590', cardLast4: '5590', cardHolder: 'LUCAS GABRIEL NDONGO', cardExpiry: '11/29',
+    },
+    {
+      id: 'user_patricia', email: 'patricia.werneck@email.com', name: 'Patricia Werneck de Souza',
+      phone: '+5548933221100',
+      cardNumber: '4556219083466178', cardLast4: '6178', cardHolder: 'PATRICIA WERNECK DE SOUZA', cardExpiry: '07/28',
+    },
+    {
+      id: 'user_davi', email: 'davi.ribeiro@email.com', name: 'Davi Henrique Ribeiro',
+      phone: '+5562922110099',
+      cardNumber: '5321408765129921', cardLast4: '9921', cardHolder: 'DAVI HENRIQUE RIBEIRO', cardExpiry: '04/27',
+    },
+    {
+      id: 'user_camila', email: 'camila.duarte@email.com', name: 'Camila Ferreira Duarte',
+      phone: '+5571911009988',
+      cardNumber: '4716839012452467', cardLast4: '2467', cardHolder: 'CAMILA FERREIRA DUARTE', cardExpiry: '10/28',
+    },
+    {
+      id: 'user_mohammad', email: 'mohammad.khalil@email.com', name: 'Mohammad Ali Khalil',
+      phone: '+5511944998877',
+      cardNumber: '5489720136583856', cardLast4: '3856', cardHolder: 'MOHAMMAD ALI KHALIL', cardExpiry: '08/29',
+    },
+    {
+      id: 'user_yuki', email: 'yuki.prado@email.com', name: 'Yuki Nakamura Prado',
+      phone: '+5547955887766',
+      cardNumber: '4929518063477703', cardLast4: '7703', cardHolder: 'YUKI NAKAMURA PRADO', cardExpiry: '05/28',
+    },
+  ];
+
+  for (const u of bankUsers) {
+    userStmt.run(u.id, u.email, sharedPassword, u.name, u.phone, 'consumer', null);
+    cardStmt.run(u.id, u.cardNumber, u.cardHolder, u.cardExpiry, u.cardLast4);
+  }
+  console.log(`  -> ${bankUsers.length + 2} users seeded (admin, restaurant, ${bankUsers.length} consumers synced with ecp-digital-bank)`);
+  console.log(`  -> ${bankUsers.length} credit cards pre-registered`);
+
+  // --- Address for first consumer (Marina) ---
   db.prepare(`
     INSERT INTO addresses (user_id, label, street, number, complement, neighborhood, city, state, zip_code, is_default)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-  `).run('user_consumer', 'Casa', 'Rua Augusta', '1234', 'Apto 42', 'Consolação', 'São Paulo', 'SP', '01305-100');
-  console.log('  -> 1 address seeded for consumer');
+  `).run('user_marina', 'Casa', 'Rua Augusta', '1234', 'Apto 42', 'Consolacao', 'Sao Paulo', 'SP', '01305-100');
+  console.log('  -> 1 address seeded for Marina Silva');
 
   console.log('\nSeed complete!');
-  console.log('Login credentials:');
+  console.log('Login credentials (all consumers share password from ecp-digital-bank):');
   console.log('  Admin:       admin@foodflow.com / Adm!nF00d@2026');
   console.log('  Restaurant:  pasta@foodflow.com / P@sta&Fogo#2026');
-  console.log('  Consumer:    user@foodflow.com / Us3r$Food!2026');
+  console.log('  Consumers (all use password: Senha@123):');
+  for (const u of bankUsers) {
+    console.log(`    ${u.email} — card: ${u.cardNumber}`);
+  }
 
   closeDb();
 }

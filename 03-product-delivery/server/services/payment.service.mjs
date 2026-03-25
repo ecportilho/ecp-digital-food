@@ -4,6 +4,7 @@ import {
   bankGetBalance,
   bankPixTransfer,
   bankGeneratePixQrCode,
+  bankCardPurchaseByNumber,
   getPlatformBankToken,
   BankApiError,
 } from './bank-integration.mjs';
@@ -131,6 +132,85 @@ export async function payWithCard(db, userId, { order_id, bank_token, card_last4
     // Clean up bank token and mark as failed
     const errorMsg = err instanceof BankApiError ? err.detail || err.code : err.message;
     db.prepare("UPDATE payments SET status = 'failed', error_message = ?, bank_jwt_token = NULL, updated_at = datetime('now') WHERE id = ?").run(errorMsg, payment.id);
+    db.prepare("UPDATE orders SET status = 'payment_failed', updated_at = datetime('now') WHERE id = ?").run(order_id);
+
+    if (err instanceof BankApiError) {
+      return {
+        success: false,
+        error: { code: err.code, message: errorMsg },
+        statusCode: err.statusCode,
+      };
+    }
+    throw err;
+  }
+}
+
+/**
+ * Pay with a registered credit card.
+ * Calls ecp-digital-bank to register the purchase on the card's invoice.
+ */
+export async function payWithCreditCard(db, userId, { order_id, credit_card_id }) {
+  // 1. Verify order
+  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ? AND status = ?').get(order_id, userId, 'pending_payment');
+  if (!order) {
+    return { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found or not pending payment' } };
+  }
+
+  // 2. Verify credit card belongs to user
+  const card = db.prepare('SELECT * FROM credit_cards WHERE id = ? AND user_id = ?').get(credit_card_id, userId);
+  if (!card) {
+    return { success: false, error: { code: 'CARD_NOT_FOUND', message: 'Credit card not found' } };
+  }
+
+  const amountCents = Math.round(order.total * 100);
+
+  // 3. Create payment record as processing
+  const paymentStmt = db.prepare(`
+    INSERT INTO payments (order_id, user_id, method, status, amount_cents, card_last4)
+    VALUES (?, ?, 'credit_card', 'processing', ?, ?)
+  `);
+  const paymentResult = paymentStmt.run(order_id, userId, amountCents, card.card_last4);
+  const payment = db.prepare('SELECT * FROM payments WHERE rowid = ?').get(paymentResult.lastInsertRowid);
+
+  try {
+    // 4. Get platform bank token to authenticate the purchase
+    const platformToken = await getPlatformBankToken();
+
+    // 5. Register the purchase on the card in ecp-digital-bank
+    const description = `FoodFlow Pedido #${order_id}`;
+    const purchaseResult = await bankCardPurchaseByNumber(
+      platformToken,
+      card.card_number,
+      amountCents,
+      description,
+      'FoodFlow Delivery',
+      'Alimentacao'
+    );
+
+    // 6. Update payment as completed
+    db.prepare(`
+      UPDATE payments
+      SET status = 'completed', bank_transaction_id = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `).run(purchaseResult.purchaseId || purchaseResult.id || null, payment.id);
+
+    // 7. Update order status to confirmed
+    db.prepare("UPDATE orders SET status = 'confirmed', updated_at = datetime('now') WHERE id = ?").run(order_id);
+
+    return {
+      success: true,
+      data: {
+        payment_id: payment.id,
+        order_id: order_id,
+        status: 'completed',
+        amount: order.total,
+        card_last4: card.card_last4,
+      },
+    };
+  } catch (err) {
+    // Bank call failed — mark payment as failed
+    const errorMsg = err instanceof BankApiError ? err.detail || err.code : err.message;
+    db.prepare("UPDATE payments SET status = 'failed', error_message = ?, updated_at = datetime('now') WHERE id = ?").run(errorMsg, payment.id);
     db.prepare("UPDATE orders SET status = 'payment_failed', updated_at = datetime('now') WHERE id = ?").run(order_id);
 
     if (err instanceof BankApiError) {

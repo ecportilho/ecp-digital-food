@@ -82,10 +82,13 @@ export default function ProfilePage() {
       <GlassCard style={{ marginBottom: '16px' }}>
         <h3 className="h3" style={{ marginBottom: '14px' }}>Atalhos</h3>
         <div className={styles.profileItem}>
-          <Link to="/orders" style={{ fontWeight: 700 }}>📋 Meus Pedidos</Link>
+          <Link to="/orders" style={{ fontWeight: 700 }}>Meus Pedidos</Link>
         </div>
         <div className={styles.profileItem}>
-          <Link to="/favorites" style={{ fontWeight: 700 }}>❤️ Favoritos</Link>
+          <Link to="/credit-cards" style={{ fontWeight: 700 }}>Meus Cartoes</Link>
+        </div>
+        <div className={styles.profileItem}>
+          <Link to="/favorites" style={{ fontWeight: 700 }}>Favoritos</Link>
         </div>
         {user.role === 'restaurant' && (
           <div className={styles.profileItem}>

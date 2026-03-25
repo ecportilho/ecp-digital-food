@@ -25,6 +25,7 @@ export default function RestaurantCard({ restaurant, selected = false, onSelect 
         className={styles.cover}
         style={{ background: restaurant.cover_gradient || 'linear-gradient(135deg, #7b61ff, #ff5fa2)' }}
       >
+        <div className={styles.heroEmoji}>{restaurant.hero_emoji || '🍽️'}</div>
         <div className={styles.coverTags}>
           {restaurant.rating > 0 && (
             <CoverTag>{`⭐ ${restaurant.rating.toFixed(1)}`}</CoverTag>

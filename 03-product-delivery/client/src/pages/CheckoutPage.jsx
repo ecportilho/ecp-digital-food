@@ -14,10 +14,10 @@ export default function CheckoutPage() {
   const cart = useCart();
   const api = useApi();
   const showToast = useToast();
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [couponCode, setCouponCode] = useState(cart.coupon || '');
   const [couponMsg, setCouponMsg] = useState(cart.coupon ? `Cupom ${cart.coupon} aplicado` : '');
-  const [address] = useState('Rua Augusta, 1234 — São Paulo, SP');
+  const [address] = useState('Rua Augusta, 1234 — Sao Paulo, SP');
 
   if (cart.items.length === 0) {
     return (
@@ -38,17 +38,19 @@ export default function CheckoutPage() {
     try {
       const data = await api.post('/api/coupons/validate', { code: couponCode });
       cart.setCoupon(data.code, data.discount);
-      setCouponMsg(`✓ Cupom ${data.code} aplicado — ${data.discount}% off`);
+      setCouponMsg(`Cupom ${data.code} aplicado — ${data.discount}% off`);
       showToast('Cupom aplicado!', 'success');
     } catch (err) {
       setCouponMsg('');
       cart.clearCoupon();
-      showToast(err.message || 'Cupom inválido', 'error');
+      showToast(err.message || 'Cupom invalido', 'error');
     }
   };
 
   const goToPayment = () => {
-    if (paymentMethod === 'card') {
+    if (paymentMethod === 'credit_card') {
+      navigate('/checkout/credit-card');
+    } else if (paymentMethod === 'card') {
       navigate('/checkout/card');
     } else {
       navigate('/checkout/pix');
@@ -65,7 +67,7 @@ export default function CheckoutPage() {
       <div className={styles.container}>
         {/* Order Summary */}
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>📋 Resumo do pedido</div>
+          <div className={styles.sectionTitle}>Resumo do pedido</div>
           {cart.items.map((item) => (
             <div key={item.menuItemId} className={styles.summaryItem}>
               <span>{item.quantity}x {item.emoji} {item.name}</span>
@@ -76,13 +78,13 @@ export default function CheckoutPage() {
 
         {/* Address */}
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>📍 Endereço de entrega</div>
+          <div className={styles.sectionTitle}>Endereco de entrega</div>
           <input type="text" className="input-field" value={address} readOnly />
         </div>
 
         {/* Coupon */}
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>🎟️ Cupom de desconto</div>
+          <div className={styles.sectionTitle}>Cupom de desconto</div>
           <div className={styles.couponRow}>
             <input
               type="text"
@@ -103,7 +105,7 @@ export default function CheckoutPage() {
 
         {/* Payment Method */}
         <div className={styles.section}>
-          <div className={styles.sectionTitle}>💳 Forma de pagamento</div>
+          <div className={styles.sectionTitle}>Forma de pagamento</div>
           <PaymentMethodSelector selected={paymentMethod} onSelect={setPaymentMethod} />
         </div>
 

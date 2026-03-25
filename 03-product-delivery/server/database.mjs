@@ -127,7 +127,7 @@ function migrate(db) {
       discount REAL NOT NULL DEFAULT 0,
       total REAL NOT NULL,
       coupon_code TEXT,
-      payment_method TEXT NOT NULL DEFAULT 'pix_qrcode' CHECK(payment_method IN ('card_ecp', 'pix_qrcode')),
+      payment_method TEXT NOT NULL DEFAULT 'pix_qrcode' CHECK(payment_method IN ('card_ecp', 'pix_qrcode', 'credit_card')),
       status TEXT NOT NULL DEFAULT 'pending_payment' CHECK(status IN ('pending_payment', 'payment_failed', 'confirmed', 'preparing', 'out_for_delivery', 'delivered', 'cancelled')),
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -169,7 +169,7 @@ function migrate(db) {
       id TEXT PRIMARY KEY DEFAULT ('p_' || lower(hex(randomblob(8)))),
       order_id TEXT NOT NULL REFERENCES orders(id),
       user_id TEXT NOT NULL REFERENCES users(id),
-      method TEXT NOT NULL CHECK(method IN ('card_ecp', 'pix_qrcode')),
+      method TEXT NOT NULL CHECK(method IN ('card_ecp', 'pix_qrcode', 'credit_card')),
       status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'processing', 'completed', 'failed', 'expired')),
       amount_cents INTEGER NOT NULL,
       bank_transaction_id TEXT,
@@ -185,6 +185,17 @@ function migrate(db) {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS credit_cards (
+      id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      card_number TEXT NOT NULL,
+      card_holder TEXT NOT NULL,
+      card_expiry TEXT NOT NULL,
+      card_last4 TEXT NOT NULL,
+      is_default INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_payments_status_expiration ON payments(status, pix_expiration);
     CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
     CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
@@ -192,6 +203,7 @@ function migrate(db) {
     CREATE INDEX IF NOT EXISTS idx_menu_items_restaurant_id ON menu_items(restaurant_id);
     CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites(user_id);
     CREATE INDEX IF NOT EXISTS idx_addresses_user_id ON addresses(user_id);
+    CREATE INDEX IF NOT EXISTS idx_credit_cards_user_id ON credit_cards(user_id);
   `);
 }
 
