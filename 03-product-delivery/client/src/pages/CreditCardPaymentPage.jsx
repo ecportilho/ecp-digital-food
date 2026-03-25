@@ -42,18 +42,28 @@ export default function CreditCardPaymentPage() {
   };
 
   const syncCartToServer = async () => {
+    const token = localStorage.getItem('ff_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
     // Clear server cart first
-    const currentCart = await api.get('/api/cart').catch(() => ({ items: [] }));
-    const serverItems = Array.isArray(currentCart?.items) ? currentCart.items : [];
-    for (const si of serverItems) {
-      await api.del(`/api/cart/items/${si.id}`).catch(() => {});
+    const cartRes = await fetch('/api/cart', { headers }).catch(() => null);
+    if (cartRes && cartRes.ok) {
+      const cartData = await cartRes.json().catch(() => ({}));
+      const serverItems = cartData?.data?.items || cartData?.items || [];
+      for (const si of serverItems) {
+        await fetch(`/api/cart/items/${si.id}`, { method: 'DELETE', headers }).catch(() => {});
+      }
     }
     // Add current frontend items to server cart
     for (const item of cart.items) {
-      await api.post('/api/cart/items', {
-        menu_item_id: item.menuItemId,
-        quantity: item.quantity,
-      });
+      await fetch('/api/cart/items', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ menu_item_id: item.menuItemId, quantity: item.quantity }),
+      }).catch(() => {});
     }
   };
 
@@ -61,26 +71,49 @@ export default function CreditCardPaymentPage() {
     if (!selectedCard) return;
     setStep('processing');
     try {
+      const token = localStorage.getItem('ff_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
       // 1. Sync frontend cart to server
       await syncCartToServer();
 
       // 2. Create the order
-      const orderRes = await api.post('/api/orders', {
-        address_text: 'Rua Augusta, 1234 — Sao Paulo, SP',
-        coupon_code: cart.coupon || null,
-        payment_method: 'credit_card',
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          address_text: 'Rua Augusta, 1234 — Sao Paulo, SP',
+          coupon_code: cart.coupon || null,
+          payment_method: 'credit_card',
+        }),
       });
-      const orderId = orderRes?.id || orderRes?.order_id;
+
+      if (!orderRes.ok) {
+        const errBody = await orderRes.json().catch(() => ({}));
+        throw new Error(errBody.error?.message || errBody.message || `Erro ${orderRes.status} ao criar pedido`);
+      }
+
+      const orderData = await orderRes.json();
+      const orderId = orderData?.data?.id || orderData?.id;
 
       if (!orderId) {
         throw new Error('Erro ao criar pedido');
       }
 
       // 3. Pay with the registered credit card
-      await api.post('/api/payments/credit-card', {
-        order_id: orderId,
-        credit_card_id: selectedCard,
+      const payRes = await fetch('/api/payments/credit-card', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ order_id: orderId, credit_card_id: selectedCard }),
       });
+
+      if (!payRes.ok) {
+        const errBody = await payRes.json().catch(() => ({}));
+        throw new Error(errBody.error?.message || errBody.message || `Erro ${payRes.status} no pagamento`);
+      }
 
       setStep('done');
       showToast('Pagamento confirmado!', 'success');
