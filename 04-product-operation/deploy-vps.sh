@@ -187,7 +187,7 @@ cd "$APP_CWD/client"
 rm -rf dist node_modules/.vite
 
 info "Executando vite build..."
-npx vite build --force 2>&1 | tail -5
+./node_modules/.bin/vite build 2>&1 | tail -5
 
 if [ ! -f "$APP_CWD/client/dist/index.html" ]; then
     fail "Build falhou — index.html nao encontrado!"
@@ -452,7 +452,7 @@ echo -e "    pm2 reload ${APP_NAME}        # Reiniciar"
 echo ""
 echo -e "  ${BOLD}Redeploy:${NC}"
 echo -e "    cd ${REPO_DIR} && git pull origin main"
-echo -e "    cd ${APP_CWD}/client && rm -rf dist && npx vite build --force"
+echo -e "    cd ${APP_CWD}/client && rm -rf dist && ./node_modules/.bin/vite build"
 echo -e "    pm2 reload ${APP_NAME}"
 echo ""
 echo -e "${MAGENTA}======================================================================${NC}"
