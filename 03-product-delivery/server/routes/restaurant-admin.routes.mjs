@@ -1,5 +1,6 @@
 import { Type } from '@sinclair/typebox';
 import { authMiddleware, requireRole } from '../auth.mjs';
+import { calculateOrderSplits } from '../services/split-calculator.mjs';
 
 const CreateMenuItemBody = Type.Object({
   name: Type.String({ minLength: 1 }),
@@ -200,5 +201,68 @@ export async function restaurantAdminRoutes(app) {
 
     const updated = app.db.prepare('SELECT * FROM restaurants WHERE id = ?').get(restaurantId);
     return reply.send({ success: true, data: { ...updated, tags: JSON.parse(updated.tags || '[]'), is_active: Boolean(updated.is_active), is_open: Boolean(updated.is_open) } });
+  });
+
+  // GET /api/restaurant-admin/settlements — show split/settlement info for the restaurant
+  app.get('/api/restaurant-admin/settlements', async (request, reply) => {
+    const restaurantId = getRestaurantId(app.db, request.user.id);
+    if (!restaurantId) {
+      return reply.code(403).send({ success: false, error: { code: 'NO_RESTAURANT', message: 'User is not associated with a restaurant' } });
+    }
+
+    // Get restaurant PJ info
+    const restaurant = app.db.prepare('SELECT id, name, pj_cnpj, pj_pix_key FROM restaurants WHERE id = ?').get(restaurantId);
+
+    // Get all confirmed/completed orders that include items from this restaurant
+    const orders = app.db.prepare(`
+      SELECT DISTINCT o.*
+      FROM orders o
+      JOIN order_items oi ON o.id = oi.order_id
+      JOIN payments p ON p.order_id = o.id AND p.status = 'completed'
+      WHERE oi.restaurant_id = ?
+        AND o.status NOT IN ('pending_payment', 'payment_failed', 'cancelled')
+      ORDER BY o.created_at DESC
+    `).all(restaurantId);
+
+    let totalEarnedCents = 0;
+    const settlements = [];
+
+    for (const order of orders) {
+      const orderItems = app.db.prepare(
+        'SELECT restaurant_id, restaurant_name, item_price, quantity FROM order_items WHERE order_id = ?'
+      ).all(order.id);
+
+      const splits = calculateOrderSplits(order, orderItems, app.db);
+      const restaurantSplit = splits.find(s => s.account_id === restaurant.pj_cnpj);
+
+      if (restaurantSplit) {
+        totalEarnedCents += restaurantSplit.amount;
+        settlements.push({
+          order_id: order.id,
+          order_date: order.created_at,
+          order_total: order.total,
+          restaurant_share_cents: restaurantSplit.amount,
+          restaurant_share: (restaurantSplit.amount / 100).toFixed(2),
+        });
+      }
+    }
+
+    return reply.send({
+      success: true,
+      data: {
+        restaurant: {
+          id: restaurant.id,
+          name: restaurant.name,
+          pj_cnpj: restaurant.pj_cnpj,
+          pj_pix_key: restaurant.pj_pix_key,
+        },
+        summary: {
+          total_orders: settlements.length,
+          total_earned_cents: totalEarnedCents,
+          total_earned: (totalEarnedCents / 100).toFixed(2),
+        },
+        settlements,
+      },
+    });
   });
 }

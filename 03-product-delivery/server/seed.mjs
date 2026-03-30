@@ -48,8 +48,9 @@ function seed() {
   // --- Restaurants ---
   const restaurantStmt = db.prepare(`
     INSERT INTO restaurants (id, name, slug, cuisine, subtitle, category_id, rating, review_count,
-      eta_min, eta_max, delivery_fee, min_order, cover_gradient, hero_emoji, promo_text, note, tags)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      eta_min, eta_max, delivery_fee, min_order, cover_gradient, hero_emoji, promo_text, note, tags,
+      pj_cnpj, pj_pix_key)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const restaurants = [
@@ -60,6 +61,7 @@ function seed() {
       cover_gradient: 'linear-gradient(135deg, #e44d26, #f7b731)', hero_emoji: '🍝',
       promo_text: '20% OFF no primeiro pedido', note: 'Forno a lenha desde 1998',
       tags: '["Promoção", "Top 10", "Forno a Lenha"]',
+      pj_cnpj: '34567890000112', pj_pix_key: 'financeiro@pastaefogo.com.br',
     },
     {
       id: 'rest_sushi', name: 'Sushi Wave', slug: 'sushi-wave', cuisine: 'Japonesa',
@@ -68,6 +70,7 @@ function seed() {
       cover_gradient: 'linear-gradient(135deg, #0c3483, #a2b6df)', hero_emoji: '🍣',
       promo_text: 'Combo especial por R$ 89,90', note: 'Peixe fresco importado',
       tags: '["Premium", "Peixe Fresco", "Destaque"]',
+      pj_cnpj: '45678901000123', pj_pix_key: 'contato@sushiwave.com.br',
     },
     {
       id: 'rest_burger', name: 'Burger Lab', slug: 'burger-lab', cuisine: 'Hambúrguer',
@@ -76,6 +79,7 @@ function seed() {
       cover_gradient: 'linear-gradient(135deg, #f7b731, #fc5c65)', hero_emoji: '🍔',
       promo_text: 'Combo duplo por R$ 39,90', note: 'Blend exclusivo 180g',
       tags: '["Best Seller", "Rápido", "Combos"]',
+      pj_cnpj: '56789012000134', pj_pix_key: 'pagar@burgerlab.com.br',
     },
     {
       id: 'rest_green', name: 'Green Bowl Co.', slug: 'green-bowl-co', cuisine: 'Saudável',
@@ -84,6 +88,7 @@ function seed() {
       cover_gradient: 'linear-gradient(135deg, #38ada9, #78e08f)', hero_emoji: '🥗',
       promo_text: 'Frete grátis acima de R$ 60', note: 'Ingredientes orgânicos',
       tags: '["Orgânico", "Fitness", "Vegano"]',
+      pj_cnpj: '67890123000145', pj_pix_key: 'financeiro@greenbowl.com.br',
     },
     {
       id: 'rest_pizza', name: 'Pizza Club 24h', slug: 'pizza-club-24h', cuisine: 'Pizza',
@@ -92,6 +97,7 @@ function seed() {
       cover_gradient: 'linear-gradient(135deg, #e55039, #f8c291)', hero_emoji: '🍕',
       promo_text: '2 pizzas por R$ 59,90', note: 'Aberto 24 horas',
       tags: '["24h", "Promoção", "Napoletana"]',
+      pj_cnpj: '78901234000156', pj_pix_key: 'contato@pizzaclub24h.com.br',
     },
     {
       id: 'rest_brasa', name: 'Brasa & Lenha', slug: 'brasa-e-lenha', cuisine: 'Brasileira',
@@ -100,6 +106,7 @@ function seed() {
       cover_gradient: 'linear-gradient(135deg, #6a3093, #a044ff)', hero_emoji: '🥩',
       promo_text: 'Picanha 500g por R$ 69,90', note: 'Cortes nobres selecionados',
       tags: '["Premium", "Churrasco", "Cortes Nobres"]',
+      pj_cnpj: '89012345000167', pj_pix_key: 'financeiro@brasaelenha.com.br',
     },
   ];
 
@@ -107,7 +114,8 @@ function seed() {
     restaurantStmt.run(
       r.id, r.name, r.slug, r.cuisine, r.subtitle, r.category_id,
       r.rating, r.review_count, r.eta_min, r.eta_max, r.delivery_fee, r.min_order,
-      r.cover_gradient, r.hero_emoji, r.promo_text, r.note, r.tags
+      r.cover_gradient, r.hero_emoji, r.promo_text, r.note, r.tags,
+      r.pj_cnpj, r.pj_pix_key
     );
   }
   console.log(`  -> ${restaurants.length} restaurants seeded`);

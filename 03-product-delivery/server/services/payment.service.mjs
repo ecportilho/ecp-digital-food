@@ -8,8 +8,50 @@ import {
   getPlatformBankToken,
   BankApiError,
 } from './bank-integration.mjs';
+import {
+  createPixCharge,
+  createCardCharge,
+  getTransaction as ecpPayGetTransaction,
+  refund as ecpPayRefund,
+  createSplits,
+} from './ecp-pay-client.mjs';
+import { calculateOrderSplits } from './split-calculator.mjs';
 import * as sseManager from './sse-manager.mjs';
 import { config } from '../config.mjs';
+
+/**
+ * Process splits for a completed payment.
+ * Wrapped in try/catch so payment succeeds even if split registration fails.
+ */
+async function processOrderSplits(db, order, transactionId) {
+  try {
+    if (!transactionId) {
+      console.warn('[splits] No transaction ID available, skipping split registration');
+      return null;
+    }
+
+    const orderItems = db.prepare(
+      'SELECT restaurant_id, restaurant_name, item_price, quantity FROM order_items WHERE order_id = ?'
+    ).all(order.id);
+
+    if (!orderItems.length) {
+      console.warn('[splits] No order items found for order', order.id);
+      return null;
+    }
+
+    const splits = calculateOrderSplits(order, orderItems, db);
+    console.log(`[splits] Order ${order.id} | ${splits.length} splits calculated:`,
+      splits.map(s => `${s.account_name}: R$ ${(s.amount / 100).toFixed(2)}`).join(', ')
+    );
+
+    const result = await createSplits(transactionId, splits);
+    console.log(`[splits] Splits registered on ECP Pay for transaction ${transactionId}`);
+    return result;
+  } catch (err) {
+    console.error('[splits] Failed to process splits (payment still valid):', err.message);
+    return null;
+  }
+}
 
 /**
  * Proxy: authenticate consumer on ecp-digital-bank.
@@ -111,13 +153,17 @@ export async function payWithCard(db, userId, { order_id, bank_token, card_last4
     const transferResult = await bankPixTransfer(bank_token, amountCents, description);
 
     // 5. Update payment and order
+    const bankTxId = transferResult.transactionId || transferResult.id;
     db.prepare(`
       UPDATE payments
       SET status = 'completed', bank_transaction_id = ?, bank_jwt_token = NULL, updated_at = datetime('now')
       WHERE id = ?
-    `).run(transferResult.transactionId || transferResult.id, payment.id);
+    `).run(bankTxId, payment.id);
 
     db.prepare("UPDATE orders SET status = 'confirmed', updated_at = datetime('now') WHERE id = ?").run(order_id);
+
+    // 6. Process splits (non-blocking — payment already succeeded)
+    await processOrderSplits(db, order, bankTxId);
 
     return {
       success: true,
@@ -173,29 +219,54 @@ export async function payWithCreditCard(db, userId, { order_id, credit_card_id }
   const payment = db.prepare('SELECT * FROM payments WHERE rowid = ?').get(paymentResult.lastInsertRowid);
 
   try {
-    // 4. Get platform bank token to authenticate the purchase
-    const platformToken = await getPlatformBankToken();
-
-    // 5. Register the purchase on the card in ecp-digital-bank
+    // 4. Get user info for ECP Pay
+    const user = db.prepare('SELECT name, phone FROM users WHERE id = ?').get(userId);
+    const customerName = user?.name || 'Cliente FoodFlow';
+    const customerDocument = '00000000000'; // CPF placeholder — food app doesn't store CPF
     const description = `FoodFlow Pedido #${order_id}`;
-    const purchaseResult = await bankCardPurchaseByNumber(
-      platformToken,
-      card.card_number,
-      amountCents,
-      description,
-      'FoodFlow Delivery',
-      'Alimentacao'
-    );
+    let transactionId = null;
 
-    // 6. Update payment as completed
+    try {
+      const ecpPayResult = await createCardCharge(
+        amountCents,
+        customerName,
+        customerDocument,
+        null, // cardToken
+        card.card_number,
+        card.card_expiry || null,
+        null, // cardCvv — not stored
+        card.card_holder || customerName,
+        false, // saveCard
+        1     // installments
+      );
+      transactionId = ecpPayResult.transaction_id || ecpPayResult.id || null;
+    } catch (ecpPayErr) {
+      // ECP Pay failed — fall back to direct bank integration
+      console.warn('[payWithCreditCard] ECP Pay failed, falling back to bank integration:', ecpPayErr.message);
+      const platformToken = await getPlatformBankToken();
+      const purchaseResult = await bankCardPurchaseByNumber(
+        platformToken,
+        card.card_number,
+        amountCents,
+        description,
+        'FoodFlow Delivery',
+        'Alimentacao'
+      );
+      transactionId = purchaseResult.purchaseId || purchaseResult.id || null;
+    }
+
+    // 5. Update payment as completed
     db.prepare(`
       UPDATE payments
       SET status = 'completed', bank_transaction_id = ?, updated_at = datetime('now')
       WHERE id = ?
-    `).run(purchaseResult.purchaseId || purchaseResult.id || null, payment.id);
+    `).run(transactionId, payment.id);
 
-    // 7. Update order status to confirmed
+    // 6. Update order status to confirmed
     db.prepare("UPDATE orders SET status = 'confirmed', updated_at = datetime('now') WHERE id = ?").run(order_id);
+
+    // 7. Process splits (non-blocking — payment already succeeded)
+    await processOrderSplits(db, order, transactionId);
 
     return {
       success: true,
@@ -208,7 +279,7 @@ export async function payWithCreditCard(db, userId, { order_id, credit_card_id }
       },
     };
   } catch (err) {
-    // Bank call failed — mark payment as failed
+    // Payment call failed — mark payment as failed
     const errorMsg = err instanceof BankApiError ? err.detail || err.code : err.message;
     db.prepare("UPDATE payments SET status = 'failed', error_message = ?, updated_at = datetime('now') WHERE id = ?").run(errorMsg, payment.id);
     db.prepare("UPDATE orders SET status = 'payment_failed', updated_at = datetime('now') WHERE id = ?").run(order_id);
@@ -245,25 +316,60 @@ export async function payWithPix(db, userId, { order_id }) {
   const payment = db.prepare('SELECT * FROM payments WHERE rowid = ?').get(paymentResult.lastInsertRowid);
 
   try {
-    // 3. Get platform bank token
-    const platformToken = await getPlatformBankToken();
-
-    // 4. Generate QR Code
+    // 3. Get user info for ECP Pay
+    const user = db.prepare('SELECT name, phone FROM users WHERE id = ?').get(userId);
+    const customerName = user?.name || 'Cliente FoodFlow';
+    const customerDocument = '00000000000'; // CPF placeholder
     const description = `ECP Food #${payment.id}`;
-    const qrResult = await bankGeneratePixQrCode(platformToken, amountCents, description);
+    let qrResult;
+    let usedEcpPay = false;
 
-    // 5. Calculate expiration
+    try {
+      const ecpPayResult = await createPixCharge(
+        amountCents,
+        customerName,
+        customerDocument,
+        description,
+        { order_id, payment_id: payment.id, source: 'ecp-food' }
+      );
+      qrResult = {
+        qrcodeData: ecpPayResult.qrcode_data || ecpPayResult.qrcodeData || ecpPayResult.data,
+        qrcodeImage: ecpPayResult.qrcode_image || ecpPayResult.qrcodeImage || ecpPayResult.image,
+      };
+      usedEcpPay = true;
+
+      // Store ECP Pay transaction ID
+      const ecpPayTxId = ecpPayResult.transaction_id || ecpPayResult.id || null;
+      if (ecpPayTxId) {
+        db.prepare("UPDATE payments SET bank_transaction_id = ?, updated_at = datetime('now') WHERE id = ?")
+          .run(ecpPayTxId, payment.id);
+
+        // Pre-register splits on ECP Pay (they will be executed when PIX is confirmed)
+        await processOrderSplits(db, order, ecpPayTxId);
+      }
+    } catch (ecpPayErr) {
+      // ECP Pay failed — fall back to direct bank integration
+      console.warn('[payWithPix] ECP Pay failed, falling back to bank integration:', ecpPayErr.message);
+      const platformToken = await getPlatformBankToken();
+      const bankResult = await bankGeneratePixQrCode(platformToken, amountCents, description);
+      qrResult = {
+        qrcodeData: bankResult.qrcodeData || bankResult.qrcode_data || bankResult.data,
+        qrcodeImage: bankResult.qrcodeImage || bankResult.qrcode_image || bankResult.image,
+      };
+    }
+
+    // 4. Calculate expiration
     const expirationMinutes = config.bankPixExpirationMinutes;
     const expiresAt = new Date(Date.now() + expirationMinutes * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
 
-    // 6. Update payment with QR Code data
+    // 5. Update payment with QR Code data
     db.prepare(`
       UPDATE payments
       SET pix_qrcode_data = ?, pix_qrcode_image = ?, pix_expiration = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(
-      qrResult.qrcodeData || qrResult.qrcode_data || qrResult.data,
-      qrResult.qrcodeImage || qrResult.qrcode_image || qrResult.image,
+      qrResult.qrcodeData,
+      qrResult.qrcodeImage,
       expiresAt,
       payment.id
     );
@@ -273,8 +379,8 @@ export async function payWithPix(db, userId, { order_id }) {
       data: {
         payment_id: payment.id,
         order_id: order_id,
-        qrcode_data: qrResult.qrcodeData || qrResult.qrcode_data || qrResult.data,
-        qrcode_image: qrResult.qrcodeImage || qrResult.qrcode_image || qrResult.image,
+        qrcode_data: qrResult.qrcodeData,
+        qrcode_image: qrResult.qrcodeImage,
         expires_at: expiresAt,
         amount: order.total,
       },

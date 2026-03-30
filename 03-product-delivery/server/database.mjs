@@ -83,6 +83,8 @@ function migrate(db) {
       promo_text TEXT,
       note TEXT,
       tags TEXT NOT NULL DEFAULT '[]',
+      pj_cnpj TEXT,
+      pj_pix_key TEXT,
       is_active INTEGER NOT NULL DEFAULT 1,
       is_open INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
