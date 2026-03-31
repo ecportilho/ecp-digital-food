@@ -222,7 +222,8 @@ export async function payWithCreditCard(db, userId, { order_id, credit_card_id }
     // 4. Get user info for ECP Pay
     const user = db.prepare('SELECT name, phone FROM users WHERE id = ?').get(userId);
     const customerName = user?.name || 'Cliente FoodFlow';
-    const customerDocument = '00000000000'; // CPF placeholder — food app doesn't store CPF
+    const userForDoc = db.prepare('SELECT email FROM users WHERE id = ?').get(userId);
+    const customerDocument = userForDoc?.email || '00000000000';
     const description = `FoodFlow Pedido #${order_id}`;
     let transactionId = null;
 
