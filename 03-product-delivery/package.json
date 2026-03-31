@@ -18,7 +18,8 @@
     "@sinclair/typebox": "^0.32.35",
     "better-sqlite3": "^11.6.0",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "@anthropic-ai/sdk": "^0.39.0"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -24,6 +24,7 @@ import { webhookRoutes } from './routes/webhook.routes.mjs';
 import { adminRoutes } from './routes/admin.routes.mjs';
 import { restaurantAdminRoutes } from './routes/restaurant-admin.routes.mjs';
 import { creditCardRoutes } from './routes/credit-card.routes.mjs';
+import { chatRoutes } from './routes/chat.routes.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -79,6 +80,7 @@ async function start() {
   await app.register(restaurantAdminRoutes);
   await app.register(creditCardRoutes);
   await app.register(webhookRoutes);
+  await app.register(chatRoutes);
 
   // --- Static files (production) ---
   const clientDistPath = path.join(__dirname, '..', 'client', 'dist');

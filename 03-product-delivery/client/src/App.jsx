@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/ui/Toast';
 import Shell from './components/layout/Shell';
+import { ChatWidget } from './components/chat/ChatWidget';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -39,8 +40,16 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function AuthenticatedChat() {
+  const { user, loading } = useAuth();
+  if (loading || !user) return null;
+  return <ChatWidget />;
+}
+
 function AppRoutes() {
   return (
+    <>
+    <AuthenticatedChat />
     <Routes>
       {/* Public routes */}
       <Route path="/login" element={<LoginPage />} />
@@ -72,6 +81,7 @@ function AppRoutes() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 
