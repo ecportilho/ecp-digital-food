@@ -106,12 +106,12 @@ export function ChatMessages({ messages, isLoading }) {
 
   return (
     <div style={styles.container}>
-      {messages.map((msg) => (
+      {messages.filter(Boolean).map((msg, i) => (
         <ChatBubble
-          key={msg.id}
-          role={msg.role}
-          content={msg.content}
-          createdAt={msg.createdAt}
+          key={msg.id || `msg-${i}`}
+          role={msg.role || 'assistant'}
+          content={msg.content || ''}
+          createdAt={msg.createdAt || msg.created_at}
         />
       ))}
       {isLoading && <TypingIndicator />}

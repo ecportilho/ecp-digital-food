@@ -53,18 +53,20 @@ export function useChat() {
         throw new Error(body.message || 'Erro ao enviar mensagem');
       }
 
-      const data = await res.json();
+      const json = await res.json();
+      // Backend wraps in { success, data: { conversationId, message } }
+      const payload = json.data || json;
 
-      if (data.conversationId && !conversationId) {
-        setConversationId(data.conversationId);
+      if (payload.conversationId && !conversationId) {
+        setConversationId(payload.conversationId);
       }
 
       setMessages((prev) => {
         const withoutTemp = prev.filter((m) => m.id !== tempUserMsg.id);
         return [
           ...withoutTemp,
-          { ...tempUserMsg, id: `user-${Date.now()}`, conversationId: data.conversationId },
-          data.message,
+          { ...tempUserMsg, id: `user-${Date.now()}`, conversationId: payload.conversationId },
+          payload.message,
         ];
       });
     } catch (err) {
@@ -88,8 +90,9 @@ export function useChat() {
         },
       });
       if (!res.ok) throw new Error('Erro ao carregar conversa');
-      const data = await res.json();
-      setMessages(data.messages || []);
+      const json = await res.json();
+      const payload = json.data || json;
+      setMessages(payload.messages || []);
       setConversationId(convId);
     } catch (err) {
       setError(err.message || 'Erro ao carregar conversa');
