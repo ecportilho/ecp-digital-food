@@ -318,9 +318,9 @@ export async function payWithPix(db, userId, { order_id }) {
 
   try {
     // 3. Get user info for ECP Pay
-    const user = db.prepare('SELECT name, phone FROM users WHERE id = ?').get(userId);
+    const user = db.prepare('SELECT name, phone, email FROM users WHERE id = ?').get(userId);
     const customerName = user?.name || 'Cliente FoodFlow';
-    const customerDocument = '00000000000'; // CPF placeholder
+    const customerDocument = user?.email || '00000000000';
     const description = `ECP Food #${payment.id}`;
     let qrResult;
     let usedEcpPay = false;
