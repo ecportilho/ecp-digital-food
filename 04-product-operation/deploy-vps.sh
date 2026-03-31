@@ -187,9 +187,8 @@ cd "$APP_CWD/client"
 rm -rf dist node_modules/.vite
 
 info "Executando vite build..."
-VITE_BIN=$(find "$APP_CWD" -path "*/node_modules/.bin/vite" -type f 2>/dev/null | head -1)
-[ -z "$VITE_BIN" ] && { fail "vite nao encontrado em node_modules"; exit 1; }
-"$VITE_BIN" build 2>&1 | tail -5
+# client/ tem seu proprio node_modules (install separado)
+node "$APP_CWD/client/node_modules/vite/bin/vite.js" build 2>&1 | tail -5
 
 if [ ! -f "$APP_CWD/client/dist/index.html" ]; then
     fail "Build falhou — index.html nao encontrado!"
