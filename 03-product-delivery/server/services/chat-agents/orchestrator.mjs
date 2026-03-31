@@ -87,9 +87,9 @@ export function routeIntent(intent) {
   const [category] = intent.split(':');
 
   switch (category) {
-    case 'BROWSE':
     case 'FAQ':
       return 'knowledge';
+    case 'BROWSE':
     case 'ORDER':
     case 'PAYMENT':
     case 'CART':
