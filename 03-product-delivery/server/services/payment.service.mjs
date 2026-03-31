@@ -325,21 +325,27 @@ export async function payWithPix(db, userId, { order_id }) {
     let usedEcpPay = false;
 
     try {
+      // Callback URL para o ECP Pay notificar quando o Pix for confirmado
+      const callbackUrl = `http://127.0.0.1:${config.port || 3000}/api/webhooks/ecp-pay/payment-confirmed`;
+
       const ecpPayResult = await createPixCharge(
         amountCents,
         customerName,
         customerDocument,
         description,
-        { order_id, payment_id: payment.id, source: 'ecp-food' }
+        { order_id, payment_id: payment.id, source: 'ecp-food', callback_url: callbackUrl }
       );
+
+      // ECP Pay retorna qr_code (imagem) e qr_code_text (copia e cola)
       qrResult = {
-        qrcodeData: ecpPayResult.qrcode_data || ecpPayResult.qrcodeData || ecpPayResult.data,
-        qrcodeImage: ecpPayResult.qrcode_image || ecpPayResult.qrcodeImage || ecpPayResult.image,
+        qrcodeData: ecpPayResult.qr_code_text || ecpPayResult.qr_code || '',
+        qrcodeImage: ecpPayResult.qr_code || '',
+        pixCopyPaste: ecpPayResult.qr_code_text || '',
       };
       usedEcpPay = true;
 
       // Store ECP Pay transaction ID
-      const ecpPayTxId = ecpPayResult.transaction_id || ecpPayResult.id || null;
+      const ecpPayTxId = ecpPayResult.transaction_id || null;
       if (ecpPayTxId) {
         db.prepare("UPDATE payments SET bank_transaction_id = ?, updated_at = datetime('now') WHERE id = ?")
           .run(ecpPayTxId, payment.id);
@@ -353,8 +359,9 @@ export async function payWithPix(db, userId, { order_id }) {
       const platformToken = await getPlatformBankToken();
       const bankResult = await bankGeneratePixQrCode(platformToken, amountCents, description);
       qrResult = {
-        qrcodeData: bankResult.qrcodeData || bankResult.qrcode_data || bankResult.data,
-        qrcodeImage: bankResult.qrcodeImage || bankResult.qrcode_image || bankResult.image,
+        qrcodeData: bankResult.qrcodeData || bankResult.qrcode_data || '',
+        qrcodeImage: bankResult.qrcodeImage || bankResult.qrcode_image || '',
+        pixCopyPaste: '',
       };
     }
 
@@ -381,6 +388,7 @@ export async function payWithPix(db, userId, { order_id }) {
         order_id: order_id,
         qrcode_data: qrResult.qrcodeData,
         qrcode_image: qrResult.qrcodeImage,
+        pix_copy_paste: qrResult.pixCopyPaste || qrResult.qrcodeData,
         expires_at: expiresAt,
         amount: order.total,
       },

@@ -39,11 +39,13 @@ async function ecpPayRequest(method, path, body) {
 }
 
 export async function createPixCharge(amount, customerName, customerDocument, description, metadata) {
+  const callbackUrl = metadata?.callback_url || undefined;
   return ecpPayRequest('POST', '/pay/pix', {
     amount,
     customer_name: customerName,
     customer_document: customerDocument,
     description,
+    callback_url: callbackUrl,
     metadata,
   });
 }
