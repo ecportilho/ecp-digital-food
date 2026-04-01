@@ -35,7 +35,7 @@ export default function LoginPage() {
     <div className={styles.authPage}>
       <GlassCard className={styles.authCard}>
         <div className={styles.authHeader}>
-          <div className={styles.brandIcon}>🍜</div>
+          <div className={styles.brandIcon}>&#x2B21;</div>
           <h2 className="h2" style={{ fontSize: '1.5rem' }}>Entrar no ECP Food</h2>
           <p style={{ color: 'var(--muted)', fontSize: '0.84rem', marginTop: '8px' }}>
             Pedir comida pode ser lindo, rápido e viciante.

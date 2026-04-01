@@ -8,7 +8,7 @@ export default function TopBar() {
   return (
     <header className={styles.topBar}>
       <div className={styles.brandMark}>
-        <div className={styles.brandIcon}>🍜</div>
+        <div className={styles.brandIcon}>&#x2B21;</div>
         <span className={styles.brandName}>ECP Food</span>
       </div>
       <div className={styles.pills}>
