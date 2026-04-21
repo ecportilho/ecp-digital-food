@@ -37,6 +37,10 @@ async function start() {
     logger: {
       level: config.nodeEnv === 'production' ? 'info' : 'debug',
     },
+    // Behind an nginx reverse proxy every request arrives from 127.0.0.1, which made the
+    // IP-keyed rate limit shared across all real users. Honor X-Forwarded-For so
+    // request.ip is the real client address.
+    trustProxy: true,
   });
 
   // Decorate app with db
@@ -57,7 +61,9 @@ async function start() {
     contentSecurityPolicy: false, // Disabled for development; enable in production
   });
 
-  // Global rate limiting
+  // Global rate limiting — per-IP. With trustProxy above, request.ip honors
+  // X-Forwarded-For and individual users get their own bucket instead of sharing
+  // the nginx proxy's 127.0.0.1.
   await app.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',
