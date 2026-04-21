@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
-import { Send } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Send, Mic, MicOff } from 'lucide-react';
+import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 const styles = {
   wrapper: {
@@ -58,22 +59,80 @@ const styles = {
     flexShrink: 0,
     transition: 'background 0.2s',
   }),
+  micBtn: (listening, disabled) => ({
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 'var(--radius-sm)',
+    border: `1px solid ${listening ? 'var(--danger)' : 'var(--line)'}`,
+    background: listening ? 'rgba(255, 107, 129, 0.15)' : 'var(--surface-strong)',
+    color: listening ? 'var(--danger)' : 'var(--muted)',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.5 : 1,
+    flexShrink: 0,
+    transition: 'all 0.2s',
+    animation: listening ? 'micPulse 1.3s ease-in-out infinite' : 'none',
+  }),
+  errorMsg: {
+    marginTop: '8px',
+    fontSize: '0.72rem',
+    color: 'var(--danger)',
+  },
+  listeningHint: {
+    marginTop: '8px',
+    fontSize: '0.72rem',
+    color: 'var(--muted)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  listeningDot: {
+    display: 'inline-block',
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    background: 'var(--danger)',
+    animation: 'dotPulse 1s ease-in-out infinite',
+  },
 };
 
 export function ChatInput({ onSend, isLoading, quickActions }) {
   const [value, setValue] = useState('');
   const inputRef = useRef(null);
+  const voice = useSpeechRecognition('pt-BR');
+  const baselineRef = useRef('');
+
+  // Enquanto o mic esta ativo, concatena a transcricao ao que o usuario
+  // ja tinha digitado (baseline). Parcial (interim) + final.
+  useEffect(() => {
+    if (!voice.listening) return;
+    const spoken = [voice.transcript, voice.interimTranscript].filter(Boolean).join(' ').trim();
+    const merged = baselineRef.current
+      ? (spoken ? baselineRef.current + ' ' + spoken : baselineRef.current)
+      : spoken;
+    setValue(merged.slice(0, 1000));
+    if (inputRef.current) {
+      const el = inputRef.current;
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 96) + 'px';
+    }
+  }, [voice.transcript, voice.interimTranscript, voice.listening]);
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
     if (!trimmed || isLoading) return;
+    if (voice.listening) voice.stop();
+    voice.reset();
+    baselineRef.current = '';
     onSend(trimmed);
     setValue('');
     if (inputRef.current) {
       inputRef.current.style.height = 'auto';
       inputRef.current.focus();
     }
-  }, [value, isLoading, onSend]);
+  }, [value, isLoading, onSend, voice]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -91,6 +150,15 @@ export function ChatInput({ onSend, isLoading, quickActions }) {
     const el = e.target;
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 96) + 'px';
+  };
+
+  const handleMicToggle = () => {
+    if (voice.listening) {
+      voice.stop();
+      return;
+    }
+    baselineRef.current = value.trim();
+    voice.start();
   };
 
   const isDisabled = !value.trim() || isLoading;
@@ -129,20 +197,32 @@ export function ChatInput({ onSend, isLoading, quickActions }) {
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder="Digite sua mensagem..."
+          placeholder={voice.listening ? 'Ouvindo... fale seu pedido' : 'Digite ou clique no microfone'}
           rows={1}
           disabled={isLoading}
           style={{
             ...styles.textarea,
+            borderColor: voice.listening ? 'var(--danger)' : 'var(--line)',
             opacity: isLoading ? 0.5 : 1,
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = 'var(--brand)';
+            if (!voice.listening) e.currentTarget.style.borderColor = 'var(--brand)';
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--line)';
+            if (!voice.listening) e.currentTarget.style.borderColor = 'var(--line)';
           }}
         />
+        {voice.supported && (
+          <button
+            onClick={handleMicToggle}
+            disabled={isLoading}
+            aria-label={voice.listening ? 'Parar gravacao' : 'Falar em portugues'}
+            title={voice.listening ? 'Clique para parar' : 'Clique para ditar em portugues'}
+            style={styles.micBtn(voice.listening, isLoading)}
+          >
+            {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
+          </button>
+        )}
         <button
           onClick={handleSend}
           disabled={isDisabled}
@@ -151,6 +231,13 @@ export function ChatInput({ onSend, isLoading, quickActions }) {
           <Send size={16} />
         </button>
       </div>
+      {voice.error && <div style={styles.errorMsg}>{voice.error}</div>}
+      {voice.listening && !voice.error && (
+        <div style={styles.listeningHint}>
+          <span style={styles.listeningDot} />
+          Ouvindo em pt-BR... clique no microfone para parar.
+        </div>
+      )}
     </div>
   );
 }
