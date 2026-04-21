@@ -2,12 +2,27 @@
  * Credit card CRUD service.
  */
 
+function serializeCard(c) {
+  return {
+    id: c.id,
+    // Always masked. The raw PAN never leaves the backend — we keep it in DB only until
+    // the card is tokenized by ECP Pay on its first use.
+    cardNumber: `**** **** **** ${c.card_last4}`,
+    cardHolder: c.card_holder,
+    cardExpiry: c.card_expiry,
+    cardLast4: c.card_last4,
+    isDefault: !!c.is_default,
+    tokenized: !!c.card_token,
+    createdAt: c.created_at,
+  };
+}
+
 /**
  * List all credit cards for a user.
  */
 export function listCards(db, userId) {
   const cards = db.prepare(`
-    SELECT id, card_number, card_holder, card_expiry, card_last4, is_default, created_at
+    SELECT id, card_holder, card_expiry, card_last4, is_default, card_token, created_at
     FROM credit_cards
     WHERE user_id = ?
     ORDER BY is_default DESC, created_at DESC
@@ -15,16 +30,7 @@ export function listCards(db, userId) {
 
   return {
     success: true,
-    data: cards.map((c) => ({
-      id: c.id,
-      cardNumber: maskCardNumber(c.card_number),
-      cardNumberFull: c.card_number,
-      cardHolder: c.card_holder,
-      cardExpiry: c.card_expiry,
-      cardLast4: c.card_last4,
-      isDefault: !!c.is_default,
-      createdAt: c.created_at,
-    })),
+    data: cards.map(serializeCard),
   };
 }
 
@@ -33,7 +39,7 @@ export function listCards(db, userId) {
  */
 export function getDefaultCard(db, userId) {
   const card = db.prepare(`
-    SELECT id, card_number, card_holder, card_expiry, card_last4, is_default
+    SELECT id, card_holder, card_expiry, card_last4, is_default, card_token
     FROM credit_cards
     WHERE user_id = ?
     ORDER BY is_default DESC, created_at DESC
@@ -41,16 +47,7 @@ export function getDefaultCard(db, userId) {
   `).get(userId);
 
   if (!card) return null;
-
-  return {
-    id: card.id,
-    cardNumber: maskCardNumber(card.card_number),
-    cardNumberFull: card.card_number,
-    cardHolder: card.card_holder,
-    cardExpiry: card.card_expiry,
-    cardLast4: card.card_last4,
-    isDefault: !!card.is_default,
-  };
+  return serializeCard(card);
 }
 
 /**
@@ -96,14 +93,7 @@ export function registerCard(db, userId, { cardNumber, cardHolder, cardExpiry })
 
   return {
     success: true,
-    data: {
-      id: card.id,
-      cardNumber: maskCardNumber(card.card_number),
-      cardHolder: card.card_holder,
-      cardExpiry: card.card_expiry,
-      cardLast4: card.card_last4,
-      isDefault: !!card.is_default,
-    },
+    data: serializeCard(card),
   };
 }
 
@@ -146,10 +136,3 @@ export function setDefaultCard(db, userId, cardId) {
   return { success: true, data: { id: cardId, isDefault: true } };
 }
 
-/**
- * Mask a card number for display: **** **** **** 1234
- */
-function maskCardNumber(number) {
-  const last4 = number.slice(-4);
-  return `**** **** **** ${last4}`;
-}

@@ -128,6 +128,13 @@ export async function sendMessage(db, userId, { message, conversationId }) {
     intent = 'GENERAL:GREETING';
   }
 
+  // 4b. Audit out-of-scope messages — useful signal for abuse detection / prompt-injection
+  // monitoring without storing anything beyond what the user already typed.
+  if (intent === 'GENERAL:OUT_OF_SCOPE') {
+    const preview = message.length > 160 ? message.slice(0, 157) + '...' : message;
+    console.warn(`[chat-audit] OUT_OF_SCOPE user=${userId} conv=${convId} msg="${preview.replace(/[\r\n]+/g, ' ')}"`);
+  }
+
   // 5. Route to agent
   const agentName = routeIntent(intent);
 

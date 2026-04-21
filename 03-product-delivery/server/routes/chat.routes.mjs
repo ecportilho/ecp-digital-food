@@ -1,11 +1,40 @@
 import { authMiddleware } from '../auth.mjs';
 import * as chatService from '../services/chat.service.mjs';
 
+// Per-user rolling rate limit: at most 20 chat messages per minute per user. We use
+// an in-memory map instead of relying on @fastify/rate-limit's keyGenerator because
+// the limiter runs before preHandler, so request.user is not yet populated there.
+const CHAT_RATE_MAX = 20;
+const CHAT_RATE_WINDOW_MS = 60 * 1000;
+const chatRateState = new Map(); // userId → number[] (timestamps of recent requests)
+
+function takeChatRateSlot(userId) {
+  const now = Date.now();
+  const windowStart = now - CHAT_RATE_WINDOW_MS;
+  const recent = (chatRateState.get(userId) || []).filter(t => t > windowStart);
+  if (recent.length >= CHAT_RATE_MAX) {
+    return { ok: false, retryAfterMs: recent[0] + CHAT_RATE_WINDOW_MS - now };
+  }
+  recent.push(now);
+  chatRateState.set(userId, recent);
+  return { ok: true };
+}
+
 export async function chatRoutes(app) {
   // POST /api/chat/messages — Send message and get AI response
   app.post('/api/chat/messages', {
     preHandler: [authMiddleware],
   }, async (request, reply) => {
+    const slot = takeChatRateSlot(request.user.id);
+    if (!slot.ok) {
+      return reply.code(429).send({
+        success: false,
+        error: {
+          code: 'RATE_LIMIT_EXCEEDED',
+          message: `Muitas mensagens — aguarde ${Math.ceil(slot.retryAfterMs / 1000)}s.`,
+        },
+      });
+    }
     const { message, conversationId } = request.body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useApi } from '../hooks/useApi';
+import { useAddress } from '../hooks/useAddress';
 import { useToast } from '../components/ui/Toast';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
@@ -15,6 +16,7 @@ export default function CreditCardPaymentPage() {
   const cart = useCart();
   const api = useApi();
   const showToast = useToast();
+  const { defaultAddress, addressText, loading: loadingAddress } = useAddress();
   const [cards, setCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +71,11 @@ export default function CreditCardPaymentPage() {
 
   const handleConfirmPayment = async () => {
     if (!selectedCard) return;
+    if (!defaultAddress) {
+      setError('Cadastre um endereco de entrega antes de finalizar o pedido.');
+      setStep('error');
+      return;
+    }
     setStep('processing');
     try {
       const token = localStorage.getItem('ff_token');
@@ -85,7 +92,7 @@ export default function CreditCardPaymentPage() {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          address_text: 'Rua Augusta, 1234 — Sao Paulo, SP',
+          address_text: addressText,
           coupon_code: cart.coupon || null,
           payment_method: 'credit_card',
         }),
@@ -221,12 +228,17 @@ export default function CreditCardPaymentPage() {
 
               <Button
                 variant="checkout"
-                disabled={!selectedCard}
+                disabled={!selectedCard || !defaultAddress || loadingAddress}
                 onClick={handleConfirmPayment}
                 style={{ marginTop: '14px' }}
               >
                 Confirmar pagamento — {formatCurrency(cart.total)}
               </Button>
+              {!loadingAddress && !defaultAddress && (
+                <div style={{ fontSize: '0.82rem', color: 'var(--danger)', marginTop: '10px', textAlign: 'center' }}>
+                  Cadastre um endereco no Perfil antes de finalizar.
+                </div>
+              )}
             </div>
           )}
         </GlassCard>

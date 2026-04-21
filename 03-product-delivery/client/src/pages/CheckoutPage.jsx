@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useApi } from '../hooks/useApi';
+import { useAddress } from '../hooks/useAddress';
 import { useToast } from '../components/ui/Toast';
 import Button from '../components/ui/Button';
 import CartSummary from '../components/cart/CartSummary';
@@ -14,10 +15,10 @@ export default function CheckoutPage() {
   const cart = useCart();
   const api = useApi();
   const showToast = useToast();
+  const { defaultAddress, addressText, loading: loadingAddress } = useAddress();
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
   const [couponCode, setCouponCode] = useState(cart.coupon || '');
   const [couponMsg, setCouponMsg] = useState(cart.coupon ? `Cupom ${cart.coupon} aplicado` : '');
-  const [address] = useState('Rua Augusta, 1234 — Sao Paulo, SP');
 
   if (cart.items.length === 0) {
     return (
@@ -48,6 +49,10 @@ export default function CheckoutPage() {
   };
 
   const goToPayment = () => {
+    if (!defaultAddress) {
+      showToast('Cadastre um endereço antes de continuar', 'error');
+      return;
+    }
     if (paymentMethod === 'credit_card') {
       navigate('/checkout/credit-card');
     } else if (paymentMethod === 'card') {
@@ -79,7 +84,39 @@ export default function CheckoutPage() {
         {/* Address */}
         <div className={styles.section}>
           <div className={styles.sectionTitle}>Endereco de entrega</div>
-          <input type="text" className="input-field" value={address} readOnly />
+          {loadingAddress ? (
+            <input type="text" className="input-field" value="Carregando endereco..." readOnly />
+          ) : defaultAddress ? (
+            <>
+              <input type="text" className="input-field" value={addressText} readOnly />
+              <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '6px' }}>
+                {defaultAddress.label || 'Endereco padrao'} — <a
+                  href="#"
+                  onClick={(e) => { e.preventDefault(); navigate('/profile'); }}
+                  style={{ color: 'var(--brand)', fontWeight: 700 }}
+                >
+                  Alterar no Perfil
+                </a>
+              </div>
+            </>
+          ) : (
+            <div style={{
+              padding: '14px',
+              border: '1px dashed var(--danger)',
+              borderRadius: '12px',
+              color: 'var(--danger)',
+              fontSize: '0.88rem',
+            }}>
+              Nenhum endereco cadastrado.{' '}
+              <a
+                href="#"
+                onClick={(e) => { e.preventDefault(); navigate('/profile'); }}
+                style={{ color: 'var(--brand)', fontWeight: 700 }}
+              >
+                Cadastrar agora
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Coupon */}
@@ -114,7 +151,12 @@ export default function CheckoutPage() {
           <CartSummary />
         </div>
 
-        <Button variant="checkout" onClick={goToPayment} style={{ marginTop: '14px' }}>
+        <Button
+          variant="checkout"
+          onClick={goToPayment}
+          disabled={!defaultAddress || loadingAddress}
+          style={{ marginTop: '14px' }}
+        >
           Pagar agora — {formatCurrency(cart.total)}
         </Button>
       </div>

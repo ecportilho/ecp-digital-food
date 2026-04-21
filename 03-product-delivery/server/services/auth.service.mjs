@@ -1,5 +1,11 @@
 import bcrypt from 'bcryptjs';
-import { generateTokens, verifyRefreshToken } from '../auth.mjs';
+import {
+  generateTokens,
+  verifyRefreshToken,
+  storeRefreshToken,
+  findValidRefreshToken,
+  revokeRefreshToken,
+} from '../auth.mjs';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -23,6 +29,7 @@ export function register(db, { email, password, name, phone }) {
 
   const user = db.prepare('SELECT id, email, name, phone, role, created_at FROM users WHERE rowid = ?').get(result.lastInsertRowid);
   const tokens = generateTokens(user);
+  storeRefreshToken(db, user.id, tokens.refreshToken);
 
   return {
     success: true,
@@ -48,6 +55,7 @@ export function login(db, { email, password }) {
   }
 
   const tokens = generateTokens(user);
+  storeRefreshToken(db, user.id, tokens.refreshToken);
 
   return {
     success: true,
@@ -59,19 +67,45 @@ export function login(db, { email, password }) {
 }
 
 /**
- * Refresh access token using a valid refresh token.
+ * Refresh access token using a valid refresh token. Rotates: the old refresh token is
+ * revoked and a new one is issued, so a stolen refresh token becomes useless once the
+ * legitimate user refreshes.
  */
 export function refresh(db, { refreshToken }) {
   try {
     const decoded = verifyRefreshToken(refreshToken);
+    const record = findValidRefreshToken(db, refreshToken);
+    if (!record) {
+      return { success: false, error: { code: 'REFRESH_TOKEN_REVOKED', message: 'Refresh token revoked or expired' } };
+    }
     const user = db.prepare('SELECT id, email, name, phone, role FROM users WHERE id = ?').get(decoded.id);
     if (!user) {
       return { success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } };
     }
+    if (user.id !== record.user_id) {
+      // Token belongs to a different user than the JWT claims — tampered.
+      revokeRefreshToken(db, refreshToken);
+      return { success: false, error: { code: 'INVALID_REFRESH_TOKEN', message: 'Token mismatch' } };
+    }
 
+    // Rotate: revoke old, issue new.
+    revokeRefreshToken(db, refreshToken);
     const tokens = generateTokens(user);
+    storeRefreshToken(db, user.id, tokens.refreshToken);
+
     return { success: true, data: { user, ...tokens } };
   } catch {
     return { success: false, error: { code: 'INVALID_REFRESH_TOKEN', message: 'Invalid or expired refresh token' } };
   }
+}
+
+/**
+ * Revoke a refresh token (logout).
+ */
+export function logout(db, { refreshToken }) {
+  if (!refreshToken) {
+    return { success: true, data: { revoked: false, reason: 'no_token_provided' } };
+  }
+  const revoked = revokeRefreshToken(db, refreshToken);
+  return { success: true, data: { revoked } };
 }

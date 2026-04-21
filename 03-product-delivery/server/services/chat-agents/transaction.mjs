@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import crypto from 'node:crypto';
 import * as orderService from '../order.service.mjs';
 import * as paymentService from '../payment.service.mjs';
 
@@ -8,10 +9,52 @@ const MODEL = process.env.AI_MODEL || 'claude-sonnet-4-20250514';
 const MAX_TOKENS = parseInt(process.env.AI_MAX_TOKENS) || 2048;
 const MAX_TOOL_ITERATIONS = 5;
 
+// In-memory store of pending checkout confirmations. Each token is single-use and expires
+// after 5 minutes. Programmatic guard against the LLM firing mutations without having
+// first echoed a checkout summary to the user.
+const CONFIRMATION_TTL_MS = 5 * 60 * 1000;
+const pendingConfirmations = new Map();
+
+function issueConfirmation(userId, intent) {
+  const token = 'cft_' + crypto.randomBytes(10).toString('hex');
+  pendingConfirmations.set(token, {
+    userId,
+    intent,
+    expiresAt: Date.now() + CONFIRMATION_TTL_MS,
+  });
+  // Opportunistic GC of stale tokens.
+  if (pendingConfirmations.size > 1000) {
+    const now = Date.now();
+    for (const [t, rec] of pendingConfirmations) {
+      if (rec.expiresAt < now) pendingConfirmations.delete(t);
+    }
+  }
+  return token;
+}
+
+function consumeConfirmation(userId, token, requiredIntent) {
+  if (!token) return { ok: false, error: 'Chame confirm_checkout antes de executar esta ação.' };
+  const rec = pendingConfirmations.get(token);
+  if (!rec) return { ok: false, error: 'Token de confirmação inválido ou já consumido.' };
+  if (rec.userId !== userId) return { ok: false, error: 'Token não pertence a este usuário.' };
+  if (rec.expiresAt < Date.now()) {
+    pendingConfirmations.delete(token);
+    return { ok: false, error: 'Token de confirmação expirado. Peça ao usuário para confirmar novamente.' };
+  }
+  if (requiredIntent && rec.intent !== requiredIntent) {
+    return { ok: false, error: `Token foi emitido para intent "${rec.intent}", não "${requiredIntent}".` };
+  }
+  pendingConfirmations.delete(token);
+  return { ok: true };
+}
+
 const SYSTEM_PROMPT = `Você é o assistente de pedidos do FoodFlow. Ajude o usuário a navegar restaurantes, escolher comidas, montar o carrinho e fazer pedidos com pagamento.
 
 Regras:
-- NUNCA execute create_order sem confirmação explícita do usuário
+- SEMPRE chame confirm_checkout antes de create_order e antes de pay_with_pix / pay_with_credit_card
+- confirm_checkout retorna um confirmation_token de uso único que expira em 5 minutos
+- ANTES de usar o token, mostre o resumo devolvido por confirm_checkout ao usuário e aguarde ele aceitar ("sim", "confirma", "pode ser")
+- Se o usuário recusar, NUNCA execute create_order / pay_with_* — peça ajuste e re-confirme
 - NUNCA mostre números completos de cartão — apenas últimos 4 dígitos
 - Valores sempre em R$ (ex: R$ 49,90)
 - Quando listar restaurantes, inclua emoji, rating e tempo de entrega
@@ -85,38 +128,55 @@ const TOOLS = [
     }
   },
   {
+    name: 'confirm_checkout',
+    description: 'Computa o resumo do checkout (itens, subtotal, frete, desconto, total, endereço, método de pagamento) e devolve um confirmation_token de uso único válido por 5 minutos. Use este token nas próximas chamadas a create_order / pay_with_pix / pay_with_credit_card. SEMPRE chame esta ferramenta antes de qualquer mutação financeira, mostre o resumo retornado ao usuário e aguarde ele aceitar explicitamente.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        intent: { type: 'string', enum: ['create_order', 'pay_with_pix', 'pay_with_credit_card'], description: 'Para qual mutação o token será usado' },
+        payment_method: { type: 'string', description: 'Método de pagamento proposto ao usuário', enum: ['pix_qrcode', 'credit_card'] },
+        credit_card_id: { type: 'string', description: 'ID do cartão escolhido (quando aplicável)' },
+        order_id: { type: 'string', description: 'ID do pedido (quando a intent é pay_with_*)' }
+      },
+      required: ['intent']
+    }
+  },
+  {
     name: 'create_order',
-    description: 'Criar um pedido a partir do carrinho atual. SOMENTE execute após confirmação do usuário.',
+    description: 'Criar um pedido a partir do carrinho atual. Requer confirmation_token emitido por confirm_checkout com intent=create_order.',
     input_schema: {
       type: 'object',
       properties: {
         payment_method: { type: 'string', description: 'Método: pix_qrcode ou credit_card', enum: ['pix_qrcode', 'credit_card'] },
-        address_text: { type: 'string', description: 'Endereço de entrega' }
+        address_text: { type: 'string', description: 'Endereço de entrega (se omitido, usa endereço default do usuário)' },
+        confirmation_token: { type: 'string', description: 'Token devolvido por confirm_checkout' }
       },
-      required: ['payment_method']
+      required: ['payment_method', 'confirmation_token']
     }
   },
   {
     name: 'pay_with_pix',
-    description: 'Gerar código Pix copia e cola para pagamento de um pedido.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        order_id: { type: 'string', description: 'ID do pedido' }
-      },
-      required: ['order_id']
-    }
-  },
-  {
-    name: 'pay_with_credit_card',
-    description: 'Pagar um pedido com cartão de crédito cadastrado.',
+    description: 'Gerar código Pix copia e cola para pagamento de um pedido. Requer confirmation_token com intent=pay_with_pix.',
     input_schema: {
       type: 'object',
       properties: {
         order_id: { type: 'string', description: 'ID do pedido' },
-        credit_card_id: { type: 'string', description: 'ID do cartão (use list_credit_cards para obter)' }
+        confirmation_token: { type: 'string', description: 'Token devolvido por confirm_checkout' }
       },
-      required: ['order_id', 'credit_card_id']
+      required: ['order_id', 'confirmation_token']
+    }
+  },
+  {
+    name: 'pay_with_credit_card',
+    description: 'Pagar um pedido com cartão de crédito cadastrado. Requer confirmation_token com intent=pay_with_credit_card.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        order_id: { type: 'string', description: 'ID do pedido' },
+        credit_card_id: { type: 'string', description: 'ID do cartão (use list_credit_cards para obter)' },
+        confirmation_token: { type: 'string', description: 'Token devolvido por confirm_checkout' }
+      },
+      required: ['order_id', 'credit_card_id', 'confirmation_token']
     }
   },
   {
@@ -361,15 +421,83 @@ function removeFromCartTool(db, userId, itemId) {
   };
 }
 
-function createOrderTool(db, userId, paymentMethod, addressText) {
+function resolveDefaultAddressString(db, userId) {
+  const addr = db.prepare('SELECT * FROM addresses WHERE user_id = ? ORDER BY is_default DESC LIMIT 1').get(userId);
+  if (!addr) return null;
+  return `${addr.street}, ${addr.number}${addr.complement ? ' - ' + addr.complement : ''}, ${addr.neighborhood}, ${addr.city}/${addr.state}`;
+}
+
+function confirmCheckoutTool(db, userId, { intent, payment_method, credit_card_id, order_id }) {
+  if (!['create_order', 'pay_with_pix', 'pay_with_credit_card'].includes(intent)) {
+    return { error: 'Intent inválida. Use create_order, pay_with_pix ou pay_with_credit_card.' };
+  }
+
+  const address = resolveDefaultAddressString(db, userId);
+
+  // For create_order: summarize the cart.
+  // For pay_with_*: summarize the existing pending order.
+  if (intent === 'create_order') {
+    const cart = viewCartTool(db, userId);
+    if (cart.items && cart.items.length === 0) {
+      return { error: 'Carrinho vazio. Adicione itens antes de confirmar o checkout.' };
+    }
+    if (!address) {
+      return { error: 'Usuário não tem endereço cadastrado. Peça para cadastrar no Perfil antes.' };
+    }
+    const token = issueConfirmation(userId, intent);
+    return {
+      summary: {
+        intent,
+        items: cart.items,
+        subtotal: cart.subtotal,
+        delivery_fee: cart.delivery_fee,
+        total: cart.total,
+        address,
+        payment_method: payment_method || 'pix_qrcode',
+      },
+      confirmation_token: token,
+      expires_in_seconds: Math.floor(CONFIRMATION_TTL_MS / 1000),
+      next_step: 'Mostre o resumo ao usuário. Se ele confirmar, chame create_order passando confirmation_token.',
+    };
+  }
+
+  // pay_with_* — requires an existing order
+  if (!order_id) {
+    return { error: 'Para confirmar pagamento, informe order_id.' };
+  }
+  const order = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ?').get(order_id, userId);
+  if (!order) {
+    return { error: 'Pedido não encontrado ou não pertence ao usuário.' };
+  }
+  if (order.status !== 'pending_payment') {
+    return { error: `Pedido está no status "${order.status}" — não pode ser pago.` };
+  }
+  const token = issueConfirmation(userId, intent);
+  return {
+    summary: {
+      intent,
+      order_id: order.id,
+      total: formatBRL(order.total),
+      status: order.status,
+      payment_method: intent === 'pay_with_pix' ? 'pix_qrcode' : 'credit_card',
+      credit_card_id: credit_card_id || null,
+      address: order.address_text,
+    },
+    confirmation_token: token,
+    expires_in_seconds: Math.floor(CONFIRMATION_TTL_MS / 1000),
+    next_step: `Mostre o resumo ao usuário. Se ele confirmar, chame ${intent} passando confirmation_token.`,
+  };
+}
+
+function createOrderTool(db, userId, paymentMethod, addressText, confirmationToken) {
+  const check = consumeConfirmation(userId, confirmationToken, 'create_order');
+  if (!check.ok) {
+    return { error: check.error };
+  }
+
   // Get default address if not provided
   if (!addressText) {
-    const addr = db.prepare('SELECT * FROM addresses WHERE user_id = ? ORDER BY is_default DESC LIMIT 1').get(userId);
-    if (addr) {
-      addressText = `${addr.street}, ${addr.number}${addr.complement ? ' - ' + addr.complement : ''}, ${addr.neighborhood}, ${addr.city}/${addr.state}`;
-    } else {
-      addressText = 'Endereço não informado';
-    }
+    addressText = resolveDefaultAddressString(db, userId) || 'Endereço não informado';
   }
 
   const result = orderService.createOrder(db, userId, {
@@ -402,7 +530,11 @@ function createOrderTool(db, userId, paymentMethod, addressText) {
   };
 }
 
-async function payWithPixTool(db, userId, orderId) {
+async function payWithPixTool(db, userId, orderId, confirmationToken) {
+  const check = consumeConfirmation(userId, confirmationToken, 'pay_with_pix');
+  if (!check.ok) {
+    return { error: check.error };
+  }
   try {
     const result = await paymentService.payWithPix(db, userId, { order_id: orderId });
     if (!result.success) {
@@ -420,7 +552,11 @@ async function payWithPixTool(db, userId, orderId) {
   }
 }
 
-async function payWithCardTool(db, userId, orderId, creditCardId) {
+async function payWithCardTool(db, userId, orderId, creditCardId, confirmationToken) {
+  const check = consumeConfirmation(userId, confirmationToken, 'pay_with_credit_card');
+  if (!check.ok) {
+    return { error: check.error };
+  }
   try {
     const result = await paymentService.payWithCreditCard(db, userId, { order_id: orderId, credit_card_id: creditCardId });
     if (!result.success) {
@@ -553,12 +689,14 @@ function executeTool(db, toolName, toolInput, userId) {
       return addToCartTool(db, userId, toolInput.menu_item_id, toolInput.quantity || 1);
     case 'remove_from_cart':
       return removeFromCartTool(db, userId, toolInput.item_id);
+    case 'confirm_checkout':
+      return confirmCheckoutTool(db, userId, toolInput);
     case 'create_order':
-      return createOrderTool(db, userId, toolInput.payment_method, toolInput.address_text);
+      return createOrderTool(db, userId, toolInput.payment_method, toolInput.address_text, toolInput.confirmation_token);
     case 'pay_with_pix':
-      return payWithPixTool(db, userId, toolInput.order_id);
+      return payWithPixTool(db, userId, toolInput.order_id, toolInput.confirmation_token);
     case 'pay_with_credit_card':
-      return payWithCardTool(db, userId, toolInput.order_id, toolInput.credit_card_id);
+      return payWithCardTool(db, userId, toolInput.order_id, toolInput.credit_card_id, toolInput.confirmation_token);
     case 'list_credit_cards':
       return listCreditCardsTool(db, userId);
     case 'get_order_status':
@@ -569,6 +707,17 @@ function executeTool(db, toolName, toolInput, userId) {
       return { error: `Tool "${toolName}" não reconhecida.` };
   }
 }
+
+// Exposed for unit testing the checkout-confirmation guard without invoking Anthropic.
+export const __internals__ = {
+  issueConfirmation,
+  consumeConfirmation,
+  confirmCheckoutTool,
+  createOrderTool,
+  payWithPixTool,
+  payWithCardTool,
+  pendingConfirmations,
+};
 
 // ─── Agentic loop ───────────────────────────────────────────────────────
 

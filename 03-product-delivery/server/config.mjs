@@ -43,6 +43,7 @@ export const config = {
   bankPlatformPixKeyType: process.env.ECP_BANK_PLATFORM_PIX_KEY_TYPE || 'email',
   bankPixExpirationMinutes: parseInt(process.env.ECP_BANK_PIX_EXPIRATION_MINUTES || '10', 10),
   bankWebhookSecret: process.env.ECP_BANK_WEBHOOK_SECRET || 'dev-webhook-secret',
+  ecpPayWebhookApiKey: process.env.ECP_PAY_WEBHOOK_API_KEY || process.env.ECP_PAY_API_KEY || 'ecp-food-dev-key',
   publicUrl: process.env.FOODFLOW_PUBLIC_URL || 'http://localhost:3000',
 
   root: ROOT,

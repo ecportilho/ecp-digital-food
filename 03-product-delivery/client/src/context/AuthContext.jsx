@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
     const json = await res.json();
     const data = json.data || json;
     localStorage.setItem('ff_token', data.accessToken);
+    if (data.refreshToken) localStorage.setItem('ff_refresh', data.refreshToken);
     localStorage.setItem('ff_user', JSON.stringify(data.user));
     dispatch({ type: 'SET_AUTH', payload: { token: data.accessToken, user: data.user } });
     return data;
@@ -73,15 +74,26 @@ export function AuthProvider({ children }) {
     const json = await res.json();
     const data = json.data || json;
     localStorage.setItem('ff_token', data.accessToken);
+    if (data.refreshToken) localStorage.setItem('ff_refresh', data.refreshToken);
     localStorage.setItem('ff_user', JSON.stringify(data.user));
     dispatch({ type: 'SET_AUTH', payload: { token: data.accessToken, user: data.user } });
     return data;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const refreshToken = localStorage.getItem('ff_refresh');
     localStorage.removeItem('ff_token');
+    localStorage.removeItem('ff_refresh');
     localStorage.removeItem('ff_user');
     dispatch({ type: 'LOGOUT' });
+    // Fire-and-forget server-side revoke; a network failure must not block client logout.
+    if (refreshToken) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      }).catch(() => {});
+    }
   };
 
   const updateUser = (updates) => {

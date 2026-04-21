@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useApi } from '../hooks/useApi';
+import { useDebounce } from '../hooks/useDebounce';
 import { BadgeHero } from '../components/ui/Badge';
 import CategoryChips from '../components/ui/CategoryChips';
 import RestaurantGrid from '../components/restaurant/RestaurantGrid';
+import { RestaurantGridSkeleton } from '../components/ui/Skeleton';
 import CartPanel from '../components/cart/CartPanel';
 import { useCart } from '../context/CartContext';
 import { pluralize } from '../lib/formatters';
@@ -13,6 +15,7 @@ export default function HomePage() {
   const [filteredRestaurants, setFilteredRestaurants] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [loading, setLoading] = useState(true);
   const api = useApi();
   const cart = useCart();
@@ -34,8 +37,8 @@ export default function HomePage() {
     if (selectedCategory) {
       result = result.filter((r) => r.category_id === selectedCategory);
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
       result = result.filter(
         (r) =>
           r.name.toLowerCase().includes(q) ||
@@ -44,7 +47,7 @@ export default function HomePage() {
       );
     }
     setFilteredRestaurants(result);
-  }, [selectedCategory, searchQuery, restaurants]);
+  }, [selectedCategory, debouncedSearch, restaurants]);
 
   const handleSearch = (e) => {
     e?.preventDefault();
@@ -145,9 +148,7 @@ export default function HomePage() {
       <div className={styles.mainGrid}>
         <div>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--muted)' }}>
-              Carregando restaurantes...
-            </div>
+            <RestaurantGridSkeleton count={6} />
           ) : (
             <RestaurantGrid restaurants={filteredRestaurants} />
           )}

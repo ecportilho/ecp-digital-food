@@ -34,9 +34,9 @@ export function calculateOrderSplits(order, orderItems, db) {
 
     const restaurantSubtotalCents = Math.round(data.subtotal);
     const restaurantShareCents = Math.round(restaurantSubtotalCents * (100 - PLATFORM_FEE_PERCENT) / 100);
-    restaurantTotalCents += restaurantShareCents;
 
     if (restaurant && restaurant.pj_cnpj) {
+      restaurantTotalCents += restaurantShareCents;
       splits.push({
         account_id: restaurant.pj_cnpj,
         account_name: data.restaurant_name,
@@ -44,6 +44,8 @@ export function calculateOrderSplits(order, orderItems, db) {
         amount: restaurantShareCents,
         type: 'fixed',
       });
+    } else {
+      console.warn(`[splits] Restaurant ${restaurantId} missing or has no pj_cnpj — split skipped; amount rolls into platform share.`);
     }
   }
 

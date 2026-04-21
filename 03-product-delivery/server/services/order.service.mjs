@@ -1,9 +1,38 @@
 import * as couponService from './coupon.service.mjs';
+import { refundOrderPayment } from './payment.service.mjs';
+
+/**
+ * Resolve a delivery address string: if none provided, fall back to the user's
+ * default address (or first address available). Returns null if the user has no
+ * addresses at all — caller must reject the order in that case.
+ */
+function resolveAddressText(db, userId, providedAddressText) {
+  if (providedAddressText && providedAddressText.trim()) {
+    return providedAddressText.trim();
+  }
+  const address = db.prepare(
+    'SELECT * FROM addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC LIMIT 1'
+  ).get(userId);
+  if (!address) return null;
+  const parts = [
+    `${address.street}, ${address.number}`,
+    address.complement || null,
+    address.neighborhood,
+    `${address.city || 'São Paulo'}/${address.state || 'SP'}`,
+  ].filter(Boolean);
+  return parts.join(' — ');
+}
 
 /**
  * Create an order from the user's cart.
  */
 export function createOrder(db, userId, { address_text, coupon_code, payment_method }) {
+  // 0. Resolve delivery address (caller-provided or user's default)
+  const resolvedAddress = resolveAddressText(db, userId, address_text);
+  if (!resolvedAddress) {
+    return { success: false, error: { code: 'NO_ADDRESS', message: 'User has no delivery address; cadastre um endereço no perfil.' } };
+  }
+
   // 1. Get cart with items
   const cart = db.prepare('SELECT * FROM carts WHERE user_id = ?').get(userId);
   if (!cart) {
@@ -57,7 +86,7 @@ export function createOrder(db, userId, { address_text, coupon_code, payment_met
     `);
     const orderResult = orderStmt.run(
       userId,
-      address_text,
+      resolvedAddress,
       Math.round(subtotal * 100) / 100,
       Math.round(deliveryFee * 100) / 100,
       Math.round(discount * 100) / 100,
@@ -158,8 +187,14 @@ export function getOrder(db, userId, orderId) {
 
 /**
  * Update order status (restaurant or admin).
+ *
+ * Side-effect: when transitioning to 'cancelled', a refund is attempted for any completed
+ * payment attached to the order. The refund is best-effort (failures are logged into
+ * payments.refund_error but never block the status transition).
+ *
+ * Returns a Promise so callers can await the refund side-effect.
  */
-export function updateOrderStatus(db, user, orderId, { status }) {
+export async function updateOrderStatus(db, user, orderId, { status }) {
   // Determine allowed status transitions
   const validTransitions = {
     confirmed: ['preparing', 'cancelled'],
@@ -201,8 +236,13 @@ export function updateOrderStatus(db, user, orderId, { status }) {
 
   db.prepare("UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?").run(status, orderId);
 
+  let refund = null;
+  if (status === 'cancelled') {
+    refund = await refundOrderPayment(db, orderId);
+  }
+
   const updated = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
   const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId);
 
-  return { success: true, data: { ...updated, items } };
+  return { success: true, data: { ...updated, items, refund } };
 }

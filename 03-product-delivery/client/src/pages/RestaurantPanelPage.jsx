@@ -18,6 +18,7 @@ export default function RestaurantPanelPage() {
   const [menuItems, setMenuItems] = useState([]);
   const [orders, setOrders] = useState([]);
   const [settings, setSettings] = useState(null);
+  const [settlements, setSettlements] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // New item form
@@ -40,6 +41,9 @@ export default function RestaurantPanelPage() {
       } else if (activeTab === 'settings') {
         const data = await api.get('/api/restaurant-admin/settings');
         setSettings(data || {});
+      } else if (activeTab === 'settlements') {
+        const data = await api.get('/api/restaurant-admin/settlements');
+        setSettlements(data || null);
       }
     } catch {}
     setLoading(false);
@@ -89,6 +93,7 @@ export default function RestaurantPanelPage() {
   const tabs = [
     { id: 'menu', label: '🍽️ Cardápio' },
     { id: 'orders', label: '📋 Pedidos' },
+    { id: 'settlements', label: '💰 Repasses' },
     { id: 'settings', label: '⚙️ Config' },
   ];
 
@@ -212,14 +217,87 @@ export default function RestaurantPanelPage() {
                         <Button variant="mini" onClick={() => updateOrderStatus(order.id, 'preparing')}>Iniciar preparo</Button>
                       )}
                       {order.status === 'preparing' && (
-                        <Button variant="success" onClick={() => updateOrderStatus(order.id, 'ready')}>Pronto</Button>
+                        <Button variant="success" onClick={() => updateOrderStatus(order.id, 'out_for_delivery')}>Saiu p/ entrega</Button>
                       )}
-                      {order.status === 'ready' && (
-                        <Button variant="success" onClick={() => updateOrderStatus(order.id, 'delivering')}>Saiu p/ entrega</Button>
+                      {order.status === 'out_for_delivery' && (
+                        <Button variant="success" onClick={() => updateOrderStatus(order.id, 'delivered')}>Marcar entregue</Button>
                       )}
                     </div>
                   </GlassCard>
                 ))
+              )}
+            </div>
+          )}
+
+          {/* Settlements Tab */}
+          {activeTab === 'settlements' && (
+            <div>
+              <h3 className="h3" style={{ marginBottom: '14px' }}>Repasses (85% do valor do pedido)</h3>
+              {!settlements ? (
+                <p style={{ color: 'var(--muted)' }}>Sem dados de repasse ainda.</p>
+              ) : (
+                <>
+                  <GlassCard style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          Pedidos
+                        </div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>
+                          {settlements.summary?.total_orders || 0}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          Total a receber
+                        </div>
+                        <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--success)' }}>
+                          {formatCurrency(Number(settlements.summary?.total_earned || 0))}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          Chave PIX do restaurante
+                        </div>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text)', wordBreak: 'break-all' }}>
+                          {settlements.restaurant?.pj_pix_key || '—'}
+                        </div>
+                        <div style={{ fontSize: '0.74rem', color: 'var(--muted)', marginTop: '4px' }}>
+                          CNPJ: {settlements.restaurant?.pj_cnpj || '—'}
+                        </div>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  {settlements.settlements?.length === 0 ? (
+                    <p style={{ color: 'var(--muted)' }}>
+                      Nenhum pedido pago ainda. Assim que um pedido for pago, o repasse aparecera aqui.
+                    </p>
+                  ) : (
+                    <table className={styles.dataTable}>
+                      <thead>
+                        <tr>
+                          <th>Pedido</th>
+                          <th>Data</th>
+                          <th>Total do pedido</th>
+                          <th>Seu repasse (85%)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {settlements.settlements.map((s) => (
+                          <tr key={s.order_id}>
+                            <td>#{s.order_id?.slice(0, 8)}</td>
+                            <td>{formatDate(s.order_date)}</td>
+                            <td>{formatCurrency(Number(s.order_total))}</td>
+                            <td style={{ fontWeight: 700, color: 'var(--success)' }}>
+                              {formatCurrency(Number(s.restaurant_share))}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </>
               )}
             </div>
           )}

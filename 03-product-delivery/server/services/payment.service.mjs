@@ -227,22 +227,45 @@ export async function payWithCreditCard(db, userId, { order_id, credit_card_id }
     const description = `FoodFlow Pedido #${order_id}`;
     let transactionId = null;
 
+    // Tokenize-on-first-use: if the card already has a vault token we pass it and send
+    // no PAN; otherwise we pass the PAN + saveCard=true, keep the token returned by
+    // ECP Pay and null-out card_number in the next step.
+    const hasToken = !!card.card_token;
     try {
       const ecpPayResult = await createCardCharge(
         amountCents,
         customerName,
         customerDocument,
-        null, // cardToken
-        card.card_number,
-        card.card_expiry || null,
-        null, // cardCvv — not stored
+        hasToken ? card.card_token : null,
+        hasToken ? null : card.card_number,
+        hasToken ? null : (card.card_expiry || null),
+        null, // cardCvv — never stored
         card.card_holder || customerName,
-        false, // saveCard
+        !hasToken, // saveCard — only on first use
         1     // installments
       );
       transactionId = ecpPayResult.transaction_id || ecpPayResult.id || null;
+
+      // Persist the returned vault token. If ECP Pay did not echo one, log and skip.
+      const returnedToken = ecpPayResult.card_token || ecpPayResult.stored_card_id || null;
+      if (!hasToken && returnedToken) {
+        db.prepare(`
+          UPDATE credit_cards
+          SET card_token = ?,
+              tokenized_at = datetime('now'),
+              card_number = '[tokenized]'
+          WHERE id = ?
+        `).run(returnedToken, card.id);
+        console.log(`[tokenize] Card ${card.id} tokenized; PAN cleared from DB.`);
+      } else if (!hasToken) {
+        console.warn(`[tokenize] ECP Pay did not return card_token for card ${card.id}; PAN remains in DB.`);
+      }
     } catch (ecpPayErr) {
-      // ECP Pay failed — fall back to direct bank integration
+      // ECP Pay failed — fall back to direct bank integration, but only if we still
+      // hold the PAN locally. Token-only cards cannot be charged via the fallback.
+      if (hasToken) {
+        throw new Error(`ECP Pay indisponível e este cartão está tokenizado — não há PAN local para fallback: ${ecpPayErr.message}`);
+      }
       console.warn('[payWithCreditCard] ECP Pay failed, falling back to bank integration:', ecpPayErr.message);
       const platformToken = await getPlatformBankToken();
       const purchaseResult = await bankCardPurchaseByNumber(
@@ -418,4 +441,52 @@ export function getPayment(db, paymentId, userId) {
     return null;
   }
   return payment;
+}
+
+/**
+ * Refund the completed payment attached to an order, if any.
+ * Idempotent — if the payment is already refunded, returns { refunded: false, reason: 'already_refunded' }.
+ * Best-effort: logs and swallows ECP Pay errors, persisting the failure in payments.refund_error so
+ * the order cancellation itself never fails because the external provider is down.
+ */
+export async function refundOrderPayment(db, orderId) {
+  const payment = db.prepare(
+    "SELECT * FROM payments WHERE order_id = ? AND status = 'completed' ORDER BY created_at DESC LIMIT 1"
+  ).get(orderId);
+
+  if (!payment) {
+    return { refunded: false, reason: 'no_completed_payment' };
+  }
+  if (payment.refunded_at) {
+    return { refunded: false, reason: 'already_refunded', payment_id: payment.id };
+  }
+  if (!payment.bank_transaction_id) {
+    // No upstream transaction to refund (e.g. dev-mode fake payment or failed split).
+    db.prepare(
+      "UPDATE payments SET refund_error = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run('no_upstream_transaction_id', payment.id);
+    return { refunded: false, reason: 'no_upstream_transaction_id', payment_id: payment.id };
+  }
+
+  try {
+    const refundResult = await ecpPayRefund(payment.bank_transaction_id, payment.amount_cents);
+    db.prepare(`
+      UPDATE payments
+      SET refunded_at = datetime('now'),
+          refund_transaction_id = ?,
+          refund_error = NULL,
+          updated_at = datetime('now')
+      WHERE id = ?
+    `).run(refundResult.transaction_id || refundResult.refund_id || payment.bank_transaction_id, payment.id);
+
+    console.log(`[refund] OK payment=${payment.id} tx=${payment.bank_transaction_id} amount=${payment.amount_cents}`);
+    return { refunded: true, payment_id: payment.id, amount_cents: payment.amount_cents };
+  } catch (err) {
+    const msg = err?.message || String(err);
+    db.prepare(
+      "UPDATE payments SET refund_error = ?, updated_at = datetime('now') WHERE id = ?"
+    ).run(msg.slice(0, 500), payment.id);
+    console.error(`[refund] FAIL payment=${payment.id} tx=${payment.bank_transaction_id} error=${msg}`);
+    return { refunded: false, reason: 'ecp_pay_error', error: msg, payment_id: payment.id };
+  }
 }

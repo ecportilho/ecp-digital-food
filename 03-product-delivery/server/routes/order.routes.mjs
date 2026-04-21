@@ -3,7 +3,7 @@ import { authMiddleware, requireRole } from '../auth.mjs';
 import * as orderService from '../services/order.service.mjs';
 
 const CreateOrderBody = Type.Object({
-  address_text: Type.String({ minLength: 1 }),
+  address_text: Type.Optional(Type.String({ minLength: 1 })),
   coupon_code: Type.Optional(Type.String()),
   payment_method: Type.Optional(Type.Union([
     Type.Literal('card_ecp'),
@@ -65,7 +65,7 @@ export async function orderRoutes(app) {
     preHandler: [authMiddleware],
     schema: { body: UpdateStatusBody },
   }, async (request, reply) => {
-    const result = orderService.updateOrderStatus(app.db, request.user, request.params.id, request.body);
+    const result = await orderService.updateOrderStatus(app.db, request.user, request.params.id, request.body);
     if (!result.success) {
       const code = result.error.code === 'ORDER_NOT_FOUND' ? 404 : result.error.code === 'FORBIDDEN' ? 403 : 400;
       return reply.code(code).send(result);

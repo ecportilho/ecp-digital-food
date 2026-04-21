@@ -1,5 +1,16 @@
 import { validateSignature, processPixReceived } from '../services/webhook-handler.mjs';
 import * as sseManager from '../services/sse-manager.mjs';
+import { config } from '../config.mjs';
+
+function timingSafeEqualStr(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
 
 export async function webhookRoutes(app) {
   // POST /api/webhooks/bank/pix-received
@@ -37,6 +48,15 @@ export async function webhookRoutes(app) {
   // POST /api/webhooks/ecp-pay/payment-confirmed
   // ECP Pay callback when a PIX payment is confirmed (internal mode auto-settlement)
   app.post('/api/webhooks/ecp-pay/payment-confirmed', async (request, reply) => {
+    // Validate X-API-Key against the shared ECP Pay webhook secret.
+    // Without this, anyone on the network could POST a forged payment-confirmed event.
+    const providedKey = request.headers['x-api-key'];
+    const expectedKey = config.ecpPayWebhookApiKey;
+    if (!providedKey || !timingSafeEqualStr(providedKey, expectedKey)) {
+      app.log.warn('[ecp-pay-webhook] Rejected: X-API-Key missing or invalid');
+      return reply.code(401).send({ received: false, error: 'unauthorized' });
+    }
+
     const payload = request.body;
 
     app.log.info(`[ecp-pay-webhook] Recebido: event=${payload.event} tx=${payload.transaction_id} status=${payload.status}`);

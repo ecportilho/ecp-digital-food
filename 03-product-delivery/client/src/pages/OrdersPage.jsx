@@ -5,25 +5,26 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../components/ui/Toast';
 import Button from '../components/ui/Button';
 import { Tag } from '../components/ui/Badge';
+import { OrderListSkeleton } from '../components/ui/Skeleton';
 import { formatCurrency, formatDate } from '../lib/formatters';
 import styles from './OrdersPage.module.css';
 
 const statusLabels = {
-  pending: 'Pendente',
+  pending_payment: 'Aguardando pagamento',
+  payment_failed: 'Pagamento falhou',
   confirmed: 'Confirmado',
   preparing: 'Em preparo',
-  ready: 'Pronto',
-  delivering: 'A caminho',
+  out_for_delivery: 'A caminho',
   delivered: 'Entregue',
   cancelled: 'Cancelado',
 };
 
 const statusColors = {
-  pending: 'var(--muted)',
+  pending_payment: 'var(--muted)',
+  payment_failed: 'var(--danger)',
   confirmed: 'var(--brand)',
   preparing: 'var(--accent)',
-  ready: 'var(--success)',
-  delivering: 'var(--brand-2)',
+  out_for_delivery: 'var(--brand-2)',
   delivered: 'var(--success)',
   cancelled: 'var(--danger)',
 };
@@ -78,7 +79,7 @@ export default function OrdersPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)' }}>Carregando...</div>
+        <OrderListSkeleton count={3} />
       ) : orders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px', color: 'var(--muted)' }}>
           <div style={{ fontSize: '2rem', marginBottom: '14px' }}>📋</div>

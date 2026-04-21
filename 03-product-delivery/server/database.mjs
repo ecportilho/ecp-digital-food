@@ -233,7 +233,45 @@ function migrate(db) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_chat_msg_conv ON chat_messages(conversation_id);
+    CREATE INDEX IF NOT EXISTS idx_chat_msg_created ON chat_messages(created_at);
+
+    -- Refresh token revocation (Wave 2)
+    CREATE TABLE IF NOT EXISTS refresh_tokens (
+      id TEXT PRIMARY KEY DEFAULT ('rt_' || lower(hex(randomblob(8)))),
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      expires_at TEXT NOT NULL,
+      revoked_at TEXT,
+      last_used_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens(token_hash);
+    CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
   `);
+
+  // Additive column migrations (idempotent). SQLite lacks `ADD COLUMN IF NOT EXISTS`,
+  // so we inspect the column list and skip when already present.
+  const paymentCols = new Set(db.prepare("PRAGMA table_info(payments)").all().map(c => c.name));
+  if (!paymentCols.has('refunded_at')) {
+    db.exec('ALTER TABLE payments ADD COLUMN refunded_at TEXT');
+  }
+  if (!paymentCols.has('refund_transaction_id')) {
+    db.exec('ALTER TABLE payments ADD COLUMN refund_transaction_id TEXT');
+  }
+  if (!paymentCols.has('refund_error')) {
+    db.exec('ALTER TABLE payments ADD COLUMN refund_error TEXT');
+  }
+
+  const ccCols = new Set(db.prepare("PRAGMA table_info(credit_cards)").all().map(c => c.name));
+  if (!ccCols.has('card_token')) {
+    // Opaque token returned by ECP Pay's vault when saveCard=true. When set, the local
+    // card_number is redundant and is cleared by payWithCreditCard after a successful
+    // tokenization-on-first-use cycle.
+    db.exec('ALTER TABLE credit_cards ADD COLUMN card_token TEXT');
+  }
+  if (!ccCols.has('tokenized_at')) {
+    db.exec('ALTER TABLE credit_cards ADD COLUMN tokenized_at TEXT');
+  }
 }
 
 export function closeDb() {

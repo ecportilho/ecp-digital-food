@@ -17,6 +17,10 @@ const RefreshBody = Type.Object({
   refreshToken: Type.String(),
 });
 
+const LogoutBody = Type.Object({
+  refreshToken: Type.Optional(Type.String()),
+});
+
 export async function authRoutes(app) {
   // POST /api/auth/register
   app.post('/api/auth/register', {
@@ -50,6 +54,14 @@ export async function authRoutes(app) {
     if (!result.success) {
       return reply.code(401).send(result);
     }
+    return reply.send(result);
+  });
+
+  // POST /api/auth/logout — revoke refresh token (no-op if not provided)
+  app.post('/api/auth/logout', {
+    schema: { body: LogoutBody },
+  }, async (request, reply) => {
+    const result = authService.logout(app.db, request.body || {});
     return reply.send(result);
   });
 }
