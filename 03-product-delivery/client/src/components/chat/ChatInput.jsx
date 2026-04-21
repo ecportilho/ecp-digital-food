@@ -120,6 +120,30 @@ export function ChatInput({ onSend, isLoading, quickActions }) {
     }
   }, [voice.transcript, voice.interimTranscript, voice.listening]);
 
+  // "Cambio" no final da fala (acento opcional) — envia automaticamente,
+  // como walkie-talkie. Olha apenas transcript final, remove a palavra antes
+  // de enviar e da reset no voice.
+  useEffect(() => {
+    if (!voice.listening || !voice.transcript) return;
+    const normalized = voice.transcript.normalize('NFD').replace(/[̀-ͯ]/g, '');
+    if (!/\bcambio\b\s*[.!?]*\s*$/i.test(normalized)) return;
+
+    const strippedTranscript = voice.transcript.replace(/\s*c[aã]mbio\b\s*[.!?]*\s*$/i, '').trim();
+    const finalMsg = baselineRef.current
+      ? (strippedTranscript ? baselineRef.current + ' ' + strippedTranscript : baselineRef.current)
+      : strippedTranscript;
+    const trimmed = finalMsg.trim();
+    if (!trimmed || isLoading) return;
+
+    voice.stop();
+    voice.reset();
+    baselineRef.current = '';
+    onSend(trimmed);
+    setValue('');
+    if (inputRef.current) inputRef.current.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voice.transcript, voice.listening]);
+
   const handleSend = useCallback(() => {
     const trimmed = value.trim();
     if (!trimmed || isLoading) return;
@@ -235,7 +259,7 @@ export function ChatInput({ onSend, isLoading, quickActions }) {
       {voice.listening && !voice.error && (
         <div style={styles.listeningHint}>
           <span style={styles.listeningDot} />
-          Ouvindo em pt-BR... clique no microfone para parar.
+          Ouvindo em pt-BR... diga <strong style={{ color: 'var(--text)' }}>"câmbio"</strong> para enviar.
         </div>
       )}
     </div>
