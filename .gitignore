@@ -18,6 +18,8 @@ dist/
 # Logs
 *.log
 06-logs/*.log
+# Except the squad audit trail — operational history, not ephemeral noise.
+!.claude-squad/audit.log
 
 # OS files
 .DS_Store
