@@ -227,45 +227,30 @@ export async function payWithCreditCard(db, userId, { order_id, credit_card_id }
     const description = `FoodFlow Pedido #${order_id}`;
     let transactionId = null;
 
-    // Tokenize-on-first-use: if the card already has a vault token we pass it and send
-    // no PAN; otherwise we pass the PAN + saveCard=true, keep the token returned by
-    // ECP Pay and null-out card_number in the next step.
-    const hasToken = !!card.card_token;
+    // Always send the PAN to ECP Pay, even when we already have a vault token.
+    //
+    // Reasoning: the downstream Bank (ecp-digital-bank) registers the purchase on the
+    // cardholder's invoice by looking up the card via its number (Pay calls
+    // notifyBankCardPurchase with the PAN). The Bank currently has no token-aware
+    // endpoint, so if we pass card_number=null Pay skips the notification and the
+    // purchase never shows up on the fatura. Reverting tokenize-on-first-use until
+    // the Bank supports token lookups end-to-end. See gap-analysis §6.
     try {
       const ecpPayResult = await createCardCharge(
         amountCents,
         customerName,
         customerDocument,
-        hasToken ? card.card_token : null,
-        hasToken ? null : card.card_number,
-        hasToken ? null : (card.card_expiry || null),
+        null, // cardToken
+        card.card_number,
+        card.card_expiry || null,
         null, // cardCvv — never stored
         card.card_holder || customerName,
-        !hasToken, // saveCard — only on first use
+        false, // saveCard — disabled until Bank supports token-based purchase
         1     // installments
       );
       transactionId = ecpPayResult.transaction_id || ecpPayResult.id || null;
-
-      // Persist the returned vault token. If ECP Pay did not echo one, log and skip.
-      const returnedToken = ecpPayResult.card_token || ecpPayResult.stored_card_id || null;
-      if (!hasToken && returnedToken) {
-        db.prepare(`
-          UPDATE credit_cards
-          SET card_token = ?,
-              tokenized_at = datetime('now'),
-              card_number = '[tokenized]'
-          WHERE id = ?
-        `).run(returnedToken, card.id);
-        console.log(`[tokenize] Card ${card.id} tokenized; PAN cleared from DB.`);
-      } else if (!hasToken) {
-        console.warn(`[tokenize] ECP Pay did not return card_token for card ${card.id}; PAN remains in DB.`);
-      }
     } catch (ecpPayErr) {
-      // ECP Pay failed — fall back to direct bank integration, but only if we still
-      // hold the PAN locally. Token-only cards cannot be charged via the fallback.
-      if (hasToken) {
-        throw new Error(`ECP Pay indisponível e este cartão está tokenizado — não há PAN local para fallback: ${ecpPayErr.message}`);
-      }
+      // ECP Pay failed — fall back to direct bank integration
       console.warn('[payWithCreditCard] ECP Pay failed, falling back to bank integration:', ecpPayErr.message);
       const platformToken = await getPlatformBankToken();
       const purchaseResult = await bankCardPurchaseByNumber(
