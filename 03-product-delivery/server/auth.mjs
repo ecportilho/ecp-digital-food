@@ -94,21 +94,24 @@ export function verifyRefreshToken(token) {
  */
 export async function authMiddleware(request, reply) {
   const authHeader = request.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  let token = null;
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7);
+  } else if (request.query?.token) {
+    // SSE via query param — EventSource não suporta headers customizados
+    token = request.query.token;
+  }
+
+  if (!token) {
     return reply.code(401).send({
       success: false,
-      error: { code: 'UNAUTHORIZED', message: 'Missing or invalid authorization header' },
+      error: { code: 'UNAUTHORIZED', message: 'Missing authorization header or token query' },
     });
   }
 
-  const token = authHeader.slice(7);
-
-  // Support SSE token via query param
-  const sseToken = request.query?.token;
-  const tokenToVerify = token || sseToken;
-
   try {
-    const decoded = verifyAccessToken(tokenToVerify);
+    const decoded = verifyAccessToken(token);
     request.user = { id: decoded.id, email: decoded.email, role: decoded.role };
   } catch (err) {
     return reply.code(401).send({
