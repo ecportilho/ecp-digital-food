@@ -121,7 +121,7 @@ export async function bankListCards(bankJwt) {
  * @returns {Promise<{ balance: number }>}
  */
 export async function bankGetBalance(bankJwt) {
-  const res = await bankFetchWithRetry(`${BANK_API}/accounts/balance`, {
+  const res = await bankFetchWithRetry(`${BANK_API}/accounts/me/balance`, {
     headers: { Authorization: `Bearer ${bankJwt}` },
   });
   if (!res.ok) throw new BankApiError('BALANCE_FETCH_FAILED', res.status);
