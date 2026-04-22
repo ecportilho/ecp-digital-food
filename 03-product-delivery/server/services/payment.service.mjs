@@ -134,7 +134,7 @@ export async function payWithCard(db, userId, { order_id, bank_token, card_last4
   try {
     // 3. Check balance
     const balanceResult = await bankGetBalance(bank_token);
-    const balance = balanceResult.balance || balanceResult.data?.balance || 0;
+    const balance = balanceResult.balanceCents ?? balanceResult.balance ?? balanceResult.data?.balanceCents ?? balanceResult.data?.balance ?? 0;
     if (balance < amountCents) {
       db.prepare("UPDATE payments SET status = 'failed', error_message = 'Insufficient balance', bank_jwt_token = NULL, updated_at = datetime('now') WHERE id = ?").run(payment.id);
       db.prepare("UPDATE orders SET status = 'payment_failed', updated_at = datetime('now') WHERE id = ?").run(order_id);
