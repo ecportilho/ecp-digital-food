@@ -145,15 +145,14 @@ export async function bankPixTransfer(bankJwt, amountInCents, description) {
       Authorization: `Bearer ${bankJwt}`,
     },
     body: JSON.stringify({
-      pixKeyValue: config.bankPlatformPixKey,
-      pixKeyType: config.bankPlatformPixKeyType,
-      amountInCents,
+      // Schema do bank (pix.schema.ts): pixKey, amountCents, description, reinforcedToken?
+      pixKey: config.bankPlatformPixKey,
+      amountCents: amountInCents,
       description,
     }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    // Bank retorna erros no shape { error: { code, message } } — extrair corretamente
     const errCode =
       (typeof body.error === 'object' && body.error?.code) ||
       (typeof body.error === 'string' && body.error) ||
@@ -178,9 +177,18 @@ export async function bankGeneratePixQrCode(platformJwt, amountInCents, descript
       'Content-Type': 'application/json',
       Authorization: `Bearer ${platformJwt}`,
     },
-    body: JSON.stringify({ amountInCents, description }),
+    // Schema do bank (pix.schema.ts PixQrCodeSchema): amountCents, description
+    body: JSON.stringify({ amountCents: amountInCents, description }),
   });
-  if (!res.ok) throw new BankApiError('QRCODE_GENERATION_FAILED', res.status);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const errCode =
+      (typeof body.error === 'object' && body.error?.code) ||
+      (typeof body.error === 'string' && body.error) ||
+      'QRCODE_GENERATION_FAILED';
+    const errMsg = body.error?.message || body.message || String(errCode);
+    throw new BankApiError(errCode, res.status, errMsg);
+  }
   return res.json();
 }
 
