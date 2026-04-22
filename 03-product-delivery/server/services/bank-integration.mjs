@@ -13,11 +13,13 @@ const CIRCUIT_RESET_MS = 30_000;
  */
 export class BankApiError extends Error {
   constructor(code, statusCode, detail) {
-    super(`Bank API error: ${code}`);
+    const codeStr = typeof code === 'string' ? code : JSON.stringify(code);
+    const detailStr = detail ? ` — ${typeof detail === 'string' ? detail : JSON.stringify(detail)}` : '';
+    super(`Bank API error ${statusCode}: ${codeStr}${detailStr}`);
     this.name = 'BankApiError';
-    this.code = code;
+    this.code = codeStr;
     this.statusCode = statusCode;
-    this.detail = detail;
+    this.detail = typeof detail === 'string' ? detail : (detail ? JSON.stringify(detail) : undefined);
   }
 }
 
@@ -151,11 +153,13 @@ export async function bankPixTransfer(bankJwt, amountInCents, description) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new BankApiError(
-      body.error || 'PIX_TRANSFER_FAILED',
-      res.status,
-      body.message
-    );
+    // Bank retorna erros no shape { error: { code, message } } — extrair corretamente
+    const errCode =
+      (typeof body.error === 'object' && body.error?.code) ||
+      (typeof body.error === 'string' && body.error) ||
+      'PIX_TRANSFER_FAILED';
+    const errMsg = body.error?.message || body.message || String(errCode);
+    throw new BankApiError(errCode, res.status, errMsg);
   }
   return res.json();
 }
