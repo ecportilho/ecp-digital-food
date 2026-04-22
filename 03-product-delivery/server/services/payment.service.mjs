@@ -334,10 +334,17 @@ export async function payWithPix(db, userId, { order_id }) {
   const payment = db.prepare('SELECT * FROM payments WHERE rowid = ?').get(paymentResult.lastInsertRowid);
 
   try {
-    // 3. Get user info for ECP Pay
-    const user = db.prepare('SELECT name, phone, email FROM users WHERE id = ?').get(userId);
-    const customerName = user?.name || 'Cliente FoodFlow';
-    const customerDocument = user?.email || '00000000000';
+    // 3. Dados do MERCHANT (plataforma) — não do consumer.
+    // Motivo: no mock INTERNAL do ecp-pay, customer_document vira a pixKey no
+    // BRCode gerado. Se passássemos o email do consumer (Marina), o QR teria
+    // Marina como recebedora e ela não conseguiria pagar (auto-transferência).
+    // Passando CPF da plataforma (foodflow), o QR fica pagável por qualquer user.
+    // TECH DEBT: separar customer_* (quem paga) de merchant_* (quem recebe) na
+    // interface do ecp-pay. Hoje são conflados. Refatorar quando tocar ecp-pay.
+    const customerName = 'ECP Food Platform';
+    const customerDocument = config.bankPlatformPixKey?.includes('@')
+      ? '00000000001'  // usa CPF da plataforma (key tipo cpf cadastrada no bank)
+      : (config.bankPlatformPixKey || '00000000001');
     const description = `ECP Food #${payment.id}`;
     let qrResult;
     let usedEcpPay = false;
