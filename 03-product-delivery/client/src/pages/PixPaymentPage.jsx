@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useApi } from '../hooks/useApi';
+import { useAddress } from '../hooks/useAddress';
 import { useToast } from '../components/ui/Toast';
 import Button from '../components/ui/Button';
 import GlassCard from '../components/ui/GlassCard';
@@ -12,43 +12,116 @@ import styles from './PaymentPages.module.css';
 export default function PixPaymentPage() {
   const navigate = useNavigate();
   const cart = useCart();
-  const api = useApi();
   const showToast = useToast();
+  const { defaultAddress, addressText, loading: loadingAddress } = useAddress();
   const [step, setStep] = useState('loading'); // loading | qr | done | error
   const [pixData, setPixData] = useState(null);
+  const [orderId, setOrderId] = useState(null);
   const [error, setError] = useState('');
 
+  const syncCartToServer = async () => {
+    const token = localStorage.getItem('ff_token');
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    // Clear server cart first
+    const cartRes = await fetch('/api/cart', { headers }).catch(() => null);
+    if (cartRes && cartRes.ok) {
+      const cartData = await cartRes.json().catch(() => ({}));
+      const serverItems = cartData?.data?.items || cartData?.items || [];
+      for (const si of serverItems) {
+        await fetch(`/api/cart/items/${si.id}`, { method: 'DELETE', headers }).catch(() => {});
+      }
+    }
+    // Add current frontend items to server cart
+    for (const item of cart.items) {
+      await fetch('/api/cart/items', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ menu_item_id: item.menuItemId, quantity: item.quantity }),
+      }).catch(() => {});
+    }
+  };
+
   const generatePix = async () => {
+    if (!defaultAddress) {
+      setError('Cadastre um endereco de entrega antes de finalizar o pedido.');
+      setStep('error');
+      return;
+    }
     setStep('loading');
     try {
-      const res = await api.post('/api/payments/pix', {
-        amount: Math.round(cart.total * 100),
-        items: cart.items.map((i) => ({
-          menu_item_id: i.menuItemId,
-          quantity: i.quantity,
-        })),
-        coupon: cart.coupon,
+      const token = localStorage.getItem('ff_token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
+      // 1. Sync frontend cart to server
+      await syncCartToServer();
+
+      // 2. Create the order
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          address_text: addressText,
+          coupon_code: cart.coupon || null,
+          payment_method: 'pix_qrcode',
+        }),
       });
-      setPixData(res);
+
+      if (!orderRes.ok) {
+        const errBody = await orderRes.json().catch(() => ({}));
+        throw new Error(errBody.error?.message || errBody.message || `Erro ${orderRes.status} ao criar pedido`);
+      }
+
+      const orderData = await orderRes.json();
+      const newOrderId = orderData?.data?.id || orderData?.id;
+
+      if (!newOrderId) {
+        throw new Error('Erro ao criar pedido');
+      }
+      setOrderId(newOrderId);
+
+      // 3. Generate PIX QR Code
+      const pixRes = await fetch('/api/payments/pix', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ order_id: newOrderId }),
+      });
+
+      if (!pixRes.ok) {
+        const errBody = await pixRes.json().catch(() => ({}));
+        throw new Error(errBody.error?.message || errBody.message || `Erro ${pixRes.status} ao gerar QR Code`);
+      }
+
+      const pixBody = await pixRes.json();
+      const pixPayload = pixBody?.data !== undefined ? pixBody.data : pixBody;
+      setPixData(pixPayload);
       setStep('qr');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Erro ao gerar QR Code');
       setStep('error');
     }
   };
 
   useEffect(() => {
+    if (loadingAddress) return;
     if (cart.items.length > 0) {
       generatePix();
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingAddress]);
 
   const handleConfirmed = () => {
     setStep('done');
     showToast('Pagamento confirmado!', 'success');
     cart.clearCart();
     setTimeout(() => {
-      navigate(pixData?.order_id ? `/orders/${pixData.order_id}` : '/orders');
+      navigate(orderId ? `/orders/${orderId}` : '/orders');
     }, 2000);
   };
 
@@ -73,9 +146,9 @@ export default function PixPaymentPage() {
         <GlassCard>
           <PixQrCode
             paymentId={pixData.payment_id}
-            qrCodeBase64={pixData.qr_code}
+            qrCodeBase64={pixData.qrcode_image}
             pixCopyPaste={pixData.pix_copy_paste}
-            expiresAt={pixData.pix_expiration}
+            expiresAt={pixData.expires_at}
             onConfirmed={handleConfirmed}
             onExpired={handleExpired}
           />

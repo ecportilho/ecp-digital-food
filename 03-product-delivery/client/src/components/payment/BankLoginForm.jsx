@@ -14,7 +14,7 @@ export default function BankLoginForm({ onSuccess, onBack }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('ff_token');
-      const res = await fetch('/api/payments/bank-login', {
+      const res = await fetch('/api/payments/bank-auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,10 +24,16 @@ export default function BankLoginForm({ onSuccess, onBack }) {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.message || 'Credenciais inválidas');
+        throw new Error(body.error?.message || body.message || 'Credenciais inválidas');
       }
-      const data = await res.json();
-      onSuccess(data);
+      const body = await res.json();
+      // Backend returns { success, data: { bank_token, bank_user } }
+      const payload = body?.data !== undefined ? body.data : body;
+      const bankToken = payload?.bank_token;
+      if (!bankToken) {
+        throw new Error('Resposta inválida do banco');
+      }
+      onSuccess({ bank_token: bankToken, bank_user: payload?.bank_user });
     } catch (err) {
       setError(err.message);
     } finally {
