@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAddress } from '../hooks/useAddress';
@@ -18,6 +18,8 @@ export default function PixPaymentPage() {
   const [pixData, setPixData] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const [error, setError] = useState('');
+  const confirmedRef = useRef(false);  // guard contra loop de re-confirm
+  const redirectTimerRef = useRef(null);  // timeout handle para cleanup
 
   const syncCartToServer = async () => {
     const token = localStorage.getItem('ff_token');
@@ -116,18 +118,35 @@ export default function PixPaymentPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingAddress]);
 
-  const handleConfirmed = () => {
+  const handleConfirmed = useCallback(() => {
+    // Idempotent: SSE pode reconectar e re-emitir "completed". Só roda a 1ª vez.
+    if (confirmedRef.current) return;
+    confirmedRef.current = true;
     setStep('done');
     showToast('Pagamento confirmado!', 'success');
     cart.clearCart();
-    setTimeout(() => {
+    redirectTimerRef.current = setTimeout(() => {
       navigate(orderId ? `/orders/${orderId}` : '/orders');
     }, 2000);
-  };
+    // navigate e orderId mudam pouco; cart/showToast referenciados via closure
+    // são estáveis o bastante pro uso aqui (e o guard acima impede re-exec).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, orderId]);
 
-  const handleExpired = () => {
+  const handleExpired = useCallback(() => {
     showToast('QR Code expirado', 'error');
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup: cancela timeout pendente se componente desmontar antes dos 2s
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+        redirectTimerRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div>
