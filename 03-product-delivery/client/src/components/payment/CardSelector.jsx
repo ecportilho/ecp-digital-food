@@ -5,7 +5,9 @@ import styles from './Payment.module.css';
 
 export default function CardSelector({ cards = [], balance, orderTotal, onConfirm }) {
   const [selectedCard, setSelectedCard] = useState(cards[0]?.id || null);
-  const sufficientBalance = (balance || 0) >= orderTotal;
+  // balance em centavos (vem do backend), orderTotal em reais.
+  // Convertemos para a mesma unidade antes de comparar.
+  const sufficientBalance = (balance || 0) >= Math.round((orderTotal || 0) * 100);
 
   return (
     <div className={styles.cardSelector}>
