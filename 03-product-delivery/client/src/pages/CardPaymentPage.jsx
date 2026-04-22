@@ -65,7 +65,7 @@ export default function CardPaymentPage() {
       ]);
       const cardList = Array.isArray(cardsRes) ? cardsRes : (cardsRes?.data || []);
       setCards(cardList);
-      setBalance(balanceRes?.balance ?? 0);
+      setBalance(balanceRes?.balanceCents ?? balanceRes?.balance ?? 0);
       setStep('select');
     } catch (err) {
       setError(err.message || 'Erro ao carregar dados do banco');
