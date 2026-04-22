@@ -175,8 +175,12 @@ export async function payWithCard(db, userId, { order_id, bank_token, card_last4
       },
     };
   } catch (err) {
+    // Log the real error before masking it
+    console.error('[payWithCard] failed:', err);
     // Clean up bank token and mark as failed
-    const errorMsg = err instanceof BankApiError ? err.detail || err.code : err.message;
+    const errorMsg = (err instanceof BankApiError
+      ? err.detail || err.code
+      : err.message) || String(err) || 'Unknown error';
     db.prepare("UPDATE payments SET status = 'failed', error_message = ?, bank_jwt_token = NULL, updated_at = datetime('now') WHERE id = ?").run(errorMsg, payment.id);
     db.prepare("UPDATE orders SET status = 'payment_failed', updated_at = datetime('now') WHERE id = ?").run(order_id);
 
@@ -187,7 +191,12 @@ export async function payWithCard(db, userId, { order_id, bank_token, card_last4
         statusCode: err.statusCode,
       };
     }
-    throw err;
+    // Return a graceful error to the client instead of rethrowing (avoids 500)
+    return {
+      success: false,
+      error: { code: 'PAYMENT_FAILED', message: errorMsg },
+      statusCode: 500,
+    };
   }
 }
 
